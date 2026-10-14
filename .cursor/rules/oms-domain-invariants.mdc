@@ -1,0 +1,19 @@
+---
+description: Beoni OMS data-integrity invariants for inventory, ordering, payments, and accounting
+alwaysApply: true
+---
+
+# Beoni OMS invariants
+
+- Money is `Decimal` / `Numeric(18,2)`, quantities `Numeric(18,4)`. Never `float`. Currency is VND.
+- The backend is the source of truth for prices, totals, stock, costs, statuses, and permissions. The React client never computes authoritative values.
+- Every stock change is an `inventory_movements` row referencing its source document. Balances must equal the sum of movements.
+- Posted documents (receipts, completed orders, payments, refunds, adjustments, expenses, supplier payments) are never edited in place or deleted. Correct them with reversing documents.
+- Order completion, payments, refunds, receipt posting, and adjustments are idempotent (idempotency key + DB unique constraint) and atomic (one commit per use case, rollback on any error). Follow the `oms-transactional-workflow` skill.
+- Lock stock rows with `SELECT ... FOR UPDATE` in sorted id order; respect the negative-stock setting.
+- Order lines snapshot product name, price, discount, tax, and recipe version. Recipe or price changes never rewrite history.
+- Refunds never automatically restore ingredients.
+- State transitions are validated on the backend.
+- Enforce integrity with DB constraints (unique references, check constraints, foreign keys), not only form validation.
+- Permissions are checked on the backend with `require_permission(...)` for every route.
+- Specs live in `openspec/`; implement changes through the OpenSpec apply workflow and keep tasks.md checkboxes current.

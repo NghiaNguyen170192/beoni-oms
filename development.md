@@ -219,3 +219,37 @@ Adminer: <http://localhost.tiangolo.com:8080>
 Traefik UI: <http://localhost.tiangolo.com:8090>
 
 MailCatcher: <http://localhost.tiangolo.com:1080>
+
+## AI agent tooling (Cursor)
+
+Project agent skills live in `.cursor/skills/` (`oms-*` for OMS conventions, `openspec-*` for the spec workflow), and always-on rules in `.cursor/rules/`. Feature work is planned and tracked as OpenSpec changes in `openspec/changes/`.
+
+### MCP servers
+
+`.cursor/mcp.json` configures:
+
+- **postgres** (`postgres-mcp`, restricted/read-only mode): inspect the local database, verify ledger/balance reconciliation, run `EXPLAIN`. Requires `uv` and the `OMS_READONLY_DATABASE_URI` environment variable.
+- **context7**: up-to-date library docs (FastAPI, SQLModel, Alembic, TanStack, shadcn). Requires Node.js.
+- **shadcn**: browse and add shadcn/ui components. Requires Node.js.
+
+Create a read-only role for the Postgres MCP against the local Compose database:
+
+```sql
+CREATE ROLE oms_readonly LOGIN PASSWORD 'change-me';
+GRANT CONNECT ON DATABASE app TO oms_readonly;
+GRANT USAGE ON SCHEMA public TO oms_readonly;
+GRANT SELECT ON ALL TABLES IN SCHEMA public TO oms_readonly;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO oms_readonly;
+```
+
+Then set, in your user environment (not in the repo):
+
+```bash
+OMS_READONLY_DATABASE_URI=postgresql://oms_readonly:change-me@localhost:5432/app
+```
+
+Optional servers, add when needed:
+
+- **GitHub MCP** (`https://api.githubcopilot.com/mcp/`): issues, PRs, CI. The `gh` CLI covers most needs.
+- **Playwright MCP** (`npx @playwright/mcp@latest`): interactive E2E debugging. Specs still run with `bun run test`.
+- **Sentry MCP** (`https://mcp.sentry.dev/mcp`): error tracking once deployed (the backend already uses `sentry-sdk`).

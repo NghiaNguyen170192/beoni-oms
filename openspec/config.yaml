@@ -1,0 +1,47 @@
+schema: spec-driven
+
+context: |
+  Beoni OMS is a small-restaurant/cafe business management system (inventory, POS ordering,
+  recipe-based stock deduction, basic accounting, reports). goals.md is the product source.
+  Stack decision (overrides the Jinja2/HTMX wording in goals.md): keep the full-stack-fastapi-template
+  React SPA (TanStack Router/Query, shadcn/ui) consuming a generated OpenAPI client; backend is
+  FastAPI + SQLModel (on SQLAlchemy) + Alembic + PostgreSQL in Docker Compose.
+  Backend domains live in backend/app/modules/<domain>/ (models, schemas, service, routes).
+  Money is Decimal/Numeric(18,2) in VND; quantities Numeric(18,4); business timezone Asia/Ho_Chi_Minh.
+  Critical stock/money operations must be atomic, idempotent, auditable, and corrected by reversal only.
+  Specs describe behavior only; follow the oms-* agent skills in .cursor/skills for implementation conventions.
+
+rules:
+  tasks:
+    - Every group that adds endpoints includes backend tests, an Alembic migration when the schema changes, client regeneration, and the React page with a Playwright spec.
+
+# Project context (optional)
+# Add only constraints that should guide OpenSpec artifacts and workflows.
+# Include constraints an agent cannot infer by reading the code.
+# Keep general project documentation and discoverable codebase facts out.
+# Example:
+#   context: |
+#     Designs and tasks must cover Windows, macOS, and Linux
+#     Write all artifacts in Spanish
+
+# Per-artifact rules (optional)
+# Add custom rules for specific artifacts.
+# Example:
+#   rules:
+#     proposal:
+#       - Keep proposals under 500 words
+#       - Always state what is out of scope
+#     tasks:
+#       - Break tasks into chunks of max 2 hours
+
+# Per-operation guidance (optional)
+# Add advisory guidance for how apply and archive work should be conducted.
+# This is separate from artifact rules above.
+# Example:
+#   operations:
+#     apply:
+#       guidance:
+#         - Keep test summaries concise
+#     archive:
+#       guidance:
+#         - Summarize the archive outcome before finishing
