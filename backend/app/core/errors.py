@@ -1,3 +1,5 @@
+from typing import Any
+
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from sqlalchemy.exc import IntegrityError
@@ -15,13 +17,19 @@ def is_foreign_key_violation(exc: IntegrityError) -> bool:
 
 
 class DomainError(Exception):
-    """Business-rule failure raised by services and rendered as `{"detail": ...}`."""
+    """Business-rule failure raised by services and rendered as `{"detail": ...}`.
+
+    `extra` is merged into the JSON body (for example a 409 shortage list).
+    """
 
     status_code = 400
     default_detail = "Request rejected"
 
-    def __init__(self, detail: str | None = None) -> None:
+    def __init__(
+        self, detail: str | None = None, *, extra: dict[str, Any] | None = None
+    ) -> None:
         self.detail = detail or self.default_detail
+        self.extra = extra or {}
         super().__init__(self.detail)
 
 
@@ -47,7 +55,8 @@ class Forbidden(DomainError):
 
 async def _handle_domain_error(_request: Request, exc: Exception) -> JSONResponse:
     assert isinstance(exc, DomainError)
-    return JSONResponse({"detail": exc.detail}, status_code=exc.status_code)
+    body: dict[str, Any] = {"detail": exc.detail, **exc.extra}
+    return JSONResponse(body, status_code=exc.status_code)
 
 
 def register_domain_error_handlers(app: FastAPI) -> None:

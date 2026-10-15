@@ -56,6 +56,7 @@ def test_rejected_transitions(current: OrderStatus, target: OrderStatus) -> None
         (S.COMPLETED, S.PARTIALLY_REFUNDED),
         (S.COMPLETED, S.REFUNDED),
         (S.PARTIALLY_REFUNDED, S.REFUNDED),
+        (S.PAID, S.CONFIRMED),
     ],
 )
 def test_payment_transitions(current: OrderStatus, target: OrderStatus) -> None:

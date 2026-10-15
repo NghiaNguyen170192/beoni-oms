@@ -3,7 +3,375 @@
 import type { CancelablePromise } from './core/CancelablePromise';
 import { OpenAPI } from './core/OpenAPI';
 import { request as __request } from './core/request';
-import type { AuditReadAuditLogData, AuditReadAuditLogResponse, CatalogReadCategoriesData, CatalogReadCategoriesResponse, CatalogCreateCategoryData, CatalogCreateCategoryResponse, CatalogReorderCategoriesData, CatalogReorderCategoriesResponse, CatalogUpdateCategoryData, CatalogUpdateCategoryResponse, CatalogReadItemsData, CatalogReadItemsResponse, CatalogCreateItemData, CatalogCreateItemResponse, CatalogReadItemData, CatalogReadItemResponse, CatalogUpdateItemData, CatalogUpdateItemResponse, CatalogDeleteItemData, CatalogDeleteItemResponse, CatalogUploadItemImageData, CatalogUploadItemImageResponse, InventoryReadCategoriesResponse, InventoryReadItemsData, InventoryReadItemsResponse, InventoryCreateItemData, InventoryCreateItemResponse, InventoryReadLowStockData, InventoryReadLowStockResponse, InventoryReadNegativeStockData, InventoryReadNegativeStockResponse, InventoryReadItemData, InventoryReadItemResponse, InventoryUpdateItemData, InventoryUpdateItemResponse, InventoryDeleteItemData, InventoryDeleteItemResponse, InventoryReadItemMovementsData, InventoryReadItemMovementsResponse, InventoryReadAdjustmentsData, InventoryReadAdjustmentsResponse, InventoryPostAdjustmentData, InventoryPostAdjustmentResponse, InventoryReadAdjustmentData, InventoryReadAdjustmentResponse, InventoryReverseAdjustmentData, InventoryReverseAdjustmentResponse, LoginLoginAccessTokenData, LoginLoginAccessTokenResponse, LoginTestTokenResponse, LoginRecoverPasswordData, LoginRecoverPasswordResponse, LoginResetPasswordData, LoginResetPasswordResponse, LoginRecoverPasswordHtmlContentData, LoginRecoverPasswordHtmlContentResponse, OrdersReadOrdersData, OrdersReadOrdersResponse, OrdersCreateOrderData, OrdersCreateOrderResponse, OrdersReadOrderData, OrdersReadOrderResponse, OrdersUpdateOrderData, OrdersUpdateOrderResponse, OrdersReplaceOrderLinesData, OrdersReplaceOrderLinesResponse, OrdersSetOrderDiscountData, OrdersSetOrderDiscountResponse, OrdersSetLineDiscountData, OrdersSetLineDiscountResponse, OrdersConfirmOrderData, OrdersConfirmOrderResponse, OrdersCancelOrderData, OrdersCancelOrderResponse, OrdersCompleteOrderData, OrdersCompleteOrderResponse, OrdersReadReceiptData, OrdersReadReceiptResponse, PrivateCreateUserData, PrivateCreateUserResponse, SettingsReadBusinessSettingsResponse, SettingsUpdateBusinessSettingsData, SettingsUpdateBusinessSettingsResponse, SettingsUpdateLanguageData, SettingsUpdateLanguageResponse, UsersReadUsersData, UsersReadUsersResponse, UsersCreateUserData, UsersCreateUserResponse, UsersReadUserMeResponse, UsersDeleteUserMeResponse, UsersUpdateUserMeData, UsersUpdateUserMeResponse, UsersUpdatePasswordMeData, UsersUpdatePasswordMeResponse, UsersRegisterUserData, UsersRegisterUserResponse, UsersReadUserByIdData, UsersReadUserByIdResponse, UsersUpdateUserData, UsersUpdateUserResponse, UsersDeleteUserData, UsersDeleteUserResponse, UtilsTestEmailData, UtilsTestEmailResponse, UtilsHealthCheckResponse, UtilsReadinessCheckResponse } from './types.gen';
+import type { AccountingReadAccountsResponse, AccountingReadMovementsData, AccountingReadMovementsResponse, AccountingCreateAdjustmentData, AccountingCreateAdjustmentResponse, AccountingReverseAdjustmentData, AccountingReverseAdjustmentResponse, AccountingReadCategoriesData, AccountingReadCategoriesResponse, AccountingCreateCategoryData, AccountingCreateCategoryResponse, AccountingDeactivateCategoryData, AccountingDeactivateCategoryResponse, AccountingReadExpensesData, AccountingReadExpensesResponse, AccountingCreateExpenseData, AccountingCreateExpenseResponse, AccountingPayExpenseData, AccountingPayExpenseResponse, AccountingReverseExpenseData, AccountingReverseExpenseResponse, AccountingCreateSupplierPaymentData, AccountingCreateSupplierPaymentResponse, AccountingReverseSupplierPaymentData, AccountingReverseSupplierPaymentResponse, AccountingReadStatementData, AccountingReadStatementResponse, AccountingReadSummaryData, AccountingReadSummaryResponse, AccountingReadIncomeData, AccountingReadIncomeResponse, AuditReadAuditLogData, AuditReadAuditLogResponse, CatalogReadCategoriesData, CatalogReadCategoriesResponse, CatalogCreateCategoryData, CatalogCreateCategoryResponse, CatalogReorderCategoriesData, CatalogReorderCategoriesResponse, CatalogUpdateCategoryData, CatalogUpdateCategoryResponse, CatalogReadItemsData, CatalogReadItemsResponse, CatalogCreateItemData, CatalogCreateItemResponse, CatalogReadItemData, CatalogReadItemResponse, CatalogUpdateItemData, CatalogUpdateItemResponse, CatalogDeleteItemData, CatalogDeleteItemResponse, CatalogUploadItemImageData, CatalogUploadItemImageResponse, InventoryReadCategoriesResponse, InventoryReadItemsData, InventoryReadItemsResponse, InventoryCreateItemData, InventoryCreateItemResponse, InventoryReadLowStockData, InventoryReadLowStockResponse, InventoryReadNegativeStockData, InventoryReadNegativeStockResponse, InventoryReadItemData, InventoryReadItemResponse, InventoryUpdateItemData, InventoryUpdateItemResponse, InventoryDeleteItemData, InventoryDeleteItemResponse, InventoryReadItemMovementsData, InventoryReadItemMovementsResponse, InventoryReadAdjustmentsData, InventoryReadAdjustmentsResponse, InventoryPostAdjustmentData, InventoryPostAdjustmentResponse, InventoryReadAdjustmentData, InventoryReadAdjustmentResponse, InventoryReverseAdjustmentData, InventoryReverseAdjustmentResponse, LoginLoginAccessTokenData, LoginLoginAccessTokenResponse, LoginTestTokenResponse, LoginRecoverPasswordData, LoginRecoverPasswordResponse, LoginResetPasswordData, LoginResetPasswordResponse, LoginRecoverPasswordHtmlContentData, LoginRecoverPasswordHtmlContentResponse, OrdersReadOrdersData, OrdersReadOrdersResponse, OrdersCreateOrderData, OrdersCreateOrderResponse, OrdersReadOrderData, OrdersReadOrderResponse, OrdersUpdateOrderData, OrdersUpdateOrderResponse, OrdersReplaceOrderLinesData, OrdersReplaceOrderLinesResponse, OrdersSetOrderDiscountData, OrdersSetOrderDiscountResponse, OrdersSetLineDiscountData, OrdersSetLineDiscountResponse, OrdersConfirmOrderData, OrdersConfirmOrderResponse, OrdersCancelOrderData, OrdersCancelOrderResponse, OrdersCompleteOrderData, OrdersCompleteOrderResponse, OrdersReadStockReturnsData, OrdersReadStockReturnsResponse, OrdersCreateStockReturnData, OrdersCreateStockReturnResponse, OrdersReadReceiptData, OrdersReadReceiptResponse, PaymentsReadPaymentMethodsData, PaymentsReadPaymentMethodsResponse, PaymentsCreatePaymentMethodData, PaymentsCreatePaymentMethodResponse, PaymentsUpdatePaymentMethodData, PaymentsUpdatePaymentMethodResponse, PaymentsReadOrderPaymentsData, PaymentsReadOrderPaymentsResponse, PaymentsCreateOrderPaymentData, PaymentsCreateOrderPaymentResponse, PaymentsPayAndCompleteOrderData, PaymentsPayAndCompleteOrderResponse, PaymentsVoidPaymentData, PaymentsVoidPaymentResponse, PaymentsReadPaymentsData, PaymentsReadPaymentsResponse, PaymentsCreateOrderRefundData, PaymentsCreateOrderRefundResponse, PaymentsReadRefundsData, PaymentsReadRefundsResponse, PrivateCreateUserData, PrivateCreateUserResponse, PurchasingReadSuppliersData, PurchasingReadSuppliersResponse, PurchasingCreateSupplierData, PurchasingCreateSupplierResponse, PurchasingReadSupplierData, PurchasingReadSupplierResponse, PurchasingUpdateSupplierData, PurchasingUpdateSupplierResponse, PurchasingDeleteSupplierData, PurchasingDeleteSupplierResponse, PurchasingReadSupplierBalanceData, PurchasingReadSupplierBalanceResponse, PurchasingReadSupplierReceiptsData, PurchasingReadSupplierReceiptsResponse, PurchasingReadReceiptsData, PurchasingReadReceiptsResponse, PurchasingCreateReceiptData, PurchasingCreateReceiptResponse, PurchasingReadReceiptData, PurchasingReadReceiptResponse, PurchasingUpdateReceiptData, PurchasingUpdateReceiptResponse, PurchasingDeleteReceiptData, PurchasingDeleteReceiptResponse, PurchasingPostReceiptData, PurchasingPostReceiptResponse, PurchasingReverseReceiptData, PurchasingReverseReceiptResponse, RecipesReadRecipesData, RecipesReadRecipesResponse, RecipesCreateRecipeVersionData, RecipesCreateRecipeVersionResponse, RecipesReadRecipeData, RecipesReadRecipeResponse, RecipesReadCostPreviewData, RecipesReadCostPreviewResponse, SettingsReadBusinessSettingsResponse, SettingsUpdateBusinessSettingsData, SettingsUpdateBusinessSettingsResponse, SettingsUpdateLanguageData, SettingsUpdateLanguageResponse, UsersReadUsersData, UsersReadUsersResponse, UsersCreateUserData, UsersCreateUserResponse, UsersReadUserMeResponse, UsersDeleteUserMeResponse, UsersUpdateUserMeData, UsersUpdateUserMeResponse, UsersUpdatePasswordMeData, UsersUpdatePasswordMeResponse, UsersRegisterUserData, UsersRegisterUserResponse, UsersReadUserByIdData, UsersReadUserByIdResponse, UsersUpdateUserData, UsersUpdateUserResponse, UsersDeleteUserData, UsersDeleteUserResponse, UtilsTestEmailData, UtilsTestEmailResponse, UtilsHealthCheckResponse, UtilsReadinessCheckResponse } from './types.gen';
+
+export class AccountingService {
+    /**
+     * Read Accounts
+     * @returns MoneyAccountsPublic Successful Response
+     * @throws ApiError
+     */
+    public static readAccounts(): CancelablePromise<AccountingReadAccountsResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/cash/accounts'
+        });
+    }
+    
+    /**
+     * Read Movements
+     * @param data The data for the request.
+     * @param data.accountId
+     * @param data.dateFrom
+     * @param data.dateTo
+     * @param data.sourceType
+     * @returns CashMovementsPublic Successful Response
+     * @throws ApiError
+     */
+    public static readMovements(data: AccountingReadMovementsData): CancelablePromise<AccountingReadMovementsResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/cash/movements',
+            query: {
+                account_id: data.accountId,
+                date_from: data.dateFrom,
+                date_to: data.dateTo,
+                source_type: data.sourceType
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Create Adjustment
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @param data.idempotencyKey
+     * @returns CashAdjustmentPublic Successful Response
+     * @throws ApiError
+     */
+    public static createAdjustment(data: AccountingCreateAdjustmentData): CancelablePromise<AccountingCreateAdjustmentResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/cash/adjustments',
+            headers: {
+                'Idempotency-Key': data.idempotencyKey
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Reverse Adjustment
+     * @param data The data for the request.
+     * @param data.adjustmentId
+     * @param data.requestBody
+     * @param data.idempotencyKey
+     * @returns CashAdjustmentPublic Successful Response
+     * @throws ApiError
+     */
+    public static reverseAdjustment(data: AccountingReverseAdjustmentData): CancelablePromise<AccountingReverseAdjustmentResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/cash/adjustments/{adjustment_id}/reverse',
+            path: {
+                adjustment_id: data.adjustmentId
+            },
+            headers: {
+                'Idempotency-Key': data.idempotencyKey
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Read Categories
+     * @param data The data for the request.
+     * @param data.activeOnly
+     * @returns ExpenseCategoryPublic Successful Response
+     * @throws ApiError
+     */
+    public static readCategories(data: AccountingReadCategoriesData = {}): CancelablePromise<AccountingReadCategoriesResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/expenses/categories',
+            query: {
+                active_only: data.activeOnly
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Create Category
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns ExpenseCategoryPublic Successful Response
+     * @throws ApiError
+     */
+    public static createCategory(data: AccountingCreateCategoryData): CancelablePromise<AccountingCreateCategoryResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/expenses/categories',
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Deactivate Category
+     * @param data The data for the request.
+     * @param data.categoryId
+     * @returns ExpenseCategoryPublic Successful Response
+     * @throws ApiError
+     */
+    public static deactivateCategory(data: AccountingDeactivateCategoryData): CancelablePromise<AccountingDeactivateCategoryResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/expenses/categories/{category_id}/deactivate',
+            path: {
+                category_id: data.categoryId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Read Expenses
+     * @param data The data for the request.
+     * @param data.dateFrom
+     * @param data.dateTo
+     * @param data.categoryId
+     * @param data.paymentStatus
+     * @param data.includeReversed
+     * @returns ExpensesPublic Successful Response
+     * @throws ApiError
+     */
+    public static readExpenses(data: AccountingReadExpensesData = {}): CancelablePromise<AccountingReadExpensesResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/expenses',
+            query: {
+                date_from: data.dateFrom,
+                date_to: data.dateTo,
+                category_id: data.categoryId,
+                payment_status: data.paymentStatus,
+                include_reversed: data.includeReversed
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Create Expense
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @param data.idempotencyKey
+     * @returns ExpensePublic Successful Response
+     * @throws ApiError
+     */
+    public static createExpense(data: AccountingCreateExpenseData): CancelablePromise<AccountingCreateExpenseResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/expenses',
+            headers: {
+                'Idempotency-Key': data.idempotencyKey
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Pay Expense
+     * @param data The data for the request.
+     * @param data.expenseId
+     * @param data.requestBody
+     * @param data.idempotencyKey
+     * @returns ExpensePublic Successful Response
+     * @throws ApiError
+     */
+    public static payExpense(data: AccountingPayExpenseData): CancelablePromise<AccountingPayExpenseResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/expenses/{expense_id}/pay',
+            path: {
+                expense_id: data.expenseId
+            },
+            headers: {
+                'Idempotency-Key': data.idempotencyKey
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Reverse Expense
+     * @param data The data for the request.
+     * @param data.expenseId
+     * @param data.requestBody
+     * @param data.idempotencyKey
+     * @returns ExpensePublic Successful Response
+     * @throws ApiError
+     */
+    public static reverseExpense(data: AccountingReverseExpenseData): CancelablePromise<AccountingReverseExpenseResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/expenses/{expense_id}/reverse',
+            path: {
+                expense_id: data.expenseId
+            },
+            headers: {
+                'Idempotency-Key': data.idempotencyKey
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Create Supplier Payment
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @param data.idempotencyKey
+     * @returns SupplierPaymentPublic Successful Response
+     * @throws ApiError
+     */
+    public static createSupplierPayment(data: AccountingCreateSupplierPaymentData): CancelablePromise<AccountingCreateSupplierPaymentResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/supplier-payments',
+            headers: {
+                'Idempotency-Key': data.idempotencyKey
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Reverse Supplier Payment
+     * @param data The data for the request.
+     * @param data.paymentId
+     * @param data.requestBody
+     * @param data.idempotencyKey
+     * @returns SupplierPaymentPublic Successful Response
+     * @throws ApiError
+     */
+    public static reverseSupplierPayment(data: AccountingReverseSupplierPaymentData): CancelablePromise<AccountingReverseSupplierPaymentResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/supplier-payments/{payment_id}/reverse',
+            path: {
+                payment_id: data.paymentId
+            },
+            headers: {
+                'Idempotency-Key': data.idempotencyKey
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Read Statement
+     * @param data The data for the request.
+     * @param data.supplierId
+     * @returns StatementPublic Successful Response
+     * @throws ApiError
+     */
+    public static readStatement(data: AccountingReadStatementData): CancelablePromise<AccountingReadStatementResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/supplier-payments/suppliers/{supplier_id}/statement',
+            path: {
+                supplier_id: data.supplierId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Read Summary
+     * @param data The data for the request.
+     * @param data.dateFrom
+     * @param data.dateTo
+     * @returns FinancialSummaryPublic Successful Response
+     * @throws ApiError
+     */
+    public static readSummary(data: AccountingReadSummaryData): CancelablePromise<AccountingReadSummaryResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/finance/summary',
+            query: {
+                date_from: data.dateFrom,
+                date_to: data.dateTo
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Read Income
+     * @param data The data for the request.
+     * @param data.dateFrom
+     * @param data.dateTo
+     * @returns IncomePublic Successful Response
+     * @throws ApiError
+     */
+    public static readIncome(data: AccountingReadIncomeData): CancelablePromise<AccountingReadIncomeResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/finance/income',
+            query: {
+                date_from: data.dateFrom,
+                date_to: data.dateTo
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+}
 
 export class AuditService {
     /**
@@ -923,6 +1291,56 @@ export class OrdersService {
     }
     
     /**
+     * Read Stock Returns
+     * Stock returns posted against a completed order.
+     * @param data The data for the request.
+     * @param data.orderId
+     * @returns StockReturnsPublic Successful Response
+     * @throws ApiError
+     */
+    public static readStockReturns(data: OrdersReadStockReturnsData): CancelablePromise<OrdersReadStockReturnsResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/orders/{order_id}/stock-returns',
+            path: {
+                order_id: data.orderId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Create Stock Return
+     * Return direct-sale items to stock. Requires an `Idempotency-Key` header.
+     * Sellable quantities are received at the line's original unit cost.
+     * @param data The data for the request.
+     * @param data.orderId
+     * @param data.requestBody
+     * @param data.idempotencyKey
+     * @returns StockReturnPublic Successful Response
+     * @throws ApiError
+     */
+    public static createStockReturn(data: OrdersCreateStockReturnData): CancelablePromise<OrdersCreateStockReturnResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/orders/{order_id}/stock-returns',
+            path: {
+                order_id: data.orderId
+            },
+            headers: {
+                'Idempotency-Key': data.idempotencyKey
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
      * Read Receipt
      * Printable receipt data for confirmed and later orders.
      * @param data The data for the request.
@@ -936,6 +1354,270 @@ export class OrdersService {
             url: '/api/v1/orders/{order_id}/receipt',
             path: {
                 order_id: data.orderId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+}
+
+export class PaymentsService {
+    /**
+     * Read Payment Methods
+     * @param data The data for the request.
+     * @param data.activeOnly
+     * @returns PaymentMethodsPublic Successful Response
+     * @throws ApiError
+     */
+    public static readPaymentMethods(data: PaymentsReadPaymentMethodsData = {}): CancelablePromise<PaymentsReadPaymentMethodsResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/payment-methods',
+            query: {
+                active_only: data.activeOnly
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Create Payment Method
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns PaymentMethodPublic Successful Response
+     * @throws ApiError
+     */
+    public static createPaymentMethod(data: PaymentsCreatePaymentMethodData): CancelablePromise<PaymentsCreatePaymentMethodResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/payment-methods',
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Update Payment Method
+     * @param data The data for the request.
+     * @param data.methodId
+     * @param data.requestBody
+     * @returns PaymentMethodPublic Successful Response
+     * @throws ApiError
+     */
+    public static updatePaymentMethod(data: PaymentsUpdatePaymentMethodData): CancelablePromise<PaymentsUpdatePaymentMethodResponse> {
+        return __request(OpenAPI, {
+            method: 'PATCH',
+            url: '/api/v1/payment-methods/{method_id}',
+            path: {
+                method_id: data.methodId
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Read Order Payments
+     * @param data The data for the request.
+     * @param data.orderId
+     * @returns OrderPaymentSummary Successful Response
+     * @throws ApiError
+     */
+    public static readOrderPayments(data: PaymentsReadOrderPaymentsData): CancelablePromise<PaymentsReadOrderPaymentsResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/orders/{order_id}/payments',
+            path: {
+                order_id: data.orderId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Create Order Payment
+     * Record a payment. Cash may send `tendered`; the amount is capped at the
+     * remaining balance and change is returned. Requires `Idempotency-Key`.
+     * @param data The data for the request.
+     * @param data.orderId
+     * @param data.requestBody
+     * @param data.idempotencyKey
+     * @returns PaymentPublic Successful Response
+     * @throws ApiError
+     */
+    public static createOrderPayment(data: PaymentsCreateOrderPaymentData): CancelablePromise<PaymentsCreateOrderPaymentResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/orders/{order_id}/payments',
+            path: {
+                order_id: data.orderId
+            },
+            headers: {
+                'Idempotency-Key': data.idempotencyKey
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Pay And Complete Order
+     * Record the payment and complete the order in one transaction.
+     * @param data The data for the request.
+     * @param data.orderId
+     * @param data.requestBody
+     * @param data.idempotencyKey
+     * @returns OrderPublic Successful Response
+     * @throws ApiError
+     */
+    public static payAndCompleteOrder(data: PaymentsPayAndCompleteOrderData): CancelablePromise<PaymentsPayAndCompleteOrderResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/orders/{order_id}/pay-and-complete',
+            path: {
+                order_id: data.orderId
+            },
+            headers: {
+                'Idempotency-Key': data.idempotencyKey
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Void Payment
+     * Void a payment on an order that is not completed. Completed orders are refunded.
+     * @param data The data for the request.
+     * @param data.paymentId
+     * @param data.requestBody
+     * @param data.idempotencyKey
+     * @returns PaymentPublic Successful Response
+     * @throws ApiError
+     */
+    public static voidPayment(data: PaymentsVoidPaymentData): CancelablePromise<PaymentsVoidPaymentResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/payments/{payment_id}/void',
+            path: {
+                payment_id: data.paymentId
+            },
+            headers: {
+                'Idempotency-Key': data.idempotencyKey
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Read Payments
+     * Payments visible to the caller. Totals are active payments minus refunds per method.
+     * @param data The data for the request.
+     * @param data.dateFrom
+     * @param data.dateTo
+     * @param data.methodId
+     * @param data.status
+     * @param data.cashierId
+     * @param data.orderId
+     * @param data.skip
+     * @param data.limit
+     * @returns PaymentsPublic Successful Response
+     * @throws ApiError
+     */
+    public static readPayments(data: PaymentsReadPaymentsData = {}): CancelablePromise<PaymentsReadPaymentsResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/payments',
+            query: {
+                date_from: data.dateFrom,
+                date_to: data.dateTo,
+                method_id: data.methodId,
+                status: data.status,
+                cashier_id: data.cashierId,
+                order_id: data.orderId,
+                skip: data.skip,
+                limit: data.limit
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Create Order Refund
+     * Record a refund against amounts paid. Does not change inventory.
+     * @param data The data for the request.
+     * @param data.orderId
+     * @param data.requestBody
+     * @param data.idempotencyKey
+     * @returns RefundPublic Successful Response
+     * @throws ApiError
+     */
+    public static createOrderRefund(data: PaymentsCreateOrderRefundData): CancelablePromise<PaymentsCreateOrderRefundResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/orders/{order_id}/refunds',
+            path: {
+                order_id: data.orderId
+            },
+            headers: {
+                'Idempotency-Key': data.idempotencyKey
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Read Refunds
+     * @param data The data for the request.
+     * @param data.dateFrom
+     * @param data.dateTo
+     * @param data.methodId
+     * @param data.cashierId
+     * @param data.orderId
+     * @param data.skip
+     * @param data.limit
+     * @returns RefundsPublic Successful Response
+     * @throws ApiError
+     */
+    public static readRefunds(data: PaymentsReadRefundsData = {}): CancelablePromise<PaymentsReadRefundsResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/refunds',
+            query: {
+                date_from: data.dateFrom,
+                date_to: data.dateTo,
+                method_id: data.methodId,
+                cashier_id: data.cashierId,
+                order_id: data.orderId,
+                skip: data.skip,
+                limit: data.limit
             },
             errors: {
                 422: 'Validation Error'
@@ -959,6 +1641,424 @@ export class PrivateService {
             url: '/api/v1/private/users/',
             body: data.requestBody,
             mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+}
+
+export class PurchasingService {
+    /**
+     * Read Suppliers
+     * @param data The data for the request.
+     * @param data.q
+     * @param data.isActive
+     * @param data.skip
+     * @param data.limit
+     * @returns SuppliersPublic Successful Response
+     * @throws ApiError
+     */
+    public static readSuppliers(data: PurchasingReadSuppliersData = {}): CancelablePromise<PurchasingReadSuppliersResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/purchasing/suppliers',
+            query: {
+                q: data.q,
+                is_active: data.isActive,
+                skip: data.skip,
+                limit: data.limit
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Create Supplier
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns SupplierPublic Successful Response
+     * @throws ApiError
+     */
+    public static createSupplier(data: PurchasingCreateSupplierData): CancelablePromise<PurchasingCreateSupplierResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/purchasing/suppliers',
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Read Supplier
+     * @param data The data for the request.
+     * @param data.supplierId
+     * @returns SupplierPublic Successful Response
+     * @throws ApiError
+     */
+    public static readSupplier(data: PurchasingReadSupplierData): CancelablePromise<PurchasingReadSupplierResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/purchasing/suppliers/{supplier_id}',
+            path: {
+                supplier_id: data.supplierId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Update Supplier
+     * @param data The data for the request.
+     * @param data.supplierId
+     * @param data.requestBody
+     * @returns SupplierPublic Successful Response
+     * @throws ApiError
+     */
+    public static updateSupplier(data: PurchasingUpdateSupplierData): CancelablePromise<PurchasingUpdateSupplierResponse> {
+        return __request(OpenAPI, {
+            method: 'PATCH',
+            url: '/api/v1/purchasing/suppliers/{supplier_id}',
+            path: {
+                supplier_id: data.supplierId
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Delete Supplier
+     * @param data The data for the request.
+     * @param data.supplierId
+     * @returns Message Successful Response
+     * @throws ApiError
+     */
+    public static deleteSupplier(data: PurchasingDeleteSupplierData): CancelablePromise<PurchasingDeleteSupplierResponse> {
+        return __request(OpenAPI, {
+            method: 'DELETE',
+            url: '/api/v1/purchasing/suppliers/{supplier_id}',
+            path: {
+                supplier_id: data.supplierId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Read Supplier Balance
+     * @param data The data for the request.
+     * @param data.supplierId
+     * @returns SupplierBalance Successful Response
+     * @throws ApiError
+     */
+    public static readSupplierBalance(data: PurchasingReadSupplierBalanceData): CancelablePromise<PurchasingReadSupplierBalanceResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/purchasing/suppliers/{supplier_id}/balance',
+            path: {
+                supplier_id: data.supplierId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Read Supplier Receipts
+     * @param data The data for the request.
+     * @param data.supplierId
+     * @param data.dateFrom
+     * @param data.dateTo
+     * @param data.skip
+     * @param data.limit
+     * @returns ReceiptsPublic Successful Response
+     * @throws ApiError
+     */
+    public static readSupplierReceipts(data: PurchasingReadSupplierReceiptsData): CancelablePromise<PurchasingReadSupplierReceiptsResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/purchasing/suppliers/{supplier_id}/receipts',
+            path: {
+                supplier_id: data.supplierId
+            },
+            query: {
+                date_from: data.dateFrom,
+                date_to: data.dateTo,
+                skip: data.skip,
+                limit: data.limit
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Read Receipts
+     * @param data The data for the request.
+     * @param data.supplierId
+     * @param data.status
+     * @param data.dateFrom
+     * @param data.dateTo
+     * @param data.q
+     * @param data.skip
+     * @param data.limit
+     * @returns ReceiptsPublic Successful Response
+     * @throws ApiError
+     */
+    public static readReceipts(data: PurchasingReadReceiptsData = {}): CancelablePromise<PurchasingReadReceiptsResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/purchasing/receipts',
+            query: {
+                supplier_id: data.supplierId,
+                status: data.status,
+                date_from: data.dateFrom,
+                date_to: data.dateTo,
+                q: data.q,
+                skip: data.skip,
+                limit: data.limit
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Create Receipt
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns StockReceiptPublic Successful Response
+     * @throws ApiError
+     */
+    public static createReceipt(data: PurchasingCreateReceiptData): CancelablePromise<PurchasingCreateReceiptResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/purchasing/receipts',
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Read Receipt
+     * @param data The data for the request.
+     * @param data.receiptId
+     * @returns StockReceiptPublic Successful Response
+     * @throws ApiError
+     */
+    public static readReceipt(data: PurchasingReadReceiptData): CancelablePromise<PurchasingReadReceiptResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/purchasing/receipts/{receipt_id}',
+            path: {
+                receipt_id: data.receiptId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Update Receipt
+     * @param data The data for the request.
+     * @param data.receiptId
+     * @param data.requestBody
+     * @returns StockReceiptPublic Successful Response
+     * @throws ApiError
+     */
+    public static updateReceipt(data: PurchasingUpdateReceiptData): CancelablePromise<PurchasingUpdateReceiptResponse> {
+        return __request(OpenAPI, {
+            method: 'PATCH',
+            url: '/api/v1/purchasing/receipts/{receipt_id}',
+            path: {
+                receipt_id: data.receiptId
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Delete Receipt
+     * Delete a draft receipt. Posted receipts are reversed, never deleted.
+     * @param data The data for the request.
+     * @param data.receiptId
+     * @returns Message Successful Response
+     * @throws ApiError
+     */
+    public static deleteReceipt(data: PurchasingDeleteReceiptData): CancelablePromise<PurchasingDeleteReceiptResponse> {
+        return __request(OpenAPI, {
+            method: 'DELETE',
+            url: '/api/v1/purchasing/receipts/{receipt_id}',
+            path: {
+                receipt_id: data.receiptId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Post Receipt
+     * Post a draft receipt: stock, valuation, and supplier payable change together.
+     * Requires an `Idempotency-Key` header.
+     * @param data The data for the request.
+     * @param data.receiptId
+     * @param data.idempotencyKey
+     * @param data.requestBody
+     * @returns StockReceiptPublic Successful Response
+     * @throws ApiError
+     */
+    public static postReceipt(data: PurchasingPostReceiptData): CancelablePromise<PurchasingPostReceiptResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/purchasing/receipts/{receipt_id}/post',
+            path: {
+                receipt_id: data.receiptId
+            },
+            headers: {
+                'Idempotency-Key': data.idempotencyKey
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Reverse Receipt
+     * Reverse a posted unpaid receipt with opposite movements at the original cost.
+     * @param data The data for the request.
+     * @param data.receiptId
+     * @param data.requestBody
+     * @param data.idempotencyKey
+     * @returns StockReceiptPublic Successful Response
+     * @throws ApiError
+     */
+    public static reverseReceipt(data: PurchasingReverseReceiptData): CancelablePromise<PurchasingReverseReceiptResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/purchasing/receipts/{receipt_id}/reverse',
+            path: {
+                receipt_id: data.receiptId
+            },
+            headers: {
+                'Idempotency-Key': data.idempotencyKey
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+}
+
+export class RecipesService {
+    /**
+     * Read Recipes
+     * Recipe and stock-link versions for one menu item, newest version first.
+     * @param data The data for the request.
+     * @param data.menuItemId
+     * @returns RecipesPublic Successful Response
+     * @throws ApiError
+     */
+    public static readRecipes(data: RecipesReadRecipesData): CancelablePromise<RecipesReadRecipesResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/recipes/',
+            query: {
+                menu_item_id: data.menuItemId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Create Recipe Version
+     * Save a new version. Prepared items take ingredient lines; direct-sale items
+     * take exactly one stock-link line. Earlier versions are left unchanged.
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns RecipePublic Successful Response
+     * @throws ApiError
+     */
+    public static createRecipeVersion(data: RecipesCreateRecipeVersionData): CancelablePromise<RecipesCreateRecipeVersionResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/recipes/',
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Read Recipe
+     * @param data The data for the request.
+     * @param data.recipeId
+     * @returns RecipePublic Successful Response
+     * @throws ApiError
+     */
+    public static readRecipe(data: RecipesReadRecipeData): CancelablePromise<RecipesReadRecipeResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/recipes/{recipe_id}',
+            path: {
+                recipe_id: data.recipeId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Read Cost Preview
+     * Estimated cost per serving from current average costs. Lines with no known
+     * cost are flagged and left out of the total.
+     * @param data The data for the request.
+     * @param data.recipeId
+     * @returns CostPreviewPublic Successful Response
+     * @throws ApiError
+     */
+    public static readCostPreview(data: RecipesReadCostPreviewData): CancelablePromise<RecipesReadCostPreviewResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/recipes/{recipe_id}/cost-preview',
+            path: {
+                recipe_id: data.recipeId
+            },
             errors: {
                 422: 'Validation Error'
             }

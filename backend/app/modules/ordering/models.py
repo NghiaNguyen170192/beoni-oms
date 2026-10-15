@@ -164,6 +164,10 @@ class OrderLine(SQLModel, table=True):
         CheckConstraint(
             "net_total = line_total - order_discount_share", name="ck_order_lines_net"
         ),
+        CheckConstraint(
+            "cogs_amount IS NULL OR cogs_amount >= 0",
+            name="ck_order_lines_cogs_non_negative",
+        ),
     )
 
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
@@ -190,5 +194,10 @@ class OrderLine(SQLModel, table=True):
     net_total: Decimal = _money()
     tax_rate: Decimal = Field(default=Decimal("0"), sa_type=Numeric(5, 2))  # type: ignore
     tax_amount: Decimal = _money()
+    recipe_version_id: uuid.UUID | None = Field(
+        default=None, foreign_key="recipes.id", ondelete="RESTRICT"
+    )
+    cogs_amount: Decimal | None = Field(default=None, sa_type=Numeric(18, 2))  # type: ignore
+    cost_uncertain: bool = False
     created_at: datetime = _timestamp()
     updated_at: datetime = _timestamp()

@@ -5,6 +5,7 @@ import {
   OpenAPI,
   type OrderPublic,
   OrdersService,
+  PaymentsService,
 } from "../../src/client"
 import { firstSuperuser, firstSuperuserPassword } from "../config"
 
@@ -27,9 +28,11 @@ export const uniqueSuffix = () =>
 export async function createMenuItem({
   name,
   price,
+  productType = "non_stock",
 }: {
   name: string
   price: string
+  productType?: "prepared" | "direct_sale" | "non_stock"
 }): Promise<MenuItemPublic> {
   await asSuperuser()
   const categories = await CatalogService.readCategories({})
@@ -38,7 +41,7 @@ export async function createMenuItem({
       name,
       price,
       category_id: categories.data[0].id,
-      product_type: "prepared",
+      product_type: productType,
     },
   })
 }
@@ -62,6 +65,16 @@ export async function createCompletedOrder(
       lines: [{ menu_item_id: menuItemId, quantity: "1" }],
     },
   })
+  const methods = await PaymentsService.readPaymentMethods({ activeOnly: true })
+  const cash = methods.data.find((method) => method.kind === "cash")
+  if (!cash) throw new Error("Cash payment method is not seeded")
+  if (Number(order.total) > 0) {
+    await PaymentsService.createOrderPayment({
+      orderId: order.id,
+      idempotencyKey: crypto.randomUUID(),
+      requestBody: { method_id: cash.id, amount: order.total },
+    })
+  }
   return OrdersService.completeOrder({
     orderId: order.id,
     idempotencyKey: crypto.randomUUID(),

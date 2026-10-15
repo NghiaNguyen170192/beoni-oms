@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router"
 
+import { PaymentMethodsSettings } from "@/components/Payments/PaymentMethodsSettings"
 import BusinessSettings from "@/components/UserSettings/BusinessSettings"
 import ChangePassword from "@/components/UserSettings/ChangePassword"
 import DeleteAccount from "@/components/UserSettings/DeleteAccount"
@@ -7,6 +8,7 @@ import UserInformation from "@/components/UserSettings/UserInformation"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import useAuth from "@/hooks/useAuth"
 import { type MessageKey, t, useI18n } from "@/i18n"
+import { hasPermission } from "@/lib/permissions"
 
 const tabsConfig: {
   value: string
@@ -49,7 +51,16 @@ export const Route = createFileRoute("/_layout/settings")({
 function UserSettings() {
   const { t } = useI18n()
   const { user: currentUser } = useAuth()
-  const finalTabs = tabsConfig
+  const finalTabs = hasPermission(currentUser, "payments:configure")
+    ? [
+        ...tabsConfig,
+        {
+          value: "payment-methods",
+          title: "payments.methods.title" as const,
+          component: PaymentMethodsSettings,
+        },
+      ]
+    : tabsConfig
 
   if (!currentUser) {
     return null

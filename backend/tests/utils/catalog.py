@@ -24,7 +24,9 @@ def make_menu_item(
         "name": f"Item {random_lower_string()[:12]}",
         "category_id": category.id,
         "price": Decimal("29000"),
-        "product_type": ProductType.PREPARED,
+        # Non-stock so generic sale tests do not need a recipe. Prepared and
+        # direct-sale items must pass product_type explicitly.
+        "product_type": ProductType.NON_STOCK,
         **overrides,
     }
     item = MenuItem(**values)

@@ -413,8 +413,26 @@ def _require_lines(
 
 
 # Run in order inside the completion transaction. Later changes append steps
-# (payment check, stock consumption); a step raises to abort completion.
-COMPLETION_STEPS: list[CompletionStep] = [_require_lines]
+# (stock consumption); a step raises to abort completion.
+def completion_steps() -> list[CompletionStep]:
+    from app.modules.payments.service import ensure_paid
+    from app.modules.recipes.service import consume_stock
+
+    return [_require_lines, ensure_paid, consume_stock]
+
+
+def apply_completion(session: Session, order: Order, actor: User) -> None:
+    """Validate and mark `order` completed. Does not commit."""
+    assert_transition(order.status, OrderStatus.COMPLETED)
+    lines = _lines(session, order.id)
+    for step in completion_steps():
+        step(session, order, lines, actor)
+    now = get_datetime_utc()
+    order.completed_at = now
+    order.completed_by_id = actor.id
+    if order.confirmed_at is None:
+        order.confirmed_at = now
+    _transition(session, order, OrderStatus.COMPLETED, actor, total=order.total)
 
 
 def complete_order(
@@ -424,16 +442,7 @@ def complete_order(
 
     def operation() -> tuple[int, Any]:
         order = _load(session, order_id, actor, for_update=True)
-        assert_transition(order.status, OrderStatus.COMPLETED)
-        lines = _lines(session, order.id)
-        for step in COMPLETION_STEPS:
-            step(session, order, lines, actor)
-        now = get_datetime_utc()
-        order.completed_at = now
-        order.completed_by_id = actor.id
-        if order.confirmed_at is None:
-            order.confirmed_at = now
-        _transition(session, order, OrderStatus.COMPLETED, actor, total=order.total)
+        apply_completion(session, order, actor)
         return 200, to_public(session, order)
 
     return idempotency.execute(

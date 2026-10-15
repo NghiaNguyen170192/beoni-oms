@@ -56,6 +56,19 @@ def test_receipt_into_negative_stock_does_not_average_with_negative_balance() ->
     assert effect.cost_uncertain is True
 
 
+def test_removing_a_receipt_at_its_cost_restores_the_previous_average() -> None:
+    effect = apply_movement(
+        quantity_before=D("5000"),
+        avg_cost_before=D("400"),
+        change=D("-5000"),
+        remove_at_cost=D("400"),
+    )
+    assert effect.unit_cost == D("400")
+    assert effect.value == D("-2000000.00")
+    assert effect.quantity_after == D("0")
+    assert effect.avg_cost_after == D("0")
+
+
 def test_outgoing_uses_current_average_and_keeps_it() -> None:
     effect = apply_movement(
         quantity_before=D("2000"), avg_cost_before=D("0.6"), change=D("-18")

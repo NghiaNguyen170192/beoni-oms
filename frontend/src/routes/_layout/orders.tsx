@@ -15,6 +15,8 @@ import {
   OrderStatusBadge,
   OrderTotals,
 } from "@/components/Ordering/OrderTotals"
+import { RefundDialog } from "@/components/Payments/RefundDialog"
+import { ReturnToStockDialog } from "@/components/Recipes/ReturnToStockDialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -89,7 +91,12 @@ function OrderDetail({
   onClose: () => void
 }) {
   const { t } = useI18n()
+  const { user } = useAuth()
   const { formatMoney, formatDateTime } = useFormatters()
+  const [refunding, setRefunding] = useState(false)
+  const [returning, setReturning] = useState(false)
+  const canRefund = hasPermission(user, "payments:refund")
+  const canReturn = hasPermission(user, "inventory:return")
   const { data: order } = useQuery({
     queryKey: ["orders", "detail", orderId],
     queryFn: () => OrdersService.readOrder({ orderId: orderId! }),
@@ -157,6 +164,28 @@ function OrderDetail({
                 </TableBody>
               </Table>
               <OrderTotals order={order} />
+              {(order.status === "completed" ||
+                order.status === "partially_refunded") &&
+                canRefund && (
+                  <Button className="w-fit" onClick={() => setRefunding(true)}>
+                    {t("payments.refund.confirm")}
+                  </Button>
+                )}
+              {(order.status === "completed" ||
+                order.status === "partially_refunded" ||
+                order.status === "refunded") &&
+                canReturn &&
+                order.lines.some(
+                  (line) => line.product_type === "direct_sale",
+                ) && (
+                  <Button
+                    variant="outline"
+                    className="w-fit"
+                    onClick={() => setReturning(true)}
+                  >
+                    {t("recipes.return.action")}
+                  </Button>
+                )}
               {hasReceipt(order.status) && (
                 <Button variant="outline" asChild className="w-fit">
                   <Link
@@ -170,6 +199,16 @@ function OrderDetail({
                 </Button>
               )}
             </div>
+            <RefundDialog
+              order={order}
+              open={refunding}
+              onOpenChange={setRefunding}
+            />
+            <ReturnToStockDialog
+              order={order}
+              open={returning}
+              onOpenChange={setReturning}
+            />
           </>
         ) : (
           <Skeleton className="m-4 h-40" />

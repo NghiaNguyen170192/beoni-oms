@@ -91,6 +91,8 @@ class MovementLine:
     """Signed change in base units."""
     unit_cost: Decimal | None = None
     """Cost per base unit for incoming stock; None uses the current average."""
+    remove_at_cost: Decimal | None = None
+    """Cost per base unit removed by a reversal; recomputes the average."""
 
 
 def lock_balances(
@@ -166,6 +168,7 @@ def post_movements(
             avg_cost_before=balance.avg_unit_cost,
             change=change,
             incoming_cost=line.unit_cost,
+            remove_at_cost=line.remove_at_cost,
         )
         if change < 0 and effect.quantity_after < 0 and not allow_negative:
             item = items[line.item_id]

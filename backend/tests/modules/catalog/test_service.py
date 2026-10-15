@@ -238,8 +238,19 @@ def test_unavailable_item_is_not_sellable(db: Session) -> None:
 def test_search_by_partial_name_and_filters(db: Session) -> None:
     category = make_category(db)
     tag = random_lower_string()[:8]
-    milk = make_menu_item(db, category=category, name=f"Cà phê sữa {tag}")
-    make_menu_item(db, category=category, name=f"Bạc xỉu sữa {tag}", is_active=False)
+    milk = make_menu_item(
+        db,
+        category=category,
+        name=f"Cà phê sữa {tag}",
+        product_type=ProductType.PREPARED,
+    )
+    make_menu_item(
+        db,
+        category=category,
+        name=f"Bạc xỉu sữa {tag}",
+        is_active=False,
+        product_type=ProductType.PREPARED,
+    )
     tea = make_menu_item(
         db, category=category, name=f"Trà đào {tag}", product_type=ProductType.NON_STOCK
     )

@@ -69,6 +69,27 @@ def _create(db: Session, actor: User, *lines: OrderLineInput, **kw: Any) -> Any:
 def _complete(
     db: Session, actor: User, order_id: uuid.UUID, key: str | None = None
 ) -> Any:
+    from sqlmodel import select
+
+    from app.modules.ordering.models import Order
+    from app.modules.payments.models import PaymentMethod, PaymentMethodKind
+    from app.modules.payments.schemas import PaymentCreate
+    from app.modules.payments.service import active_paid, record_payment
+
+    order = db.get(Order, order_id)
+    remaining = order.total - active_paid(db, order.id) if order is not None else D("0")
+    if order is not None and remaining > 0:
+        method = db.exec(
+            select(PaymentMethod).where(PaymentMethod.kind == PaymentMethodKind.CASH)
+        ).first()
+        assert method is not None
+        record_payment(
+            db,
+            order_id=order_id,
+            data=PaymentCreate(method_id=method.id, amount=remaining),
+            actor=actor,
+            idempotency_key=uuid.uuid4().hex,
+        )
     return service.complete_order(
         db, order_id=order_id, actor=actor, idempotency_key=key or uuid.uuid4().hex
     )

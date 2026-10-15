@@ -1,14 +1,20 @@
 import {
+  Banknote,
+  ChefHat,
   Coffee,
   History,
   Home,
+  Landmark,
   Languages,
   Package,
   ReceiptText,
   Shield,
   ShoppingCart,
   SlidersHorizontal,
+  Truck,
   Users,
+  Wallet,
+  Warehouse,
 } from "lucide-react"
 
 import type { Permission, UserMePublic } from "@/client"
@@ -48,6 +54,12 @@ const navItems: NavItem[] = [
     permissions: ["ordering:view_own", "ordering:view_all"],
   },
   {
+    icon: Banknote,
+    title: "nav.payments",
+    path: "/payments",
+    permissions: ["payments:read"],
+  },
+  {
     icon: Coffee,
     title: "nav.menu",
     path: "/menu",
@@ -64,6 +76,36 @@ const navItems: NavItem[] = [
     title: "nav.stockAdjustments",
     path: "/stock-adjustments",
     permissions: ["inventory:view"],
+  },
+  {
+    icon: Truck,
+    title: "nav.suppliers",
+    path: "/suppliers",
+    permissions: ["purchasing:read"],
+  },
+  {
+    icon: Warehouse,
+    title: "nav.stockReceipts",
+    path: "/stock-receipts",
+    permissions: ["purchasing:read"],
+  },
+  {
+    icon: ChefHat,
+    title: "nav.recipes",
+    path: "/recipes",
+    permissions: ["recipes:read"],
+  },
+  {
+    icon: Wallet,
+    title: "nav.expenses",
+    path: "/expenses",
+    permissions: ["expenses:read"],
+  },
+  {
+    icon: Landmark,
+    title: "nav.cash",
+    path: "/cash",
+    permissions: ["cash:view"],
   },
   {
     icon: Shield,

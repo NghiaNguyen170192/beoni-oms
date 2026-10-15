@@ -31,15 +31,17 @@ def apply_movement(
     avg_cost_before: Decimal,
     change: Decimal,
     incoming_cost: Decimal | None = None,
+    remove_at_cost: Decimal | None = None,
 ) -> MovementEffect:
     """Effect of posting a signed `change` on a balance.
 
     Incoming stock is valued at `incoming_cost` (or the current average when
     none is given) and re-averages the balance; if the balance was zero or
     negative the new average is simply the incoming cost. Outgoing stock is
-    valued at the current average, which it leaves unchanged. A movement is
-    cost-uncertain when it is valued at an unknown (zero) average or touches a
-    negative balance.
+    valued at the current average, which it leaves unchanged, unless
+    `remove_at_cost` is set (receipt reversal): that cost is removed and the
+    average is recomputed. A movement is cost-uncertain when it is valued at
+    an unknown (zero) average or touches a negative balance.
     """
     if change == 0:
         raise ValueError("Movement quantity must be non-zero")
@@ -55,6 +57,20 @@ def apply_movement(
         uncertain = (
             incoming_cost is None and avg_cost_before == 0
         ) or quantity_before < 0
+    elif remove_at_cost is not None:
+        cost = unit_cost(remove_at_cost)
+        if quantity_after > 0:
+            total_value = quantity_before * avg_cost_before + change * cost
+            avg_after = (
+                unit_cost(total_value / quantity_after)
+                if total_value > 0
+                else Decimal("0")
+            )
+        elif quantity_after == 0:
+            avg_after = Decimal("0")
+        else:
+            avg_after = avg_cost_before
+        uncertain = quantity_after < 0
     else:
         cost = avg_cost_before
         avg_after = avg_cost_before

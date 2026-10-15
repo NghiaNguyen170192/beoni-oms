@@ -30,7 +30,7 @@ ALLOWED: dict[OrderStatus, frozenset[OrderStatus]] = {
 PAYMENT_ALLOWED: dict[OrderStatus, frozenset[OrderStatus]] = {
     S.DRAFT: frozenset({S.PAID}),
     S.CONFIRMED: frozenset({S.PAID}),
-    S.PAID: frozenset({S.PARTIALLY_REFUNDED, S.REFUNDED}),
+    S.PAID: frozenset({S.CONFIRMED, S.PARTIALLY_REFUNDED, S.REFUNDED}),
     S.COMPLETED: frozenset({S.PARTIALLY_REFUNDED, S.REFUNDED}),
     S.PARTIALLY_REFUNDED: frozenset({S.PARTIALLY_REFUNDED, S.REFUNDED}),
     S.CANCELLED: frozenset(),

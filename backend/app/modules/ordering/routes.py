@@ -26,12 +26,19 @@ from app.modules.ordering.schemas import (
     ReceiptPublic,
 )
 from app.modules.ordering.states import OrderStatus
+from app.modules.recipes import service as recipes_service
+from app.modules.recipes.schemas import (
+    StockReturnCreate,
+    StockReturnPublic,
+    StockReturnsPublic,
+)
 
 router = APIRouter(prefix="/orders", tags=["orders"])
 
 Creator = Annotated[User, Depends(require_permission(Permission.ORDERING_CREATE))]
 Discounter = Annotated[User, Depends(require_permission(Permission.ORDERING_DISCOUNT))]
 Canceller = Annotated[User, Depends(require_permission(Permission.ORDERING_CANCEL))]
+Returner = Annotated[User, Depends(require_permission(Permission.INVENTORY_RETURN))]
 
 
 def require_order_view(current_user: CurrentUser) -> User:
@@ -178,6 +185,39 @@ def complete_order(
     """
     result = service.complete_order(
         session, order_id=order_id, actor=actor, idempotency_key=idempotency_key
+    )
+    return JSONResponse(result.body, status_code=result.status_code)
+
+
+@router.get("/{order_id}/stock-returns", response_model=StockReturnsPublic)
+def read_stock_returns(
+    session: SessionDep, actor: Returner, order_id: uuid.UUID
+) -> Any:
+    """
+    Stock returns posted against a completed order.
+    """
+    data, count = recipes_service.list_returns(session, order_id=order_id, actor=actor)
+    return StockReturnsPublic(data=data, count=count)
+
+
+@router.post("/{order_id}/stock-returns", response_model=StockReturnPublic)
+def create_stock_return(
+    session: SessionDep,
+    actor: Returner,
+    idempotency_key: IdempotencyKeyDep,
+    order_id: uuid.UUID,
+    return_in: StockReturnCreate,
+) -> Any:
+    """
+    Return direct-sale items to stock. Requires an `Idempotency-Key` header.
+    Sellable quantities are received at the line's original unit cost.
+    """
+    result = recipes_service.return_to_stock(
+        session,
+        order_id=order_id,
+        data=return_in,
+        actor=actor,
+        idempotency_key=idempotency_key,
     )
     return JSONResponse(result.body, status_code=result.status_code)
 

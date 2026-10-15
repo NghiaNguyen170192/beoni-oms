@@ -29,6 +29,24 @@ def _key(headers: dict[str, str], key: str | None = None) -> dict[str, str]:
     return {**headers, "Idempotency-Key": key or uuid.uuid4().hex}
 
 
+def _pay(client: TestClient, headers: dict[str, str], order: dict[str, Any]) -> None:
+    if Decimal(order["total"]) <= 0:
+        return
+    methods = client.get(
+        f"{settings.API_V1_STR}/payment-methods",
+        headers=headers,
+        params={"active_only": True},
+    )
+    assert methods.status_code == 200, methods.text
+    cash = next(method for method in methods.json()["data"] if method["kind"] == "cash")
+    paid = client.post(
+        f"{API}/{order['id']}/payments",
+        headers=_key(headers),
+        json={"method_id": cash["id"], "amount": order["total"]},
+    )
+    assert paid.status_code == 201, paid.text
+
+
 def _new_order(
     client: TestClient, headers: dict[str, str], **body: Any
 ) -> dict[str, Any]:
@@ -151,6 +169,7 @@ def test_complete_requires_key_and_is_idempotent(
         client.post(f"{API}/{order['id']}/complete", headers=headers).status_code == 400
     )
 
+    _pay(client, headers, order)
     key = _key(headers, "complete-1")
     first = client.post(f"{API}/{order['id']}/complete", headers=key)
     second = client.post(f"{API}/{order['id']}/complete", headers=key)
@@ -199,6 +218,7 @@ def test_cancel_draft_and_reject_cancel_completed(
     done = _new_order(
         client, headers, lines=[{"menu_item_id": str(item.id), "quantity": "1"}]
     )
+    _pay(client, headers, done)
     client.post(f"{API}/{done['id']}/complete", headers=_key(headers))
     r = client.post(
         f"{API}/{done['id']}/cancel", headers=headers, json={"reason": "oops"}
@@ -253,6 +273,7 @@ def test_history_scoping_and_filters(
     a2 = _new_order(
         client, cashier_a, lines=[{"menu_item_id": str(item.id), "quantity": "1"}]
     )
+    _pay(client, cashier_a, a2)
     client.post(f"{API}/{a2['id']}/complete", headers=_key(cashier_a))
     b1 = _new_order(client, cashier_b)
 
@@ -325,6 +346,7 @@ def test_sold_item_delete_rejected_via_api(
     order = _new_order(
         client, cashier, lines=[{"menu_item_id": str(item.id), "quantity": "1"}]
     )
+    _pay(client, cashier, order)
     client.post(f"{API}/{order['id']}/complete", headers=_key(cashier))
 
     r = client.delete(
@@ -343,6 +365,7 @@ def test_menu_price_change_leaves_completed_order_unchanged(
     order = _new_order(
         client, cashier, lines=[{"menu_item_id": str(item.id), "quantity": "2"}]
     )
+    _pay(client, cashier, order)
     client.post(f"{API}/{order['id']}/complete", headers=_key(cashier))
 
     r = client.patch(

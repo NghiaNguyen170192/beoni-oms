@@ -133,6 +133,9 @@ class OrderLinePublic(SQLModel):
     net_total: Decimal
     tax_rate: Decimal
     tax_amount: Decimal
+    recipe_version_id: uuid.UUID | None = None
+    cogs_amount: Decimal | None = None
+    cost_uncertain: bool = False
 
 
 class OrderPublic(SQLModel):

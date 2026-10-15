@@ -16,9 +16,12 @@ class Permission(str, Enum):
     INVENTORY_MANAGE = "inventory:manage"
     INVENTORY_ADJUST = "inventory:adjust"
     INVENTORY_REVERSE = "inventory:reverse"
+    INVENTORY_RETURN = "inventory:return"
 
     PURCHASING_READ = "purchasing:read"
     PURCHASING_MANAGE = "purchasing:manage"
+    PURCHASING_POST = "purchasing:post"
+    PURCHASING_REVERSE = "purchasing:reverse"
 
     RECIPES_READ = "recipes:read"
     RECIPES_MANAGE = "recipes:manage"
@@ -31,13 +34,19 @@ class Permission(str, Enum):
 
     PAYMENTS_READ = "payments:read"
     PAYMENTS_RECORD = "payments:record"
+    PAYMENTS_VOID = "payments:void"
     PAYMENTS_REFUND = "payments:refund"
+    PAYMENTS_CONFIGURE = "payments:configure"
 
     EXPENSES_READ = "expenses:read"
     EXPENSES_MANAGE = "expenses:manage"
 
     SUPPLIER_PAYMENTS_READ = "supplier_payments:read"
     SUPPLIER_PAYMENTS_RECORD = "supplier_payments:record"
+
+    CASH_VIEW = "cash:view"
+    CASH_ADJUST = "cash:adjust"
+    FINANCE_VIEW = "finance:view"
 
     REPORTS_SALES = "reports:sales"
     REPORTS_INVENTORY = "reports:inventory"
@@ -56,8 +65,11 @@ PERMISSIONS: dict[Role, frozenset[Permission]] = {
             P.INVENTORY_MANAGE,
             P.INVENTORY_ADJUST,
             P.INVENTORY_REVERSE,
+            P.INVENTORY_RETURN,
             P.PURCHASING_READ,
             P.PURCHASING_MANAGE,
+            P.PURCHASING_POST,
+            P.PURCHASING_REVERSE,
             P.RECIPES_READ,
             P.RECIPES_MANAGE,
             P.ORDERING_CREATE,
@@ -67,9 +79,11 @@ PERMISSIONS: dict[Role, frozenset[Permission]] = {
             P.ORDERING_CANCEL,
             P.PAYMENTS_READ,
             P.PAYMENTS_RECORD,
+            P.PAYMENTS_VOID,
             P.PAYMENTS_REFUND,
             P.EXPENSES_READ,
             P.EXPENSES_MANAGE,
+            P.CASH_VIEW,
             P.REPORTS_SALES,
         }
     ),
@@ -79,6 +93,7 @@ PERMISSIONS: dict[Role, frozenset[Permission]] = {
             P.ORDERING_CREATE,
             P.ORDERING_VIEW_OWN,
             P.ORDERING_CANCEL,
+            P.PAYMENTS_READ,
             P.PAYMENTS_RECORD,
         }
     ),
@@ -90,6 +105,7 @@ PERMISSIONS: dict[Role, frozenset[Permission]] = {
             P.INVENTORY_ADJUST,
             P.PURCHASING_READ,
             P.PURCHASING_MANAGE,
+            P.PURCHASING_POST,
             P.REPORTS_INVENTORY,
         }
     ),
@@ -104,6 +120,8 @@ PERMISSIONS: dict[Role, frozenset[Permission]] = {
             P.EXPENSES_MANAGE,
             P.SUPPLIER_PAYMENTS_READ,
             P.SUPPLIER_PAYMENTS_RECORD,
+            P.CASH_VIEW,
+            P.FINANCE_VIEW,
             P.REPORTS_SALES,
             P.REPORTS_INVENTORY,
             P.REPORTS_FINANCIAL,

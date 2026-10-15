@@ -2,6 +2,7 @@ import { useSyncExternalStore } from "react"
 
 import type { Language } from "@/client"
 import * as account from "./messages/account"
+import * as accounting from "./messages/accounting"
 import * as admin from "./messages/admin"
 import * as audit from "./messages/audit"
 import * as auth from "./messages/auth"
@@ -9,6 +10,9 @@ import * as catalog from "./messages/catalog"
 import * as common from "./messages/common"
 import * as inventory from "./messages/inventory"
 import * as ordering from "./messages/ordering"
+import * as payments from "./messages/payments"
+import * as purchasing from "./messages/purchasing"
+import * as recipes from "./messages/recipes"
 
 export type { Language }
 
@@ -21,6 +25,10 @@ const en = {
   ...catalog.en,
   ...inventory.en,
   ...ordering.en,
+  ...purchasing.en,
+  ...payments.en,
+  ...recipes.en,
+  ...accounting.en,
 }
 
 export type MessageKey = keyof typeof en
@@ -35,6 +43,10 @@ const vi: Record<MessageKey, string> = {
   ...catalog.vi,
   ...inventory.vi,
   ...ordering.vi,
+  ...purchasing.vi,
+  ...payments.vi,
+  ...recipes.vi,
+  ...accounting.vi,
 }
 
 const dictionaries: Record<Language, Record<MessageKey, string>> = { en, vi }

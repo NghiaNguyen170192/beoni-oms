@@ -18,6 +18,7 @@ GRANTED: dict[Role, set[Permission]] = {
         P.CATALOG_MANAGE,
         P.INVENTORY_ADJUST,
         P.INVENTORY_REVERSE,
+        P.INVENTORY_RETURN,
         P.PURCHASING_MANAGE,
         P.ORDERING_CREATE,
         P.ORDERING_VIEW_ALL,
@@ -26,6 +27,7 @@ GRANTED: dict[Role, set[Permission]] = {
         P.PAYMENTS_RECORD,
         P.RECIPES_MANAGE,
         P.EXPENSES_MANAGE,
+        P.CASH_VIEW,
         P.REPORTS_SALES,
     },
     Role.CASHIER: {
@@ -52,6 +54,8 @@ GRANTED: dict[Role, set[Permission]] = {
         P.REPORTS_FINANCIAL,
         P.EXPENSES_MANAGE,
         P.SUPPLIER_PAYMENTS_RECORD,
+        P.CASH_VIEW,
+        P.FINANCE_VIEW,
     },
 }
 
@@ -62,14 +66,20 @@ DENIED: dict[Role, set[Permission]] = {
         P.AUDIT_READ,
         P.REPORTS_FINANCIAL,
         P.SUPPLIER_PAYMENTS_RECORD,
+        P.PAYMENTS_CONFIGURE,
+        P.CASH_ADJUST,
+        P.FINANCE_VIEW,
     },
     Role.CASHIER: {
         P.CATALOG_MANAGE,
         P.INVENTORY_VIEW,
         P.INVENTORY_ADJUST,
+        P.INVENTORY_RETURN,
         P.ORDERING_VIEW_ALL,
         P.ORDERING_DISCOUNT,
         P.PAYMENTS_REFUND,
+        P.PAYMENTS_VOID,
+        P.PAYMENTS_CONFIGURE,
         P.EXPENSES_MANAGE,
         P.REPORTS_SALES,
         P.USERS_MANAGE,
@@ -90,6 +100,7 @@ DENIED: dict[Role, set[Permission]] = {
         P.INVENTORY_ADJUST,
         P.USERS_MANAGE,
         P.SETTINGS_MANAGE,
+        P.CASH_ADJUST,
     },
 }
 

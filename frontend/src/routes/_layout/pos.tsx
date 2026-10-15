@@ -17,6 +17,9 @@ import { ConfirmDialog } from "@/components/Common/ConfirmDialog"
 import { Cart } from "@/components/Ordering/Cart"
 import { DiscountDialog } from "@/components/Ordering/DiscountDialog"
 import { MenuGrid } from "@/components/Ordering/MenuGrid"
+import { PaymentDialog } from "@/components/Payments/PaymentDialog"
+import { ShortageDialog } from "@/components/Recipes/ShortageDialog"
+import { type Shortage, shortagesFrom } from "@/components/Recipes/shortages"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -71,8 +74,17 @@ function Pos() {
   const [cancelling, setCancelling] = useState(false)
   const [cancelReason, setCancelReason] = useState("")
   const [completed, setCompleted] = useState<OrderPublic>()
+  const [paying, setPaying] = useState(false)
+  const [shortages, setShortages] = useState<Shortage[]>()
 
-  const onError = (err: ApiError) => handleError.call(showErrorToast, err)
+  const onError = (err: ApiError) => {
+    const missing = shortagesFrom(err)
+    if (missing) {
+      setShortages(missing)
+      return
+    }
+    handleError.call(showErrorToast, err)
+  }
 
   const storedId = localStorage.getItem(CURRENT_ORDER_KEY)
   const { data: resumed } = useQuery({
@@ -338,7 +350,13 @@ function Pos() {
               className="h-12 flex-1 text-base"
               disabled={!hasLines || (busy && !complete.isPending)}
               loading={complete.isPending}
-              onClick={() => complete.mutate()}
+              onClick={() => {
+                if (order && Number(order.total) === 0) {
+                  complete.mutate()
+                } else {
+                  setPaying(true)
+                }
+              }}
             >
               {t("ordering.pos.complete")}
             </LoadingButton>
@@ -364,6 +382,24 @@ function Pos() {
           }
         />
       )}
+
+      {order && (
+        <PaymentDialog
+          order={order}
+          open={paying}
+          onOpenChange={setPaying}
+          onCompleted={(done) => {
+            resetCart()
+            setCompleted(done)
+          }}
+          onShortage={setShortages}
+        />
+      )}
+
+      <ShortageDialog
+        shortages={shortages}
+        onClose={() => setShortages(undefined)}
+      />
 
       <ConfirmDialog
         open={cancelling}
