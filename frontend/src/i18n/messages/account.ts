@@ -51,11 +51,11 @@ export const en = {
 } as const
 
 export const vi: Record<keyof typeof en, string> = {
-  "account.dashboard.pageTitle": "Tổng quan - FastAPI Template",
+  "account.dashboard.pageTitle": "Tổng quan - Beoni OMS",
   "account.dashboard.greeting": "Xin chào, {name} 👋",
   "account.dashboard.welcome": "Chào mừng bạn quay lại!",
 
-  "account.settings.pageTitle": "Cài đặt - FastAPI Template",
+  "account.settings.pageTitle": "Cài đặt - Beoni OMS",
   "account.settings.description":
     "Quản lý thông tin tài khoản và tùy chọn của bạn",
   "account.tabs.profile": "Hồ sơ của tôi",

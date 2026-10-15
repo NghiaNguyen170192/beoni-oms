@@ -30,7 +30,7 @@ export const en = {
 } as const
 
 export const vi: Record<keyof typeof en, string> = {
-  "admin.pageTitle": "Quản trị - FastAPI Template",
+  "admin.pageTitle": "Quản trị - Beoni OMS",
   "admin.description": "Quản lý tài khoản và phân quyền người dùng",
 
   "admin.columns.you": "Bạn",

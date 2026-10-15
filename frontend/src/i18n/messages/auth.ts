@@ -27,14 +27,14 @@ export const en = {
 } as const
 
 export const vi: Record<keyof typeof en, string> = {
-  "auth.login.pageTitle": "Đăng nhập - FastAPI Template",
+  "auth.login.pageTitle": "Đăng nhập - Beoni OMS",
   "auth.login.title": "Đăng nhập vào tài khoản",
   "auth.login.forgotPassword": "Quên mật khẩu?",
   "auth.login.submit": "Đăng nhập",
   "auth.login.noAccount": "Chưa có tài khoản?",
   "auth.login.signUpLink": "Đăng ký",
 
-  "auth.signup.pageTitle": "Đăng ký - FastAPI Template",
+  "auth.signup.pageTitle": "Đăng ký - Beoni OMS",
   "auth.signup.title": "Tạo tài khoản",
   "auth.signup.fullNameRequired": "Vui lòng nhập họ và tên",
   "auth.signup.fullNamePlaceholder": "Nguyễn Văn A",
@@ -44,12 +44,12 @@ export const vi: Record<keyof typeof en, string> = {
   "auth.logInLink": "Đăng nhập",
   "auth.rememberPassword": "Đã nhớ mật khẩu?",
 
-  "auth.recover.pageTitle": "Khôi phục mật khẩu - FastAPI Template",
+  "auth.recover.pageTitle": "Khôi phục mật khẩu - Beoni OMS",
   "auth.recover.title": "Khôi phục mật khẩu",
   "auth.recover.sent": "Đã gửi email khôi phục mật khẩu",
   "auth.recover.submit": "Tiếp tục",
 
-  "auth.reset.pageTitle": "Đặt lại mật khẩu - FastAPI Template",
+  "auth.reset.pageTitle": "Đặt lại mật khẩu - Beoni OMS",
   "auth.reset.title": "Đặt lại mật khẩu",
   "auth.reset.submit": "Đặt lại mật khẩu",
 }
