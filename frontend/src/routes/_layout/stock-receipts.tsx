@@ -108,11 +108,13 @@ function StockReceipts() {
       },
       {
         id: "status",
+        enableSorting: false,
         header: () => translate("common.status"),
         cell: ({ row }) => <StatusBadge status={row.original.status} />,
       },
       {
         id: "payment",
+        enableSorting: false,
         header: () => translate("purchasing.suppliers.paid"),
         cell: ({ row }) => (
           <PaymentBadge status={row.original.payment_status} />
@@ -120,6 +122,7 @@ function StockReceipts() {
       },
       {
         id: "total",
+        accessorFn: (row) => Number(row.total_value),
         header: () => (
           <div className="text-right">
             {translate("purchasing.receipts.field.total")}
@@ -133,6 +136,7 @@ function StockReceipts() {
       },
       {
         id: "actions",
+        enableSorting: false,
         cell: ({ row }) => (
           <Button
             variant="ghost"
@@ -149,7 +153,7 @@ function StockReceipts() {
   )
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex w-full flex-col gap-4">
       <div className="flex items-center justify-between gap-2">
         <div>
           <h1 className="text-2xl font-semibold">
@@ -260,8 +264,13 @@ function ReceiptDetail({
   const accounts = useQuery({
     queryKey: ["money-accounts"],
     queryFn: () => AccountingService.readAccounts(),
-    enabled: confirmPost && canPayOnPost,
+    enabled: canPayOnPost,
   })
+  const accountOptions = accounts.data?.data ?? []
+  const defaultAccount =
+    accountOptions.find((account) => account.kind === "bank") ??
+    accountOptions[0]
+  const selectedAccountId = payAccount || defaultAccount?.id || ""
 
   const { data: receipt } = useQuery({
     queryKey: ["receipt", receiptId],
@@ -283,10 +292,10 @@ function ReceiptDetail({
         receiptId: receiptId!,
         idempotencyKey: postKey.current(),
         requestBody:
-          amount && canPayOnPost
+          amount && canPayOnPost && selectedAccountId
             ? {
                 payment_amount: amount,
-                account_id: payAccount || accounts.data!.data[0].id,
+                account_id: selectedAccountId,
               }
             : undefined,
       })
@@ -346,60 +355,64 @@ function ReceiptDetail({
               <SheetHeader>
                 <SheetTitle>{receipt.reference}</SheetTitle>
               </SheetHeader>
-              <div className="mt-3 flex gap-2">
-                <StatusBadge status={receipt.status} />
-                <PaymentBadge status={receipt.payment_status} />
-              </div>
-              <p className="mt-3 text-sm">
-                {receipt.supplier_name} · {receipt.receipt_date}
-              </p>
-              <p className="mt-1 text-right text-lg font-medium tabular-nums">
-                {formatMoney(receipt.total_value)}
-              </p>
-              <ul className="mt-4 space-y-2 text-sm">
-                {receipt.lines.map((line) => (
-                  <li key={line.id} className="flex justify-between gap-2">
-                    <span>
-                      {line.item_name} · {line.purchase_qty}{" "}
-                      {line.purchase_unit}
-                    </span>
-                    <span className="tabular-nums">
-                      {formatMoney(line.line_total)}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-              <div className="mt-6 flex flex-wrap gap-2">
-                {receipt.status === "draft" && canManage && (
-                  <Button variant="outline" onClick={() => onEdit(receipt)}>
-                    {t("common.edit")}
-                  </Button>
-                )}
-                {receipt.status === "draft" && canPost && (
-                  <Button onClick={() => setConfirmPost(true)}>
-                    {t("purchasing.receipts.post")}
-                  </Button>
-                )}
-                {receipt.status === "posted" &&
-                  !receipt.reversal_of_id &&
-                  canReverse && (
-                    <Button
-                      variant="outline"
-                      onClick={() => setConfirmReverse(true)}
-                    >
-                      <Undo2 className="size-4" />
-                      {t("purchasing.receipts.reverse")}
+              <div className="flex flex-col gap-4 px-4 pb-6">
+                <div className="flex gap-2">
+                  <StatusBadge status={receipt.status} />
+                  <PaymentBadge status={receipt.payment_status} />
+                </div>
+                <div>
+                  <p className="text-sm">
+                    {receipt.supplier_name} · {receipt.receipt_date}
+                  </p>
+                  <p className="text-right text-lg font-medium tabular-nums">
+                    {formatMoney(receipt.total_value)}
+                  </p>
+                </div>
+                <ul className="space-y-2 text-sm">
+                  {receipt.lines.map((line) => (
+                    <li key={line.id} className="flex justify-between gap-2">
+                      <span>
+                        {line.item_name} · {line.purchase_qty}{" "}
+                        {line.purchase_unit}
+                      </span>
+                      <span className="tabular-nums">
+                        {formatMoney(line.line_total)}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+                <div className="flex flex-wrap gap-2">
+                  {receipt.status === "draft" && canManage && (
+                    <Button variant="outline" onClick={() => onEdit(receipt)}>
+                      {t("common.edit")}
                     </Button>
                   )}
-                {receipt.status === "draft" && canManage && (
-                  <Button
-                    variant="ghost"
-                    onClick={() => remove.mutate()}
-                    disabled={remove.isPending}
-                  >
-                    {t("purchasing.receipts.deleteDraft")}
-                  </Button>
-                )}
+                  {receipt.status === "draft" && canPost && (
+                    <Button onClick={() => setConfirmPost(true)}>
+                      {t("purchasing.receipts.post")}
+                    </Button>
+                  )}
+                  {receipt.status === "posted" &&
+                    !receipt.reversal_of_id &&
+                    canReverse && (
+                      <Button
+                        variant="outline"
+                        onClick={() => setConfirmReverse(true)}
+                      >
+                        <Undo2 className="size-4" />
+                        {t("purchasing.receipts.reverse")}
+                      </Button>
+                    )}
+                  {receipt.status === "draft" && canManage && (
+                    <Button
+                      variant="ghost"
+                      onClick={() => remove.mutate()}
+                      disabled={remove.isPending}
+                    >
+                      {t("purchasing.receipts.deleteDraft")}
+                    </Button>
+                  )}
+                </div>
               </div>
             </>
           )}
@@ -428,26 +441,30 @@ function ReceiptDetail({
                 onChange={(event) => setPayAmount(event.target.value)}
               />
             </div>
-            {payAmount.trim() && (
-              <div className="grid gap-1.5">
-                <Label>{t("accounting.receipts.payAccount")}</Label>
-                <Select
-                  value={payAccount || undefined}
-                  onValueChange={setPayAccount}
-                >
-                  <SelectTrigger data-testid="receipt-pay-account">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {accounts.data?.data.map((account) => (
-                      <SelectItem key={account.id} value={account.id}>
-                        {account.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
+            <div className="grid gap-1.5">
+              <Label>{t("accounting.receipts.payAccount")}</Label>
+              <Select
+                value={selectedAccountId || undefined}
+                onValueChange={setPayAccount}
+              >
+                <SelectTrigger data-testid="receipt-pay-account">
+                  <SelectValue
+                    placeholder={
+                      accountOptions.length === 0
+                        ? t("common.loading")
+                        : undefined
+                    }
+                  />
+                </SelectTrigger>
+                <SelectContent>
+                  {accountOptions.map((account) => (
+                    <SelectItem key={account.id} value={account.id}>
+                      {account.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         )}
       </ConfirmDialog>

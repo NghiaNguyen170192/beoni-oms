@@ -34,6 +34,7 @@ const en = {
   paid: "Supplier payment recorded",
   cash: "Cash and bank",
   label: "Recorded",
+  defaultPay: "Default for supplier payments",
 }
 
 const vi = {
@@ -45,6 +46,7 @@ const vi = {
   paid: "Đã ghi thanh toán",
   cash: "Tiền mặt và ngân hàng",
   label: "Đã ghi nhận",
+  defaultPay: "Mặc định khi trả nhà cung cấp",
 }
 
 test("record an expense, pay a supplier in part, and see cash move", async ({
@@ -129,4 +131,7 @@ test("record an expense, pay a supplier in part, and see cash move", async ({
   const shown = await page.getByTestId("cash-account-cash").innerText()
   expect(parseMoney(shown) - opening).toBe(-550_000)
   await expect(page.getByTestId("cash-account-cash")).toContainText(copy.label)
+  await expect(page.getByTestId("cash-account-bank")).toContainText(
+    copy.defaultPay,
+  )
 })

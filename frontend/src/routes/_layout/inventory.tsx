@@ -27,7 +27,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import useAuth from "@/hooks/useAuth"
 import { useFormatters } from "@/hooks/useBusinessSettings"
 import { t as translate, useI18n } from "@/i18n"
-import { formatNumber, formatUnitCost } from "@/lib/format"
+import { formatNumber } from "@/lib/format"
 import { UNIT_LABELS } from "@/lib/labels"
 import { hasPermission, requirePermission } from "@/lib/permissions"
 
@@ -47,7 +47,7 @@ function Inventory() {
   const { t } = useI18n()
   const { user } = useAuth()
   const canManage = hasPermission(user, "inventory:manage")
-  const { formatMoney } = useFormatters()
+  const { formatMoney, formatUnitCost } = useFormatters()
 
   const [search, setSearch] = useState("")
   const [categoryId, setCategoryId] = useState<string>()
@@ -88,11 +88,13 @@ function Inventory() {
       },
       {
         id: "category",
+        accessorFn: (row) => categoryNames.get(row.category_id) ?? "",
         header: () => translate("inventory.field.category"),
         cell: ({ row }) => categoryNames.get(row.original.category_id) ?? "—",
       },
       {
         id: "quantity",
+        accessorFn: (row) => Number(row.quantity),
         header: () => (
           <div className="text-right">
             {translate("inventory.field.quantity")}
@@ -111,6 +113,7 @@ function Inventory() {
       },
       {
         id: "avg_unit_cost",
+        accessorFn: (row) => Number(row.avg_unit_cost),
         header: () => (
           <div className="text-right">
             {translate("inventory.field.avgCost")}
@@ -124,6 +127,7 @@ function Inventory() {
       },
       {
         id: "value",
+        accessorFn: (row) => Number(row.value),
         header: () => (
           <div className="text-right">{translate("inventory.field.value")}</div>
         ),
@@ -135,6 +139,7 @@ function Inventory() {
       },
       {
         id: "status",
+        enableSorting: false,
         header: () => translate("common.status"),
         cell: ({ row }) => (
           <div className="flex flex-wrap gap-1">
@@ -158,6 +163,7 @@ function Inventory() {
       },
       {
         id: "actions",
+        enableSorting: false,
         header: () => (
           <span className="sr-only">{translate("common.actions")}</span>
         ),
@@ -189,7 +195,7 @@ function Inventory() {
         ),
       },
     ],
-    [canManage, categoryNames, formatMoney],
+    [canManage, categoryNames, formatMoney, formatUnitCost],
   )
 
   return (

@@ -146,6 +146,11 @@ function Cash() {
               <div className="text-xs uppercase tracking-wide text-muted-foreground">
                 {t("accounting.cash.recorded")}
               </div>
+              {account.kind === "bank" && (
+                <div className="mt-1 text-xs text-muted-foreground">
+                  {t("accounting.cash.defaultPay")}
+                </div>
+              )}
             </button>
           ))}
         </div>

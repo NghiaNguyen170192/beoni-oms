@@ -1,16 +1,22 @@
 import {
   type ColumnDef,
+  type SortingState,
   flexRender,
   getCoreRowModel,
   getPaginationRowModel,
+  getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table"
 import {
+  ArrowUpDown,
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
+  ChevronUp,
 } from "lucide-react"
+import { useState } from "react"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -33,24 +39,31 @@ import { useI18n } from "@/i18n"
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
   data: TData[]
+  pageSize?: number
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data,
+  pageSize = 50,
 }: DataTableProps<TData, TValue>) {
   const { t } = useI18n()
+  const [sorting, setSorting] = useState<SortingState>([])
   const table = useReactTable({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    onSortingChange: setSorting,
+    state: { sorting },
+    initialState: { pagination: { pageSize } },
   })
 
-  const { pageIndex, pageSize } = table.getState().pagination
+  const { pageIndex, pageSize: currentPageSize } = table.getState().pagination
   const [showingBefore, showingAfter] = t("dataTable.showing", {
-    from: pageIndex * pageSize + 1,
-    to: Math.min((pageIndex + 1) * pageSize, data.length),
+    from: pageIndex * currentPageSize + 1,
+    to: Math.min((pageIndex + 1) * currentPageSize, data.length),
   }).split("{total}")
 
   return (
@@ -59,18 +72,36 @@ export function DataTable<TData, TValue>({
         <TableHeader>
           {table.getHeaderGroups().map((headerGroup) => (
             <TableRow key={headerGroup.id} className="hover:bg-transparent">
-              {headerGroup.headers.map((header) => {
-                return (
-                  <TableHead key={header.id}>
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(
+              {headerGroup.headers.map((header) => (
+                <TableHead
+                  key={header.id}
+                  onClick={header.column.getToggleSortingHandler()}
+                  className={
+                    header.column.getCanSort()
+                      ? "cursor-pointer select-none"
+                      : undefined
+                  }
+                >
+                  {header.isPlaceholder ? null : (
+                    <div className="flex items-center gap-1">
+                      <span className="flex-1">
+                        {flexRender(
                           header.column.columnDef.header,
                           header.getContext(),
                         )}
-                  </TableHead>
-                )
-              })}
+                      </span>
+                      {header.column.getCanSort() &&
+                        (header.column.getIsSorted() === "asc" ? (
+                          <ChevronUp className="size-3.5 shrink-0 text-foreground" />
+                        ) : header.column.getIsSorted() === "desc" ? (
+                          <ChevronDown className="size-3.5 shrink-0 text-foreground" />
+                        ) : (
+                          <ArrowUpDown className="size-3.5 shrink-0 opacity-40" />
+                        ))}
+                    </div>
+                  )}
+                </TableHead>
+              ))}
             </TableRow>
           ))}
         </TableHeader>
@@ -122,9 +153,9 @@ export function DataTable<TData, TValue>({
                   />
                 </SelectTrigger>
                 <SelectContent side="top">
-                  {[5, 10, 25, 50].map((pageSize) => (
-                    <SelectItem key={pageSize} value={`${pageSize}`}>
-                      {pageSize}
+                  {[10, 25, 50, 100].map((size) => (
+                    <SelectItem key={size} value={`${size}`}>
+                      {size}
                     </SelectItem>
                   ))}
                 </SelectContent>

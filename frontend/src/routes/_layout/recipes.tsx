@@ -67,6 +67,7 @@ function Recipes() {
       },
       {
         id: "type",
+        enableSorting: false,
         header: () => translate("catalog.type"),
         cell: ({ row }) =>
           translate(`productType.${row.original.product_type}` as MessageKey),

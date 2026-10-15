@@ -10,10 +10,12 @@ from app.modules.accounting import service as accounting
 from app.modules.accounting.errors import OverAllocation, PaidExpenseNeedsAccount
 from app.modules.accounting.ledger import BANK, CASH_DRAWER, account_named
 from app.modules.accounting.models import (
+    AccountKind,
     CashMovement,
     Expense,
     ExpenseCategory,
     ExpensePaymentStatus,
+    MoneyAccount,
     RecordStatus,
     SupplierPayment,
 )
@@ -161,6 +163,19 @@ def test_backfill_matches_active_payments_minus_refunds(db: Session) -> None:
     ).one()
     refunded = db.exec(select(func.coalesce(func.sum(Refund.amount), 0))).one()
     assert D(movement_total) == D(active) - D(refunded)
+
+
+def test_account_without_movements_lists_zero_balance(db: Session) -> None:
+    account = MoneyAccount(
+        name=f"Empty bank {uuid.uuid4().hex[:8]}",
+        kind=AccountKind.BANK,
+    )
+    db.add(account)
+    db.flush()
+    balance = next(
+        amount for row, amount in accounting.list_accounts(db) if row.id == account.id
+    )
+    assert balance == D("0.00")
 
 
 def test_cash_adjustment_increases_recorded_balance(db: Session) -> None:

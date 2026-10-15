@@ -261,28 +261,33 @@ function Orders() {
       },
       {
         id: "created_at",
+        accessorFn: (row) => row.created_at,
         header: () => translate("ordering.orders.created"),
         cell: ({ row }) => formatDateTime(row.original.created_at),
       },
       {
         id: "type",
+        enableSorting: false,
         header: () => translate("ordering.orders.type"),
         cell: ({ row }) =>
           `${translate(ORDER_TYPE_LABELS[row.original.order_type])}${row.original.table_label ? ` · ${row.original.table_label}` : ""}`,
       },
       {
         id: "status",
+        enableSorting: false,
         header: () => translate("common.status"),
         cell: ({ row }) => <OrderStatusBadge status={row.original.status} />,
       },
       {
         id: "cashier",
+        enableSorting: false,
         header: () => translate("ordering.orders.cashier"),
         cell: ({ row }) =>
           displayName(row.original.cashier_name, row.original.cashier_email),
       },
       {
         id: "total",
+        accessorFn: (row) => Number(row.total),
         header: () => (
           <div className="text-right">{translate("ordering.orders.total")}</div>
         ),
@@ -294,6 +299,7 @@ function Orders() {
       },
       {
         id: "actions",
+        enableSorting: false,
         header: () => (
           <span className="sr-only">{translate("common.actions")}</span>
         ),

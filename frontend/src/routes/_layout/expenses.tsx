@@ -191,6 +191,7 @@ function Expenses() {
       },
       {
         id: "category",
+        enableSorting: false,
         header: () => translate("accounting.expenses.field.category"),
         cell: ({ row }) => categoryName(row.original.category_id),
       },
@@ -200,6 +201,7 @@ function Expenses() {
       },
       {
         id: "amount",
+        accessorFn: (row) => Number(row.amount),
         header: () => (
           <div className="text-right">
             {translate("accounting.expenses.field.amount")}
@@ -213,6 +215,7 @@ function Expenses() {
       },
       {
         id: "status",
+        enableSorting: false,
         header: () => translate("common.status"),
         cell: ({ row }) =>
           row.original.status === "reversed"
@@ -223,6 +226,7 @@ function Expenses() {
       },
       {
         id: "actions",
+        enableSorting: false,
         cell: ({ row }) =>
           canManage && row.original.status === "recorded" ? (
             <div className="flex justify-end gap-2">

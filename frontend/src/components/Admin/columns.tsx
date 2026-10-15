@@ -76,6 +76,7 @@ export const columns: ColumnDef<UserTableData>[] = [
   },
   {
     id: "actions",
+    enableSorting: false,
     header: () => <span className="sr-only">{t("common.actions")}</span>,
     cell: ({ row }) => (
       <div className="flex justify-end">

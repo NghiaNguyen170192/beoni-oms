@@ -32,7 +32,15 @@ export function formatNumber(
   )
 }
 
-/** Per-unit costs keep up to 4 decimals, which currency formatting would round away. */
-export function formatUnitCost(value: string | number): string {
-  return `${formatNumber(value)} ₫`
+/** Per-unit costs keep up to 4 decimals, which standard currency formatting rounds away. */
+export function formatUnitCost(
+  value: string | number,
+  currency: string = DEFAULT_CURRENCY,
+): string {
+  return new Intl.NumberFormat("vi-VN", {
+    style: "currency",
+    currency,
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 4,
+  }).format(Number(value))
 }

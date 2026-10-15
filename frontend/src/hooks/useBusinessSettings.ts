@@ -8,6 +8,7 @@ import {
   DEFAULT_TIMEZONE,
   formatDateTime,
   formatMoney,
+  formatUnitCost,
 } from "@/lib/format"
 import { isLoggedIn } from "./useAuth"
 
@@ -38,6 +39,7 @@ export function useFormatters() {
     currency,
     timeZone,
     formatMoney: (amount: string | number) => formatMoney(amount, currency),
+    formatUnitCost: (value: string | number) => formatUnitCost(value, currency),
     formatDateTime: (value: string | Date) => formatDateTime(value, timeZone),
   }
 }

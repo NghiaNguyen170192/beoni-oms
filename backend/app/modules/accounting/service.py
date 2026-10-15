@@ -78,7 +78,9 @@ def list_accounts(session: Session) -> list[tuple[MoneyAccount, Decimal]]:
             .group_by(CashMovement.account_id)
         ).all()
     )
-    return [(account, money(totals.get(account.id, 0))) for account in rows]
+    return [
+        (account, money(totals.get(account.id, Decimal("0")))) for account in rows
+    ]
 
 
 def list_movements(

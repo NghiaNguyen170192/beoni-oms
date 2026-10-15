@@ -28,7 +28,7 @@ import {
 } from "@/components/ui/table"
 import { useFormatters } from "@/hooks/useBusinessSettings"
 import { useI18n } from "@/i18n"
-import { formatNumber, formatUnitCost } from "@/lib/format"
+import { formatNumber } from "@/lib/format"
 import { MOVEMENT_TYPE_LABELS, UNIT_LABELS } from "@/lib/labels"
 import { displayName } from "@/lib/permissions"
 import { movementsQueryOptions } from "./queries"
@@ -55,7 +55,7 @@ export function MovementHistory({ item, onClose }: MovementHistoryProps) {
 
 function MovementHistoryContent({ item }: { item: InventoryItemPublic }) {
   const { t } = useI18n()
-  const { formatMoney, formatDateTime } = useFormatters()
+  const { formatMoney, formatUnitCost, formatDateTime } = useFormatters()
   const [movementType, setMovementType] = useState<MovementType>()
   const { data, isPending } = useQuery(
     movementsQueryOptions(item.id, movementType),

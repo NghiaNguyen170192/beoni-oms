@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 
 import { PurchasingService, type SupplierPublic } from "@/client"
 import { Button } from "@/components/ui/button"
@@ -67,9 +67,12 @@ export function SupplierDialog({
   const { t } = useI18n()
   const queryClient = useQueryClient()
   const { showSuccessToast, showErrorToast } = useCustomToast()
-  const [form, setForm] = useState<FormState>(
-    supplier ? fromSupplier(supplier) : empty(),
-  )
+  const [form, setForm] = useState<FormState>(empty())
+
+  useEffect(() => {
+    if (!open) return
+    setForm(supplier ? fromSupplier(supplier) : empty())
+  }, [open, supplier])
 
   const save = useMutation({
     mutationFn: () => {
@@ -107,13 +110,7 @@ export function SupplierDialog({
     setForm((current) => ({ ...current, [field]: value }))
 
   return (
-    <Dialog
-      open={open}
-      onOpenChange={(next) => {
-        if (next) setForm(supplier ? fromSupplier(supplier) : empty())
-        onOpenChange(next)
-      }}
-    >
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>

@@ -52,7 +52,12 @@ function Suppliers() {
       PurchasingService.readSuppliers({ q: search.trim() || undefined }),
   })
   const suppliers = data?.data ?? []
-  const detail = suppliers.find((row) => row.id === detailId)
+  const { data: detailSupplier } = useQuery({
+    queryKey: ["supplier", detailId],
+    queryFn: () => PurchasingService.readSupplier({ supplierId: detailId! }),
+    enabled: detailId != null,
+  })
+  const detail = detailSupplier ?? suppliers.find((row) => row.id === detailId)
 
   const columns = useMemo<ColumnDef<SupplierPublic>[]>(
     () => [
@@ -76,6 +81,7 @@ function Suppliers() {
       },
       {
         id: "outstanding",
+        accessorFn: (row) => Number(row.outstanding),
         header: () => (
           <div className="text-right">
             {translate("purchasing.suppliers.outstanding")}
@@ -89,6 +95,7 @@ function Suppliers() {
       },
       {
         id: "status",
+        enableSorting: false,
         header: () => translate("common.status"),
         cell: ({ row }) =>
           row.original.is_active ? (
@@ -99,6 +106,7 @@ function Suppliers() {
       },
       {
         id: "actions",
+        enableSorting: false,
         cell: ({ row }) =>
           canManage ? (
             <Button
@@ -116,7 +124,7 @@ function Suppliers() {
   )
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex w-full flex-col gap-4">
       <div className="flex items-center justify-between gap-2">
         <div>
           <h1 className="text-2xl font-semibold">

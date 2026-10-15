@@ -44,7 +44,7 @@ import useAuth from "@/hooks/useAuth"
 import { useFormatters } from "@/hooks/useBusinessSettings"
 import useCustomToast from "@/hooks/useCustomToast"
 import { t as translate, useI18n } from "@/i18n"
-import { formatNumber, formatUnitCost } from "@/lib/format"
+import { formatNumber } from "@/lib/format"
 import { useIdempotencyKey } from "@/lib/idempotency"
 import { ADJUSTMENT_REASON_LABELS, UNIT_LABELS } from "@/lib/labels"
 import {
@@ -83,7 +83,7 @@ function AdjustmentDetail({
   onClose: () => void
 }) {
   const { t } = useI18n()
-  const { formatDateTime } = useFormatters()
+  const { formatDateTime, formatUnitCost } = useFormatters()
   const { data } = useQuery({
     queryKey: ["stockAdjustments", "detail", adjustmentId],
     queryFn: () =>
@@ -237,11 +237,13 @@ function StockAdjustments() {
       },
       {
         id: "posted_at",
+        accessorFn: (row) => row.posted_at,
         header: () => translate("inventory.adjustments.postedAt"),
         cell: ({ row }) => formatDateTime(row.original.posted_at),
       },
       {
         id: "posted_by",
+        enableSorting: false,
         header: () => translate("inventory.adjustments.postedBy"),
         cell: ({ row }) =>
           displayName(
@@ -255,6 +257,7 @@ function StockAdjustments() {
       },
       {
         id: "note",
+        enableSorting: false,
         header: () => translate("common.note"),
         cell: ({ row }) => (
           <span className="text-muted-foreground">
@@ -264,11 +267,12 @@ function StockAdjustments() {
       },
       {
         id: "status",
+        enableSorting: false,
         header: () => translate("common.status"),
-        cell: ({ row }) => <StatusBadge status={row.original.status} />,
       },
       {
         id: "actions",
+        enableSorting: false,
         header: () => (
           <span className="sr-only">{translate("common.actions")}</span>
         ),

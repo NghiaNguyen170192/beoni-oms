@@ -181,7 +181,7 @@ export function PaymentDialog({
                     ? t("payments.pos.tendered")
                     : t("payments.pos.amount")}
                 </div>
-                {digits || "0"}
+                {formatMoney(digits || "0")}
               </div>
               {changeCents > 0 && (
                 <p className="text-sm text-muted-foreground">

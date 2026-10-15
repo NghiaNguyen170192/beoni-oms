@@ -145,6 +145,7 @@ test("create a supplier, post a receipt, then reverse it", async ({ page }) => {
   const reference = (await row.getByRole("cell").first().innerText()).trim()
   await row.getByRole("button", { name: reference }).click()
   await page.getByRole("button", { name: L.post, exact: true }).click()
+  await expect(page.getByTestId("receipt-pay-account")).toContainText("Bank")
   const postDialog = page.getByRole("dialog", { name: L.postTitle })
   await postDialog.getByRole("button", { name: L.post, exact: true }).click()
   await expect(page.getByText(L.posted)).toBeVisible()

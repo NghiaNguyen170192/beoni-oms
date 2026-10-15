@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { Plus, Trash2 } from "lucide-react"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 
 import { PurchasingService, type StockReceiptPublic } from "@/client"
 import { inventoryItemsQueryOptions } from "@/components/Inventory/queries"
@@ -71,21 +71,32 @@ export function ReceiptDialog({
   const { formatMoney } = useFormatters()
   const queryClient = useQueryClient()
   const { showSuccessToast, showErrorToast } = useCustomToast()
-  const [supplierId, setSupplierId] = useState(receipt?.supplier_id ?? "")
+  const [supplierId, setSupplierId] = useState("")
   const [receiptDate, setReceiptDate] = useState(
-    receipt?.receipt_date ?? new Date().toISOString().slice(0, 10),
+    new Date().toISOString().slice(0, 10),
   )
-  const [notes, setNotes] = useState(receipt?.notes ?? "")
-  const [lines, setLines] = useState<Line[]>(
-    receipt
-      ? receipt.lines.map((line) => ({
-          key: nextKey++,
-          itemId: line.item_id,
-          quantity: line.purchase_qty,
-          cost: line.purchase_unit_cost,
-        }))
-      : [emptyLine()],
-  )
+  const [notes, setNotes] = useState("")
+  const [lines, setLines] = useState<Line[]>([emptyLine()])
+
+  useEffect(() => {
+    if (!open) return
+
+    setSupplierId(receipt?.supplier_id ?? "")
+    setReceiptDate(
+      receipt?.receipt_date ?? new Date().toISOString().slice(0, 10),
+    )
+    setNotes(receipt?.notes ?? "")
+    setLines(
+      receipt
+        ? receipt.lines.map((line) => ({
+            key: nextKey++,
+            itemId: line.item_id,
+            quantity: line.purchase_qty,
+            cost: line.purchase_unit_cost,
+          }))
+        : [emptyLine()],
+    )
+  }, [open, receipt])
 
   const { data: suppliers } = useQuery({
     queryKey: ["suppliers", "active"],

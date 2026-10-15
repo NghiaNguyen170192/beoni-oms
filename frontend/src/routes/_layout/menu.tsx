@@ -107,6 +107,7 @@ function Menu() {
     const flag = (field: "is_active" | "is_available", label: string) =>
       ({
         id: field,
+        enableSorting: false,
         header: label,
         cell: ({ row }) => {
           const item = row.original
@@ -133,6 +134,7 @@ function Menu() {
     const base: ColumnDef<MenuItemPublic>[] = [
       {
         id: "image",
+        enableSorting: false,
         header: "",
         cell: ({ row }) => {
           const src = mediaUrl(row.original.image_path)
@@ -157,16 +159,19 @@ function Menu() {
       },
       {
         id: "category",
+        accessorFn: (row) => categoryNames.get(row.category_id) ?? "",
         header: t("catalog.category"),
         cell: ({ row }) => categoryNames.get(row.original.category_id) ?? "—",
       },
       {
         id: "type",
+        enableSorting: false,
         header: t("catalog.type"),
         cell: ({ row }) => t(PRODUCT_TYPE_LABELS[row.original.product_type]),
       },
       {
         id: "price",
+        accessorFn: (row) => Number(row.price),
         header: () => <div className="text-right">{t("catalog.price")}</div>,
         cell: ({ row }) => (
           <div className="text-right tabular-nums">
@@ -182,6 +187,7 @@ function Menu() {
       ...base,
       {
         id: "actions",
+        enableSorting: false,
         header: () => <span className="sr-only">{t("common.actions")}</span>,
         cell: ({ row }) => (
           <div className="flex justify-end gap-1">

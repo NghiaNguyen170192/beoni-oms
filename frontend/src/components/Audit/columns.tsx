@@ -127,6 +127,7 @@ export const columns: ColumnDef<AuditLogPublic>[] = [
   },
   {
     accessorKey: "changes",
+    enableSorting: false,
     header: () => t("audit.changes"),
     cell: ({ row }) => <Changes changes={row.original.changes} />,
   },

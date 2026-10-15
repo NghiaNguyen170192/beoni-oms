@@ -73,6 +73,7 @@ export function SupplierPaymentDialog({
       setReference("")
       onOpenChange(false)
       queryClient.invalidateQueries({ queryKey: ["suppliers"] })
+      queryClient.invalidateQueries({ queryKey: ["supplier", supplierId] })
       queryClient.invalidateQueries({
         queryKey: ["supplier-statement", supplierId],
       })

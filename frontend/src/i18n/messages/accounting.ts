@@ -48,6 +48,7 @@ export const en = {
   "accounting.cash.when": "When",
   "accounting.cash.source": "Source",
   "accounting.cash.amount": "Amount",
+  "accounting.cash.defaultPay": "Default for supplier payments",
 
   "accounting.suppliers.pay": "Pay supplier",
   "accounting.suppliers.paid": "Supplier payment recorded",
@@ -113,6 +114,7 @@ export const vi = {
   "accounting.cash.when": "Thời điểm",
   "accounting.cash.source": "Nguồn",
   "accounting.cash.amount": "Số tiền",
+  "accounting.cash.defaultPay": "Mặc định khi trả nhà cung cấp",
 
   "accounting.suppliers.pay": "Trả nhà cung cấp",
   "accounting.suppliers.paid": "Đã ghi thanh toán",
