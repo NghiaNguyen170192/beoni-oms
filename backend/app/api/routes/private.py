@@ -9,6 +9,7 @@ from app.models import (
     User,
     UserPublic,
 )
+from app.modules.identity.roles import Role
 
 router = APIRouter(tags=["private"], prefix="/private")
 
@@ -18,6 +19,7 @@ class PrivateUserCreate(BaseModel):
     password: str
     full_name: str
     is_verified: bool = False
+    role: Role = Role.CASHIER
 
 
 @router.post("/users/", response_model=UserPublic)
@@ -29,6 +31,7 @@ def create_user(user_in: PrivateUserCreate, session: SessionDep) -> Any:
     user = User(
         email=user_in.email,
         full_name=user_in.full_name,
+        role=user_in.role,
         hashed_password=get_password_hash(user_in.password),
     )
 

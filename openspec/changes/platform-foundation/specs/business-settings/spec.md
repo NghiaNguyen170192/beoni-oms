@@ -37,3 +37,18 @@ Any authenticated user SHALL be able to read currency and timezone so amounts an
 #### Scenario: Cashier reads settings
 - **WHEN** a cashier requests business settings
 - **THEN** the system returns currency and timezone
+
+### Requirement: Business-wide interface language
+The business settings SHALL include an interface language, English (`en`) or Vietnamese (`vi`), defaulting to English. Only owners SHALL change it, from a Language page under Admin; the change SHALL be audited. Every user SHALL see the whole interface (navigation, pages, forms, validation messages, notifications, labels for statuses and types, and receipts) in the business language. Business data such as item and category names SHALL NOT be translated.
+
+#### Scenario: Owner switches to Vietnamese
+- **WHEN** an owner selects Vietnamese on the Language page
+- **THEN** an audit entry records the change from en to vi and every user's interface shows Vietnamese text after their next page load
+
+#### Scenario: Unsupported language rejected
+- **WHEN** an owner submits language "fr"
+- **THEN** the system rejects the update with a validation error
+
+#### Scenario: Manager cannot change language
+- **WHEN** a manager attempts to change the language
+- **THEN** the system responds with 403

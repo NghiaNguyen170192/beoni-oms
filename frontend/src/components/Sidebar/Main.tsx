@@ -7,6 +7,9 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubButton,
+  SidebarMenuSubItem,
   useSidebar,
 } from "@/components/ui/sidebar"
 
@@ -14,6 +17,8 @@ export type Item = {
   icon: LucideIcon
   title: string
   path: string
+  /** Sub-navigation shown beneath the item. */
+  children?: Item[]
 }
 
 interface MainProps {
@@ -36,10 +41,12 @@ export function Main({ items }: MainProps) {
       <SidebarGroupContent>
         <SidebarMenu>
           {items.map((item) => {
-            const isActive = currentPath === item.path
+            const isActive = item.children
+              ? item.children.some((child) => child.path === currentPath)
+              : currentPath === item.path
 
             return (
-              <SidebarMenuItem key={item.title}>
+              <SidebarMenuItem key={item.path}>
                 <SidebarMenuButton
                   tooltip={item.title}
                   isActive={isActive}
@@ -50,6 +57,23 @@ export function Main({ items }: MainProps) {
                     <span>{item.title}</span>
                   </RouterLink>
                 </SidebarMenuButton>
+                {item.children && (
+                  <SidebarMenuSub>
+                    {item.children.map((child) => (
+                      <SidebarMenuSubItem key={child.path}>
+                        <SidebarMenuSubButton
+                          asChild
+                          isActive={currentPath === child.path}
+                        >
+                          <RouterLink to={child.path} onClick={handleMenuClick}>
+                            <child.icon />
+                            <span>{child.title}</span>
+                          </RouterLink>
+                        </SidebarMenuSubButton>
+                      </SidebarMenuSubItem>
+                    ))}
+                  </SidebarMenuSub>
+                )}
               </SidebarMenuItem>
             )
           })}

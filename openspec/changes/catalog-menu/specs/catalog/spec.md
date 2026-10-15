@@ -21,22 +21,29 @@ Users with catalog management permission SHALL create, rename, reorder, and deac
 A menu item SHALL have a unique product code, name, optional description, category, selling price in VND greater than or equal to zero, product type (prepared, direct_sale, non_stock), active flag, available flag, and optional image.
 
 #### Scenario: Create prepared drink
-- **WHEN** a manager creates "Cà phê sữa đá" with code CF001, type prepared, price 29000
-- **THEN** the item is saved with those values and is active and available
+- **WHEN** a manager creates "Cà phê sữa đá" with type prepared, price 29000
+- **THEN** the item is saved with those values and a system-assigned code, and is active and available
 
 #### Scenario: Negative price rejected
 - **WHEN** a manager submits a selling price of -1000
 - **THEN** the system rejects the item with a validation error
 
-#### Scenario: Duplicate product code
-- **WHEN** a manager creates an item with an existing product code
-- **THEN** the system rejects it with a conflict error
+### Requirement: Product codes are system-assigned
+The system SHALL assign each new menu item the next code in the format `MENU-` followed by a zero-padded sequence number of at least five digits (MENU-00001, MENU-00002, ...). Codes SHALL be unique, SHALL NOT be supplied by the client, and SHALL NOT change after creation. Numbers are never reused, so gaps MAY appear.
+
+#### Scenario: Sequential codes
+- **WHEN** a manager creates two menu items in a row and the last assigned code was MENU-00007
+- **THEN** the items receive MENU-00008 and MENU-00009
+
+#### Scenario: Code cannot be edited
+- **WHEN** a manager submits an update for MENU-00008 that includes a different code
+- **THEN** the item keeps code MENU-00008
 
 ### Requirement: Price and attribute changes are audited
 Changes to a menu item's price, name, product type, active flag, or available flag SHALL create an audit entry with old and new values.
 
 #### Scenario: Price change history
-- **WHEN** a manager changes CF001's price from 29000 to 32000
+- **WHEN** a manager changes MENU-00001's price from 29000 to 32000
 - **THEN** an audit entry records the change and the item's current price is 32000
 
 ### Requirement: Sold items cannot be deleted

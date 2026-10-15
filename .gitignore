@@ -1,6 +1,12 @@
 .vscode/*
 !.vscode/extensions.json
 node_modules/
+
+# Local and production secrets. Commit only the placeholder templates.
+.env
+.env.local
+.env.production
+frontend/.env
 /test-results/
 /playwright-report/
 /blob-report/

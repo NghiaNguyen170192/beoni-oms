@@ -15,30 +15,32 @@ import {
 import { LoadingButton } from "@/components/ui/loading-button"
 import { PasswordInput } from "@/components/ui/password-input"
 import useCustomToast from "@/hooks/useCustomToast"
+import { t, useI18n } from "@/i18n"
 import { handleError } from "@/utils"
 
 const formSchema = z
   .object({
     current_password: z
       .string()
-      .min(1, { message: "Password is required" })
-      .min(8, { message: "Password must be at least 8 characters" }),
+      .min(1, { error: () => t("common.passwordRequired") })
+      .min(8, { error: () => t("common.passwordMinLength") }),
     new_password: z
       .string()
-      .min(1, { message: "Password is required" })
-      .min(8, { message: "Password must be at least 8 characters" }),
+      .min(1, { error: () => t("common.passwordRequired") })
+      .min(8, { error: () => t("common.passwordMinLength") }),
     confirm_password: z
       .string()
-      .min(1, { message: "Password confirmation is required" }),
+      .min(1, { error: () => t("common.passwordConfirmRequired") }),
   })
   .refine((data) => data.new_password === data.confirm_password, {
-    message: "The passwords don't match",
+    error: () => t("common.passwordsMismatch"),
     path: ["confirm_password"],
   })
 
 type FormData = z.infer<typeof formSchema>
 
 const ChangePassword = () => {
+  const { t } = useI18n()
   const { showSuccessToast, showErrorToast } = useCustomToast()
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -55,7 +57,7 @@ const ChangePassword = () => {
     mutationFn: (data: UpdatePassword) =>
       UsersService.updatePasswordMe({ requestBody: data }),
     onSuccess: () => {
-      showSuccessToast("Password updated successfully")
+      showSuccessToast(t("common.passwordUpdated"))
       form.reset()
     },
     onError: handleError.bind(showErrorToast),
@@ -67,7 +69,9 @@ const ChangePassword = () => {
 
   return (
     <div className="max-w-md">
-      <h3 className="text-lg font-semibold py-4">Change Password</h3>
+      <h3 className="text-lg font-semibold py-4">
+        {t("account.password.title")}
+      </h3>
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit)}
@@ -78,7 +82,7 @@ const ChangePassword = () => {
             name="current_password"
             render={({ field, fieldState }) => (
               <FormItem>
-                <FormLabel>Current Password</FormLabel>
+                <FormLabel>{t("account.password.current")}</FormLabel>
                 <FormControl>
                   <PasswordInput
                     data-testid="current-password-input"
@@ -97,7 +101,7 @@ const ChangePassword = () => {
             name="new_password"
             render={({ field, fieldState }) => (
               <FormItem>
-                <FormLabel>New Password</FormLabel>
+                <FormLabel>{t("common.newPassword")}</FormLabel>
                 <FormControl>
                   <PasswordInput
                     data-testid="new-password-input"
@@ -116,7 +120,7 @@ const ChangePassword = () => {
             name="confirm_password"
             render={({ field, fieldState }) => (
               <FormItem>
-                <FormLabel>Confirm Password</FormLabel>
+                <FormLabel>{t("common.confirmPassword")}</FormLabel>
                 <FormControl>
                   <PasswordInput
                     data-testid="confirm-password-input"
@@ -135,7 +139,7 @@ const ChangePassword = () => {
             loading={mutation.isPending}
             className="self-start"
           >
-            Update Password
+            {t("account.password.submit")}
           </LoadingButton>
         </form>
       </Form>

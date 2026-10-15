@@ -8,6 +8,8 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar"
 import { isLoggedIn } from "@/hooks/useAuth"
+import { useBusinessSettings } from "@/hooks/useBusinessSettings"
+import { useI18n } from "@/i18n"
 
 export const Route = createFileRoute("/_layout")({
   component: Layout,
@@ -21,6 +23,10 @@ export const Route = createFileRoute("/_layout")({
 })
 
 function Layout() {
+  // Subscribing here re-renders every page when the language changes.
+  useI18n()
+  useBusinessSettings()
+
   return (
     <SidebarProvider>
       <AppSidebar />

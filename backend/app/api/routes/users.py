@@ -1,15 +1,11 @@
 import uuid
-from typing import Any
+from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import col, func, select
 
 from app import crud
-from app.api.deps import (
-    CurrentUser,
-    SessionDep,
-    get_current_active_superuser,
-)
+from app.api.deps import CurrentUser, SessionDep
 from app.core.config import settings
 from app.core.security import get_password_hash, verify_password
 from app.models import (
@@ -23,14 +19,27 @@ from app.models import (
     UserUpdate,
     UserUpdateMe,
 )
+from app.modules.identity import service as identity
+from app.modules.identity.dependencies import (
+    INSUFFICIENT_PRIVILEGES,
+    require_permission,
+)
+from app.modules.identity.permissions import Permission, has_permission
+from app.modules.identity.schemas import UserMePublic
 from app.utils import generate_new_account_email, send_email
 
 router = APIRouter(prefix="/users", tags=["users"])
 
+UserManager = Annotated[User, Depends(require_permission(Permission.USERS_MANAGE))]
+
+USER_HAS_HISTORY = (
+    "The user has audit history and cannot be deleted; deactivate the user instead"
+)
+
 
 @router.get(
     "/",
-    dependencies=[Depends(get_current_active_superuser)],
+    dependencies=[Depends(require_permission(Permission.USERS_MANAGE))],
     response_model=UsersPublic,
 )
 def read_users(session: SessionDep, skip: int = 0, limit: int = 100) -> Any:
@@ -50,10 +59,8 @@ def read_users(session: SessionDep, skip: int = 0, limit: int = 100) -> Any:
     return UsersPublic(data=users_public, count=count)
 
 
-@router.post(
-    "/", dependencies=[Depends(get_current_active_superuser)], response_model=UserPublic
-)
-def create_user(*, session: SessionDep, user_in: UserCreate) -> Any:
+@router.post("/", response_model=UserPublic)
+def create_user(*, session: SessionDep, user_in: UserCreate, actor: UserManager) -> Any:
     """
     Create new user.
     """
@@ -64,7 +71,7 @@ def create_user(*, session: SessionDep, user_in: UserCreate) -> Any:
             detail="The user with this email already exists in the system.",
         )
 
-    user = crud.create_user(session=session, user_create=user_in)
+    user = identity.create_user(session, user_in=user_in, actor=actor)
     if settings.emails_enabled and user_in.email:
         email_data = generate_new_account_email(
             email_to=user_in.email, username=user_in.email, password=user_in.password
@@ -120,12 +127,12 @@ def update_password_me(
     return Message(message="Password updated successfully")
 
 
-@router.get("/me", response_model=UserPublic)
+@router.get("/me", response_model=UserMePublic)
 def read_user_me(current_user: CurrentUser) -> Any:
     """
-    Get current user.
+    Get current user, including the effective role and its permissions.
     """
-    return current_user
+    return identity.me(current_user)
 
 
 @router.delete("/me", response_model=Message)
@@ -137,8 +144,10 @@ def delete_user_me(session: SessionDep, current_user: CurrentUser) -> Any:
         raise HTTPException(
             status_code=403, detail="Super users are not allowed to delete themselves"
         )
-    session.delete(current_user)
-    session.commit()
+    try:
+        identity.delete_user(session, user=current_user, actor=current_user)
+    except identity.UserHasHistory:
+        raise HTTPException(status_code=409, detail=USER_HAS_HISTORY)
     return Message(message="User deleted successfully")
 
 
@@ -168,29 +177,23 @@ def read_user_by_id(
     user = session.get(User, user_id)
     if user == current_user:
         return user
-    if not current_user.is_superuser:
-        raise HTTPException(
-            status_code=403,
-            detail="The user doesn't have enough privileges",
-        )
+    if not has_permission(current_user, Permission.USERS_MANAGE):
+        raise HTTPException(status_code=403, detail=INSUFFICIENT_PRIVILEGES)
     if user is None:
         raise HTTPException(status_code=404, detail="User not found")
     return user
 
 
-@router.patch(
-    "/{user_id}",
-    dependencies=[Depends(get_current_active_superuser)],
-    response_model=UserPublic,
-)
+@router.patch("/{user_id}", response_model=UserPublic)
 def update_user(
     *,
     session: SessionDep,
     user_id: uuid.UUID,
     user_in: UserUpdate,
+    actor: UserManager,
 ) -> Any:
     """
-    Update a user.
+    Update a user, including role and activation. Role changes are audited.
     """
 
     db_user = session.get(User, user_id)
@@ -206,24 +209,28 @@ def update_user(
                 status_code=409, detail="User with this email already exists"
             )
 
-    db_user = crud.update_user(session=session, db_user=db_user, user_in=user_in)
-    return db_user
+    try:
+        return identity.update_user(session, user=db_user, user_in=user_in, actor=actor)
+    except identity.CannotChangeOwnRole:
+        raise HTTPException(
+            status_code=400, detail="Users cannot change their own role"
+        )
 
 
-@router.delete("/{user_id}", dependencies=[Depends(get_current_active_superuser)])
-def delete_user(
-    session: SessionDep, current_user: CurrentUser, user_id: uuid.UUID
-) -> Message:
+@router.delete("/{user_id}")
+def delete_user(session: SessionDep, actor: UserManager, user_id: uuid.UUID) -> Message:
     """
     Delete a user.
     """
     user = session.get(User, user_id)
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
-    if user == current_user:
+    if user == actor:
         raise HTTPException(
             status_code=403, detail="Super users are not allowed to delete themselves"
         )
-    session.delete(user)
-    session.commit()
+    try:
+        identity.delete_user(session, user=user, actor=actor)
+    except identity.UserHasHistory:
+        raise HTTPException(status_code=409, detail=USER_HAS_HISTORY)
     return Message(message="User deleted successfully")

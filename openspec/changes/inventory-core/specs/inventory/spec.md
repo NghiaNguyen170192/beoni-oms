@@ -11,11 +11,25 @@ An inventory item SHALL have a unique SKU, name, optional description, category,
 
 #### Scenario: Create coffee beans
 - **WHEN** an inventory manager creates "Coffee beans" with base unit g, purchase unit kg, conversion factor 1000
-- **THEN** the item is saved with zero quantity and zero average cost
+- **THEN** the item is saved with a system-assigned SKU, zero quantity, and zero average cost
 
-#### Scenario: Duplicate SKU
-- **WHEN** a user creates an item with an existing SKU
-- **THEN** the system rejects it with a conflict error
+### Requirement: SKUs are system-assigned
+The system SHALL assign each new inventory item the next SKU in the format `SP-` followed by a zero-padded sequence number of at least five digits (SP-00001, SP-00002, ...). SKUs SHALL be unique, SHALL NOT be supplied by the client, and SHALL NOT change after creation. Numbers are never reused, so gaps MAY appear.
+
+#### Scenario: Sequential SKUs
+- **WHEN** a user creates an item and the last assigned SKU was SP-00010
+- **THEN** the item receives SKU SP-00011
+
+#### Scenario: SKU cannot be edited
+- **WHEN** a user submits an update for SP-00011 that includes a different SKU
+- **THEN** the item keeps SKU SP-00011
+
+### Requirement: Bakery raw-material starter catalog
+A fresh installation SHALL contain these active ingredient items in the "Nguyên vật liệu" category with zero quantity and zero cost: eggs, wheat flour, baking powder, syrup, fresh milk, sugar, whipping cream, salt, vanilla extract, and rum, each with a sensible base and purchase unit.
+
+#### Scenario: Starter items present
+- **WHEN** an inventory user opens the inventory list on a fresh installation
+- **THEN** the ten bakery raw materials are listed with quantity 0
 
 ### Requirement: Valid unit conversion
 The conversion factor SHALL be a positive number expressing base units per purchase unit; zero, negative, or missing factors SHALL be rejected. When purchase and base units are equal the factor SHALL be 1.

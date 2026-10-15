@@ -1,3 +1,4 @@
+import logging
 from datetime import timedelta
 from typing import Annotated, Any
 
@@ -6,16 +7,20 @@ from fastapi.responses import HTMLResponse
 from fastapi.security import OAuth2PasswordRequestForm
 
 from app import crud
-from app.api.deps import CurrentUser, SessionDep, get_current_active_superuser
+from app.api.deps import CurrentUser, SessionDep
 from app.core import security
 from app.core.config import settings
 from app.models import Message, NewPassword, Token, UserPublic, UserUpdate
+from app.modules.identity.dependencies import require_permission
+from app.modules.identity.permissions import Permission
 from app.utils import (
     generate_password_reset_token,
     generate_reset_password_email,
     send_email,
     verify_password_reset_token,
 )
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(tags=["login"])
 
@@ -31,8 +36,10 @@ def login_access_token(
         session=session, email=form_data.username, password=form_data.password
     )
     if not user:
+        logger.info("Login failed: incorrect email or password")
         raise HTTPException(status_code=400, detail="Incorrect email or password")
     elif not user.is_active:
+        logger.info("Login failed: inactive user", extra={"user_id": str(user.id)})
         raise HTTPException(status_code=400, detail="Inactive user")
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     return Token(
@@ -99,7 +106,7 @@ def reset_password(session: SessionDep, body: NewPassword) -> Message:
 
 @router.post(
     "/password-recovery-html-content/{email}",
-    dependencies=[Depends(get_current_active_superuser)],
+    dependencies=[Depends(require_permission(Permission.USERS_MANAGE))],
     response_class=HTMLResponse,
 )
 def recover_password_html_content(email: str, session: SessionDep) -> Any:

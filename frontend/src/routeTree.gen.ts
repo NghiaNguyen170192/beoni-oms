@@ -16,7 +16,15 @@ import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as LayoutIndexRouteImport } from './routes/_layout/index'
 import { Route as LayoutAdminRouteImport } from './routes/_layout/admin'
+import { Route as LayoutInventoryRouteImport } from './routes/_layout/inventory'
+import { Route as LayoutMenuRouteImport } from './routes/_layout/menu'
+import { Route as LayoutOrdersRouteImport } from './routes/_layout/orders'
+import { Route as LayoutPosRouteImport } from './routes/_layout/pos'
 import { Route as LayoutSettingsRouteImport } from './routes/_layout/settings'
+import { Route as LayoutStockAdjustmentsRouteImport } from './routes/_layout/stock-adjustments'
+import { Route as ReceiptOrderIdRouteImport } from './routes/receipt.$orderId'
+import { Route as LayoutAdminAuditLogRouteImport } from './routes/_layout/admin_.audit-log'
+import { Route as LayoutAdminLanguageRouteImport } from './routes/_layout/admin_.language'
 
 const LayoutRoute = LayoutRouteImport.update({
   id: '/_layout',
@@ -52,9 +60,49 @@ const LayoutAdminRoute = LayoutAdminRouteImport.update({
   path: '/admin',
   getParentRoute: () => LayoutRoute,
 } as any)
+const LayoutInventoryRoute = LayoutInventoryRouteImport.update({
+  id: '/inventory',
+  path: '/inventory',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const LayoutMenuRoute = LayoutMenuRouteImport.update({
+  id: '/menu',
+  path: '/menu',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const LayoutOrdersRoute = LayoutOrdersRouteImport.update({
+  id: '/orders',
+  path: '/orders',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const LayoutPosRoute = LayoutPosRouteImport.update({
+  id: '/pos',
+  path: '/pos',
+  getParentRoute: () => LayoutRoute,
+} as any)
 const LayoutSettingsRoute = LayoutSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const LayoutStockAdjustmentsRoute = LayoutStockAdjustmentsRouteImport.update({
+  id: '/stock-adjustments',
+  path: '/stock-adjustments',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const ReceiptOrderIdRoute = ReceiptOrderIdRouteImport.update({
+  id: '/receipt/$orderId',
+  path: '/receipt/$orderId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LayoutAdminAuditLogRoute = LayoutAdminAuditLogRouteImport.update({
+  id: '/admin_/audit-log',
+  path: '/admin/audit-log',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const LayoutAdminLanguageRoute = LayoutAdminLanguageRouteImport.update({
+  id: '/admin_/language',
+  path: '/admin/language',
   getParentRoute: () => LayoutRoute,
 } as any)
 
@@ -65,7 +113,15 @@ export interface FileRoutesByFullPath {
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
   '/admin': typeof LayoutAdminRoute
+  '/inventory': typeof LayoutInventoryRoute
+  '/menu': typeof LayoutMenuRoute
+  '/orders': typeof LayoutOrdersRoute
+  '/pos': typeof LayoutPosRoute
   '/settings': typeof LayoutSettingsRoute
+  '/stock-adjustments': typeof LayoutStockAdjustmentsRoute
+  '/receipt/$orderId': typeof ReceiptOrderIdRoute
+  '/admin/audit-log': typeof LayoutAdminAuditLogRoute
+  '/admin/language': typeof LayoutAdminLanguageRoute
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
@@ -73,8 +129,16 @@ export interface FileRoutesByTo {
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
   '/admin': typeof LayoutAdminRoute
+  '/inventory': typeof LayoutInventoryRoute
+  '/menu': typeof LayoutMenuRoute
+  '/orders': typeof LayoutOrdersRoute
+  '/pos': typeof LayoutPosRoute
   '/settings': typeof LayoutSettingsRoute
+  '/stock-adjustments': typeof LayoutStockAdjustmentsRoute
+  '/receipt/$orderId': typeof ReceiptOrderIdRoute
   '/': typeof LayoutIndexRoute
+  '/admin/audit-log': typeof LayoutAdminAuditLogRoute
+  '/admin/language': typeof LayoutAdminLanguageRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -84,8 +148,16 @@ export interface FileRoutesById {
   '/reset-password': typeof ResetPasswordRoute
   '/signup': typeof SignupRoute
   '/_layout/admin': typeof LayoutAdminRoute
+  '/_layout/inventory': typeof LayoutInventoryRoute
+  '/_layout/menu': typeof LayoutMenuRoute
+  '/_layout/orders': typeof LayoutOrdersRoute
+  '/_layout/pos': typeof LayoutPosRoute
   '/_layout/settings': typeof LayoutSettingsRoute
+  '/_layout/stock-adjustments': typeof LayoutStockAdjustmentsRoute
+  '/receipt/$orderId': typeof ReceiptOrderIdRoute
   '/_layout/': typeof LayoutIndexRoute
+  '/_layout/admin_/audit-log': typeof LayoutAdminAuditLogRoute
+  '/_layout/admin_/language': typeof LayoutAdminLanguageRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -96,7 +168,15 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/signup'
     | '/admin'
+    | '/inventory'
+    | '/menu'
+    | '/orders'
+    | '/pos'
     | '/settings'
+    | '/stock-adjustments'
+    | '/receipt/$orderId'
+    | '/admin/audit-log'
+    | '/admin/language'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/login'
@@ -104,8 +184,16 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/signup'
     | '/admin'
+    | '/inventory'
+    | '/menu'
+    | '/orders'
+    | '/pos'
     | '/settings'
+    | '/stock-adjustments'
+    | '/receipt/$orderId'
     | '/'
+    | '/admin/audit-log'
+    | '/admin/language'
   id:
     | '__root__'
     | '/_layout'
@@ -114,8 +202,16 @@ export interface FileRouteTypes {
     | '/reset-password'
     | '/signup'
     | '/_layout/admin'
+    | '/_layout/inventory'
+    | '/_layout/menu'
+    | '/_layout/orders'
+    | '/_layout/pos'
     | '/_layout/settings'
+    | '/_layout/stock-adjustments'
+    | '/receipt/$orderId'
     | '/_layout/'
+    | '/_layout/admin_/audit-log'
+    | '/_layout/admin_/language'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -124,6 +220,7 @@ export interface RootRouteChildren {
   RecoverPasswordRoute: typeof RecoverPasswordRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SignupRoute: typeof SignupRoute
+  ReceiptOrderIdRoute: typeof ReceiptOrderIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -177,6 +274,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutAdminRouteImport
       parentRoute: typeof LayoutRoute
     }
+    '/_layout/inventory': {
+      id: '/_layout/inventory'
+      path: '/inventory'
+      fullPath: '/inventory'
+      preLoaderRoute: typeof LayoutInventoryRouteImport
+      parentRoute: typeof LayoutRoute
+    }
+    '/_layout/menu': {
+      id: '/_layout/menu'
+      path: '/menu'
+      fullPath: '/menu'
+      preLoaderRoute: typeof LayoutMenuRouteImport
+      parentRoute: typeof LayoutRoute
+    }
+    '/_layout/orders': {
+      id: '/_layout/orders'
+      path: '/orders'
+      fullPath: '/orders'
+      preLoaderRoute: typeof LayoutOrdersRouteImport
+      parentRoute: typeof LayoutRoute
+    }
+    '/_layout/pos': {
+      id: '/_layout/pos'
+      path: '/pos'
+      fullPath: '/pos'
+      preLoaderRoute: typeof LayoutPosRouteImport
+      parentRoute: typeof LayoutRoute
+    }
     '/_layout/settings': {
       id: '/_layout/settings'
       path: '/settings'
@@ -184,19 +309,61 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutSettingsRouteImport
       parentRoute: typeof LayoutRoute
     }
+    '/_layout/stock-adjustments': {
+      id: '/_layout/stock-adjustments'
+      path: '/stock-adjustments'
+      fullPath: '/stock-adjustments'
+      preLoaderRoute: typeof LayoutStockAdjustmentsRouteImport
+      parentRoute: typeof LayoutRoute
+    }
+    '/receipt/$orderId': {
+      id: '/receipt/$orderId'
+      path: '/receipt/$orderId'
+      fullPath: '/receipt/$orderId'
+      preLoaderRoute: typeof ReceiptOrderIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_layout/admin_/audit-log': {
+      id: '/_layout/admin_/audit-log'
+      path: '/admin/audit-log'
+      fullPath: '/admin/audit-log'
+      preLoaderRoute: typeof LayoutAdminAuditLogRouteImport
+      parentRoute: typeof LayoutRoute
+    }
+    '/_layout/admin_/language': {
+      id: '/_layout/admin_/language'
+      path: '/admin/language'
+      fullPath: '/admin/language'
+      preLoaderRoute: typeof LayoutAdminLanguageRouteImport
+      parentRoute: typeof LayoutRoute
+    }
   }
 }
 
 interface LayoutRouteChildren {
   LayoutAdminRoute: typeof LayoutAdminRoute
+  LayoutInventoryRoute: typeof LayoutInventoryRoute
+  LayoutMenuRoute: typeof LayoutMenuRoute
+  LayoutOrdersRoute: typeof LayoutOrdersRoute
+  LayoutPosRoute: typeof LayoutPosRoute
   LayoutSettingsRoute: typeof LayoutSettingsRoute
+  LayoutStockAdjustmentsRoute: typeof LayoutStockAdjustmentsRoute
   LayoutIndexRoute: typeof LayoutIndexRoute
+  LayoutAdminAuditLogRoute: typeof LayoutAdminAuditLogRoute
+  LayoutAdminLanguageRoute: typeof LayoutAdminLanguageRoute
 }
 
 const LayoutRouteChildren: LayoutRouteChildren = {
   LayoutAdminRoute: LayoutAdminRoute,
+  LayoutInventoryRoute: LayoutInventoryRoute,
+  LayoutMenuRoute: LayoutMenuRoute,
+  LayoutOrdersRoute: LayoutOrdersRoute,
+  LayoutPosRoute: LayoutPosRoute,
   LayoutSettingsRoute: LayoutSettingsRoute,
+  LayoutStockAdjustmentsRoute: LayoutStockAdjustmentsRoute,
   LayoutIndexRoute: LayoutIndexRoute,
+  LayoutAdminAuditLogRoute: LayoutAdminAuditLogRoute,
+  LayoutAdminLanguageRoute: LayoutAdminLanguageRoute,
 }
 
 const LayoutRouteWithChildren =
@@ -208,6 +375,7 @@ const rootRouteChildren: RootRouteChildren = {
   RecoverPasswordRoute: RecoverPasswordRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SignupRoute: SignupRoute,
+  ReceiptOrderIdRoute: ReceiptOrderIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

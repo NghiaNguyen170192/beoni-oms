@@ -21,13 +21,14 @@ import { Input } from "@/components/ui/input"
 import { LoadingButton } from "@/components/ui/loading-button"
 import { PasswordInput } from "@/components/ui/password-input"
 import useAuth, { isLoggedIn } from "@/hooks/useAuth"
+import { t, useI18n } from "@/i18n"
 
 const formSchema = z.object({
-  username: z.email(),
+  username: z.email({ error: () => t("common.invalidEmail") }),
   password: z
     .string()
-    .min(1, { message: "Password is required" })
-    .min(8, { message: "Password must be at least 8 characters" }),
+    .min(1, { error: () => t("common.passwordRequired") })
+    .min(8, { error: () => t("common.passwordMinLength") }),
 }) satisfies z.ZodType<AccessToken>
 
 type FormData = z.infer<typeof formSchema>
@@ -44,13 +45,14 @@ export const Route = createFileRoute("/login")({
   head: () => ({
     meta: [
       {
-        title: "Log In - FastAPI Template",
+        title: t("auth.login.pageTitle"),
       },
     ],
   }),
 })
 
 function Login() {
+  const { t } = useI18n()
   const { loginMutation } = useAuth()
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -75,7 +77,7 @@ function Login() {
           className="flex flex-col gap-6"
         >
           <div className="flex flex-col items-center gap-2 text-center">
-            <h1 className="text-2xl font-bold">Login to your account</h1>
+            <h1 className="text-2xl font-bold">{t("auth.login.title")}</h1>
           </div>
 
           <div className="grid gap-4">
@@ -84,7 +86,7 @@ function Login() {
               name="username"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Email</FormLabel>
+                  <FormLabel>{t("common.email")}</FormLabel>
                   <FormControl>
                     <Input
                       data-testid="email-input"
@@ -104,18 +106,18 @@ function Login() {
               render={({ field }) => (
                 <FormItem>
                   <div className="flex items-center">
-                    <FormLabel>Password</FormLabel>
+                    <FormLabel>{t("common.password")}</FormLabel>
                     <RouterLink
                       to="/recover-password"
                       className="ml-auto text-sm underline-offset-4 hover:underline"
                     >
-                      Forgot your password?
+                      {t("auth.login.forgotPassword")}
                     </RouterLink>
                   </div>
                   <FormControl>
                     <PasswordInput
                       data-testid="password-input"
-                      placeholder="Password"
+                      placeholder={t("common.password")}
                       {...field}
                     />
                   </FormControl>
@@ -125,14 +127,14 @@ function Login() {
             />
 
             <LoadingButton type="submit" loading={loginMutation.isPending}>
-              Log In
+              {t("auth.login.submit")}
             </LoadingButton>
           </div>
 
           <div className="text-center text-sm">
-            Don't have an account yet?{" "}
+            {t("auth.login.noAccount")}{" "}
             <RouterLink to="/signup" className="underline underline-offset-4">
-              Sign up
+              {t("auth.login.signUpLink")}
             </RouterLink>
           </div>
         </form>

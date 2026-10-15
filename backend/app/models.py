@@ -2,8 +2,11 @@ import uuid
 from datetime import datetime, timezone
 
 from pydantic import EmailStr
-from sqlalchemy import DateTime
+from sqlalchemy import CheckConstraint, DateTime
 from sqlmodel import Field, SQLModel
+
+from app.core.db_types import EnumString
+from app.modules.identity.roles import ROLE_VALUES_SQL, Role
 
 
 def get_datetime_utc() -> datetime:
@@ -16,6 +19,7 @@ class UserBase(SQLModel):
     is_active: bool = True
     is_superuser: bool = False
     full_name: str | None = Field(default=None, max_length=255)
+    role: Role = Role.CASHIER
 
 
 # Properties to receive via API on creation
@@ -33,6 +37,7 @@ class UserRegister(SQLModel):
 class UserUpdate(UserBase):
     email: EmailStr | None = Field(default=None, max_length=255)  # type: ignore[assignment]
     password: str | None = Field(default=None, min_length=8, max_length=128)
+    role: Role | None = None  # type: ignore[assignment]
 
 
 class UserUpdateMe(SQLModel):
@@ -47,7 +52,20 @@ class UpdatePassword(SQLModel):
 
 # Database model, database table inferred from class name
 class User(UserBase, table=True):
+    __table_args__ = (
+        CheckConstraint(f"role IN ({ROLE_VALUES_SQL})", name="ck_user_role"),
+        CheckConstraint(
+            "NOT is_superuser OR role = 'owner'", name="ck_user_superuser_is_owner"
+        ),
+    )
+
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    role: Role = Field(
+        default=Role.CASHIER,
+        sa_type=EnumString(Role),  # type: ignore
+        sa_column_kwargs={"server_default": Role.CASHIER.value},
+        nullable=False,
+    )
     hashed_password: str
     created_at: datetime | None = Field(
         default_factory=get_datetime_utc,
@@ -85,3 +103,6 @@ class TokenPayload(SQLModel):
 class NewPassword(SQLModel):
     token: str
     new_password: str = Field(min_length=8, max_length=128)
+
+
+import app.modules.models  # noqa: E402, F401

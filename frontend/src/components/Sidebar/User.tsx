@@ -17,6 +17,8 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar"
 import useAuth from "@/hooks/useAuth"
+import { useI18n } from "@/i18n"
+import { displayName } from "@/lib/permissions"
 import { getInitials } from "@/utils"
 
 interface UserInfoProps {
@@ -25,15 +27,17 @@ interface UserInfoProps {
 }
 
 function UserInfo({ fullName, email }: UserInfoProps) {
+  const name = displayName(fullName, email)
+
   return (
     <div className="flex items-center gap-2.5 w-full min-w-0">
       <Avatar className="size-8">
         <AvatarFallback className="bg-zinc-600 text-white">
-          {getInitials(fullName || "User")}
+          {getInitials(name)}
         </AvatarFallback>
       </Avatar>
       <div className="flex flex-col items-start min-w-0">
-        <p className="text-sm font-medium truncate w-full">{fullName}</p>
+        <p className="text-sm font-medium truncate w-full">{name}</p>
         <p className="text-xs text-muted-foreground truncate w-full">{email}</p>
       </div>
     </div>
@@ -41,6 +45,7 @@ function UserInfo({ fullName, email }: UserInfoProps) {
 }
 
 export function User({ user }: { user: any }) {
+  const { t } = useI18n()
   const { logout } = useAuth()
   const { isMobile, setOpenMobile } = useSidebar()
 
@@ -82,12 +87,12 @@ export function User({ user }: { user: any }) {
             <RouterLink to="/settings" onClick={handleMenuClick}>
               <DropdownMenuItem>
                 <Settings />
-                User Settings
+                {t("nav.settings")}
               </DropdownMenuItem>
             </RouterLink>
             <DropdownMenuItem onClick={handleLogout}>
               <LogOut />
-              Log Out
+              {t("nav.logout")}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

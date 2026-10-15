@@ -23,6 +23,7 @@ import { LoadingButton } from "@/components/ui/loading-button"
 import { PasswordInput } from "@/components/ui/password-input"
 import { isLoggedIn } from "@/hooks/useAuth"
 import useCustomToast from "@/hooks/useCustomToast"
+import { t, useI18n } from "@/i18n"
 import { handleError } from "@/utils"
 
 const searchSchema = z.object({
@@ -33,14 +34,14 @@ const formSchema = z
   .object({
     new_password: z
       .string()
-      .min(1, { message: "Password is required" })
-      .min(8, { message: "Password must be at least 8 characters" }),
+      .min(1, { error: () => t("common.passwordRequired") })
+      .min(8, { error: () => t("common.passwordMinLength") }),
     confirm_password: z
       .string()
-      .min(1, { message: "Password confirmation is required" }),
+      .min(1, { error: () => t("common.passwordConfirmRequired") }),
   })
   .refine((data) => data.new_password === data.confirm_password, {
-    message: "The passwords don't match",
+    error: () => t("common.passwordsMismatch"),
     path: ["confirm_password"],
   })
 
@@ -60,13 +61,14 @@ export const Route = createFileRoute("/reset-password")({
   head: () => ({
     meta: [
       {
-        title: "Reset Password - FastAPI Template",
+        title: t("auth.reset.pageTitle"),
       },
     ],
   }),
 })
 
 function ResetPassword() {
+  const { t } = useI18n()
   const { token } = Route.useSearch()
   const { showSuccessToast, showErrorToast } = useCustomToast()
   const navigate = useNavigate()
@@ -85,7 +87,7 @@ function ResetPassword() {
     mutationFn: (data: { new_password: string; token: string }) =>
       LoginService.resetPassword({ requestBody: data }),
     onSuccess: () => {
-      showSuccessToast("Password updated successfully")
+      showSuccessToast(t("common.passwordUpdated"))
       form.reset()
       navigate({ to: "/login" })
     },
@@ -104,7 +106,7 @@ function ResetPassword() {
           className="flex flex-col gap-6"
         >
           <div className="flex flex-col items-center gap-2 text-center">
-            <h1 className="text-2xl font-bold">Reset Password</h1>
+            <h1 className="text-2xl font-bold">{t("auth.reset.title")}</h1>
           </div>
 
           <div className="grid gap-4">
@@ -113,11 +115,11 @@ function ResetPassword() {
               name="new_password"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>New Password</FormLabel>
+                  <FormLabel>{t("common.newPassword")}</FormLabel>
                   <FormControl>
                     <PasswordInput
                       data-testid="new-password-input"
-                      placeholder="New Password"
+                      placeholder={t("common.newPassword")}
                       {...field}
                     />
                   </FormControl>
@@ -131,11 +133,11 @@ function ResetPassword() {
               name="confirm_password"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Confirm Password</FormLabel>
+                  <FormLabel>{t("common.confirmPassword")}</FormLabel>
                   <FormControl>
                     <PasswordInput
                       data-testid="confirm-password-input"
-                      placeholder="Confirm Password"
+                      placeholder={t("common.confirmPassword")}
                       {...field}
                     />
                   </FormControl>
@@ -149,14 +151,14 @@ function ResetPassword() {
               className="w-full"
               loading={mutation.isPending}
             >
-              Reset Password
+              {t("auth.reset.submit")}
             </LoadingButton>
           </div>
 
           <div className="text-center text-sm">
-            Remember your password?{" "}
+            {t("auth.rememberPassword")}{" "}
             <RouterLink to="/login" className="underline underline-offset-4">
-              Log in
+              {t("auth.logInLink")}
             </RouterLink>
           </div>
         </form>

@@ -36,11 +36,25 @@ export default defineConfig({
 
     {
       name: 'chromium',
+      testIgnore: /language\.spec\.ts/,
       use: {
         ...devices['Desktop Chrome'],
         storageState: 'playwright/.auth/user.json',
       },
       dependencies: ['setup'],
+    },
+
+    // The interface language is business-wide, so switching it runs alone,
+    // after every other spec.
+    {
+      name: 'language',
+      testMatch: /language\.spec\.ts/,
+      fullyParallel: false,
+      use: {
+        ...devices['Desktop Chrome'],
+        storageState: 'playwright/.auth/user.json',
+      },
+      dependencies: ['chromium'],
     },
 
     // {

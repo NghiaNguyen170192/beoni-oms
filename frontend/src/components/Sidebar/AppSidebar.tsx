@@ -1,5 +1,17 @@
-import { Home, Users } from "lucide-react"
+import {
+  Coffee,
+  History,
+  Home,
+  Languages,
+  Package,
+  ReceiptText,
+  Shield,
+  ShoppingCart,
+  SlidersHorizontal,
+  Users,
+} from "lucide-react"
 
+import type { Permission, UserMePublic } from "@/client"
 import { SidebarAppearance } from "@/components/Common/Appearance"
 import { Logo } from "@/components/Common/Logo"
 import {
@@ -9,20 +21,111 @@ import {
   SidebarHeader,
 } from "@/components/ui/sidebar"
 import useAuth from "@/hooks/useAuth"
+import { type MessageKey, useI18n } from "@/i18n"
+import { hasAnyPermission } from "@/lib/permissions"
 import { type Item, Main } from "./Main"
 import { User } from "./User"
 
-const baseItems: Item[] = [{ icon: Home, title: "Dashboard", path: "/" }]
+/** Shown when the user has any of `permissions` (or always when omitted). */
+type NavItem = Omit<Item, "title" | "children"> & {
+  title: MessageKey
+  permissions?: Permission[]
+  children?: NavItem[]
+}
+
+const navItems: NavItem[] = [
+  { icon: Home, title: "nav.dashboard", path: "/" },
+  {
+    icon: ShoppingCart,
+    title: "nav.pos",
+    path: "/pos",
+    permissions: ["ordering:create"],
+  },
+  {
+    icon: ReceiptText,
+    title: "nav.orders",
+    path: "/orders",
+    permissions: ["ordering:view_own", "ordering:view_all"],
+  },
+  {
+    icon: Coffee,
+    title: "nav.menu",
+    path: "/menu",
+    permissions: ["catalog:view"],
+  },
+  {
+    icon: Package,
+    title: "nav.inventory",
+    path: "/inventory",
+    permissions: ["inventory:view"],
+  },
+  {
+    icon: SlidersHorizontal,
+    title: "nav.stockAdjustments",
+    path: "/stock-adjustments",
+    permissions: ["inventory:view"],
+  },
+  {
+    icon: Shield,
+    title: "nav.admin",
+    path: "/admin",
+    children: [
+      {
+        icon: Users,
+        title: "nav.users",
+        path: "/admin",
+        permissions: ["users:manage"],
+      },
+      {
+        icon: History,
+        title: "nav.auditLog",
+        path: "/admin/audit-log",
+        permissions: ["audit:read"],
+      },
+      {
+        icon: Languages,
+        title: "nav.language",
+        path: "/admin/language",
+        permissions: ["settings:manage"],
+      },
+    ],
+  },
+]
+
+/** Permitted items, translated; a group links to its first permitted child. */
+function visibleItems(
+  items: NavItem[],
+  user: UserMePublic | null | undefined,
+  t: (key: MessageKey) => string,
+): Item[] {
+  return items.flatMap((item): Item[] => {
+    if (item.permissions && !hasAnyPermission(user, item.permissions)) {
+      return []
+    }
+    if (!item.children) {
+      return [{ icon: item.icon, title: t(item.title), path: item.path }]
+    }
+    const children = visibleItems(item.children, user, t)
+    if (children.length === 0) return []
+    return [
+      {
+        icon: item.icon,
+        title: t(item.title),
+        path: children[0].path,
+        children,
+      },
+    ]
+  })
+}
 
 export function AppSidebar() {
   const { user: currentUser } = useAuth()
+  const { t } = useI18n()
 
-  const items = currentUser?.is_superuser
-    ? [...baseItems, { icon: Users, title: "Admin", path: "/admin" }]
-    : baseItems
+  const items = visibleItems(navItems, currentUser, t)
 
   return (
-    <Sidebar collapsible="icon">
+    <Sidebar collapsible="icon" className="print:hidden">
       <SidebarHeader className="px-4 py-6 group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:items-center">
         <Logo variant="responsive" />
       </SidebarHeader>

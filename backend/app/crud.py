@@ -4,12 +4,34 @@ from sqlmodel import Session, select
 
 from app.core.security import get_password_hash, verify_password
 from app.models import User, UserCreate, UserUpdate
+from app.modules.identity.roles import Role
 
 
-def create_user(*, session: Session, user_create: UserCreate) -> User:
+def build_user(user_create: UserCreate) -> User:
     db_obj = User.model_validate(
         user_create, update={"hashed_password": get_password_hash(user_create.password)}
     )
+    if db_obj.is_superuser:
+        db_obj.role = Role.OWNER
+    return db_obj
+
+
+def apply_user_update(db_user: User, user_in: UserUpdate) -> None:
+    user_data = user_in.model_dump(exclude_unset=True)
+    if user_data.get("role") is None:
+        user_data.pop("role", None)
+    extra_data = {}
+    if "password" in user_data:
+        password = user_data["password"]
+        hashed_password = get_password_hash(password)
+        extra_data["hashed_password"] = hashed_password
+    db_user.sqlmodel_update(user_data, update=extra_data)
+    if db_user.is_superuser:
+        db_user.role = Role.OWNER
+
+
+def create_user(*, session: Session, user_create: UserCreate) -> User:
+    db_obj = build_user(user_create)
     session.add(db_obj)
     session.commit()
     session.refresh(db_obj)
@@ -17,13 +39,7 @@ def create_user(*, session: Session, user_create: UserCreate) -> User:
 
 
 def update_user(*, session: Session, db_user: User, user_in: UserUpdate) -> Any:
-    user_data = user_in.model_dump(exclude_unset=True)
-    extra_data = {}
-    if "password" in user_data:
-        password = user_data["password"]
-        hashed_password = get_password_hash(password)
-        extra_data["hashed_password"] = hashed_password
-    db_user.sqlmodel_update(user_data, update=extra_data)
+    apply_user_update(db_user, user_in)
     session.add(db_user)
     session.commit()
     session.refresh(db_user)

@@ -10,6 +10,11 @@ def random_lower_string() -> str:
     return "".join(random.choices(string.ascii_lowercase, k=32))
 
 
+def random_code(prefix: str) -> str:
+    """A valid item code far above anything the real sequence will reach."""
+    return f"{prefix}9{''.join(random.choices(string.digits, k=9))}"
+
+
 def random_email() -> str:
     return f"{random_lower_string()}@{random_lower_string()}.com"
 

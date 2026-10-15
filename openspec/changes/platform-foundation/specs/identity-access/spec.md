@@ -56,3 +56,14 @@ Passwords SHALL be stored only as strong salted hashes, and inactive users SHALL
 #### Scenario: Deactivated user token rejected
 - **WHEN** an owner deactivates a user who holds a valid token
 - **THEN** the next request with that token is rejected
+
+### Requirement: Users are shown by name
+Wherever the interface identifies a person (signed-in user, audit entries, stock movements and adjustments, orders, receipts), it SHALL show the user's full name, falling back to the email address only when the full name is empty. The user administration list MAY show both.
+
+#### Scenario: Audit entry shows actor name
+- **WHEN** an owner named "Nguyễn Lan" changes a user's role and another owner opens the audit log
+- **THEN** the entry's actor reads "Nguyễn Lan", not her email
+
+#### Scenario: Fallback to email
+- **WHEN** a cashier without a full name completes an order
+- **THEN** the order history shows the cashier's email

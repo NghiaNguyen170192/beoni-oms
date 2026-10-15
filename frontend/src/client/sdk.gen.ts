@@ -3,7 +3,580 @@
 import type { CancelablePromise } from './core/CancelablePromise';
 import { OpenAPI } from './core/OpenAPI';
 import { request as __request } from './core/request';
-import type { LoginLoginAccessTokenData, LoginLoginAccessTokenResponse, LoginTestTokenResponse, LoginRecoverPasswordData, LoginRecoverPasswordResponse, LoginResetPasswordData, LoginResetPasswordResponse, LoginRecoverPasswordHtmlContentData, LoginRecoverPasswordHtmlContentResponse, PrivateCreateUserData, PrivateCreateUserResponse, UsersReadUsersData, UsersReadUsersResponse, UsersCreateUserData, UsersCreateUserResponse, UsersReadUserMeResponse, UsersDeleteUserMeResponse, UsersUpdateUserMeData, UsersUpdateUserMeResponse, UsersUpdatePasswordMeData, UsersUpdatePasswordMeResponse, UsersRegisterUserData, UsersRegisterUserResponse, UsersReadUserByIdData, UsersReadUserByIdResponse, UsersUpdateUserData, UsersUpdateUserResponse, UsersDeleteUserData, UsersDeleteUserResponse, UtilsTestEmailData, UtilsTestEmailResponse, UtilsHealthCheckResponse } from './types.gen';
+import type { AuditReadAuditLogData, AuditReadAuditLogResponse, CatalogReadCategoriesData, CatalogReadCategoriesResponse, CatalogCreateCategoryData, CatalogCreateCategoryResponse, CatalogReorderCategoriesData, CatalogReorderCategoriesResponse, CatalogUpdateCategoryData, CatalogUpdateCategoryResponse, CatalogReadItemsData, CatalogReadItemsResponse, CatalogCreateItemData, CatalogCreateItemResponse, CatalogReadItemData, CatalogReadItemResponse, CatalogUpdateItemData, CatalogUpdateItemResponse, CatalogDeleteItemData, CatalogDeleteItemResponse, CatalogUploadItemImageData, CatalogUploadItemImageResponse, InventoryReadCategoriesResponse, InventoryReadItemsData, InventoryReadItemsResponse, InventoryCreateItemData, InventoryCreateItemResponse, InventoryReadLowStockData, InventoryReadLowStockResponse, InventoryReadNegativeStockData, InventoryReadNegativeStockResponse, InventoryReadItemData, InventoryReadItemResponse, InventoryUpdateItemData, InventoryUpdateItemResponse, InventoryDeleteItemData, InventoryDeleteItemResponse, InventoryReadItemMovementsData, InventoryReadItemMovementsResponse, InventoryReadAdjustmentsData, InventoryReadAdjustmentsResponse, InventoryPostAdjustmentData, InventoryPostAdjustmentResponse, InventoryReadAdjustmentData, InventoryReadAdjustmentResponse, InventoryReverseAdjustmentData, InventoryReverseAdjustmentResponse, LoginLoginAccessTokenData, LoginLoginAccessTokenResponse, LoginTestTokenResponse, LoginRecoverPasswordData, LoginRecoverPasswordResponse, LoginResetPasswordData, LoginResetPasswordResponse, LoginRecoverPasswordHtmlContentData, LoginRecoverPasswordHtmlContentResponse, OrdersReadOrdersData, OrdersReadOrdersResponse, OrdersCreateOrderData, OrdersCreateOrderResponse, OrdersReadOrderData, OrdersReadOrderResponse, OrdersUpdateOrderData, OrdersUpdateOrderResponse, OrdersReplaceOrderLinesData, OrdersReplaceOrderLinesResponse, OrdersSetOrderDiscountData, OrdersSetOrderDiscountResponse, OrdersSetLineDiscountData, OrdersSetLineDiscountResponse, OrdersConfirmOrderData, OrdersConfirmOrderResponse, OrdersCancelOrderData, OrdersCancelOrderResponse, OrdersCompleteOrderData, OrdersCompleteOrderResponse, OrdersReadReceiptData, OrdersReadReceiptResponse, PrivateCreateUserData, PrivateCreateUserResponse, SettingsReadBusinessSettingsResponse, SettingsUpdateBusinessSettingsData, SettingsUpdateBusinessSettingsResponse, SettingsUpdateLanguageData, SettingsUpdateLanguageResponse, UsersReadUsersData, UsersReadUsersResponse, UsersCreateUserData, UsersCreateUserResponse, UsersReadUserMeResponse, UsersDeleteUserMeResponse, UsersUpdateUserMeData, UsersUpdateUserMeResponse, UsersUpdatePasswordMeData, UsersUpdatePasswordMeResponse, UsersRegisterUserData, UsersRegisterUserResponse, UsersReadUserByIdData, UsersReadUserByIdResponse, UsersUpdateUserData, UsersUpdateUserResponse, UsersDeleteUserData, UsersDeleteUserResponse, UtilsTestEmailData, UtilsTestEmailResponse, UtilsHealthCheckResponse, UtilsReadinessCheckResponse } from './types.gen';
+
+export class AuditService {
+    /**
+     * Read Audit Log
+     * List audit entries, newest first. `occurred_to` is exclusive.
+     * @param data The data for the request.
+     * @param data.entityType
+     * @param data.entityId
+     * @param data.actorId
+     * @param data.occurredFrom
+     * @param data.occurredTo
+     * @param data.skip
+     * @param data.limit
+     * @returns AuditLogsPublic Successful Response
+     * @throws ApiError
+     */
+    public static readAuditLog(data: AuditReadAuditLogData = {}): CancelablePromise<AuditReadAuditLogResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/audit-log/',
+            query: {
+                entity_type: data.entityType,
+                entity_id: data.entityId,
+                actor_id: data.actorId,
+                occurred_from: data.occurredFrom,
+                occurred_to: data.occurredTo,
+                skip: data.skip,
+                limit: data.limit
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+}
+
+export class CatalogService {
+    /**
+     * Read Categories
+     * Menu categories ordered for display. Inactive ones need catalog:manage.
+     * @param data The data for the request.
+     * @param data.includeInactive
+     * @returns MenuCategoriesPublic Successful Response
+     * @throws ApiError
+     */
+    public static readCategories(data: CatalogReadCategoriesData = {}): CancelablePromise<CatalogReadCategoriesResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/catalog/categories',
+            query: {
+                include_inactive: data.includeInactive
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Create Category
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns MenuCategoryPublic Successful Response
+     * @throws ApiError
+     */
+    public static createCategory(data: CatalogCreateCategoryData): CancelablePromise<CatalogCreateCategoryResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/catalog/categories',
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Reorder Categories
+     * Set display order: each category's position in `category_ids` becomes its sort order.
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns MenuCategoriesPublic Successful Response
+     * @throws ApiError
+     */
+    public static reorderCategories(data: CatalogReorderCategoriesData): CancelablePromise<CatalogReorderCategoriesResponse> {
+        return __request(OpenAPI, {
+            method: 'PUT',
+            url: '/api/v1/catalog/categories/order',
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Update Category
+     * Rename, reorder, activate, or deactivate a category.
+     * @param data The data for the request.
+     * @param data.categoryId
+     * @param data.requestBody
+     * @returns MenuCategoryPublic Successful Response
+     * @throws ApiError
+     */
+    public static updateCategory(data: CatalogUpdateCategoryData): CancelablePromise<CatalogUpdateCategoryResponse> {
+        return __request(OpenAPI, {
+            method: 'PATCH',
+            url: '/api/v1/catalog/categories/{category_id}',
+            path: {
+                category_id: data.categoryId
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Read Items
+     * Search items by name or code. Without catalog:manage only active items are
+     * returned; `sellable=true` limits to active and available items (the POS menu).
+     * @param data The data for the request.
+     * @param data.q
+     * @param data.categoryId
+     * @param data.productType
+     * @param data.isActive
+     * @param data.sellable
+     * @param data.skip
+     * @param data.limit
+     * @returns MenuItemsPublic Successful Response
+     * @throws ApiError
+     */
+    public static readItems(data: CatalogReadItemsData = {}): CancelablePromise<CatalogReadItemsResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/catalog/items',
+            query: {
+                q: data.q,
+                category_id: data.categoryId,
+                product_type: data.productType,
+                is_active: data.isActive,
+                sellable: data.sellable,
+                skip: data.skip,
+                limit: data.limit
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Create Item
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns MenuItemPublic Successful Response
+     * @throws ApiError
+     */
+    public static createItem(data: CatalogCreateItemData): CancelablePromise<CatalogCreateItemResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/catalog/items',
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Read Item
+     * @param data The data for the request.
+     * @param data.itemId
+     * @returns MenuItemPublic Successful Response
+     * @throws ApiError
+     */
+    public static readItem(data: CatalogReadItemData): CancelablePromise<CatalogReadItemResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/catalog/items/{item_id}',
+            path: {
+                item_id: data.itemId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Update Item
+     * Update an item. Price, name, type, and status changes are audited.
+     * @param data The data for the request.
+     * @param data.itemId
+     * @param data.requestBody
+     * @returns MenuItemPublic Successful Response
+     * @throws ApiError
+     */
+    public static updateItem(data: CatalogUpdateItemData): CancelablePromise<CatalogUpdateItemResponse> {
+        return __request(OpenAPI, {
+            method: 'PATCH',
+            url: '/api/v1/catalog/items/{item_id}',
+            path: {
+                item_id: data.itemId
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Delete Item
+     * Delete a never-sold item. Sold items are rejected with 409; deactivate them instead.
+     * @param data The data for the request.
+     * @param data.itemId
+     * @returns Message Successful Response
+     * @throws ApiError
+     */
+    public static deleteItem(data: CatalogDeleteItemData): CancelablePromise<CatalogDeleteItemResponse> {
+        return __request(OpenAPI, {
+            method: 'DELETE',
+            url: '/api/v1/catalog/items/{item_id}',
+            path: {
+                item_id: data.itemId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Upload Item Image
+     * Upload or replace the item's image (JPEG, PNG, or WebP; at most 2 MB).
+     * @param data The data for the request.
+     * @param data.itemId
+     * @param data.formData
+     * @returns MenuItemPublic Successful Response
+     * @throws ApiError
+     */
+    public static uploadItemImage(data: CatalogUploadItemImageData): CancelablePromise<CatalogUploadItemImageResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/catalog/items/{item_id}/image',
+            path: {
+                item_id: data.itemId
+            },
+            formData: data.formData,
+            mediaType: 'multipart/form-data',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+}
+
+export class InventoryService {
+    /**
+     * Read Categories
+     * @returns InventoryCategoriesPublic Successful Response
+     * @throws ApiError
+     */
+    public static readCategories(): CancelablePromise<InventoryReadCategoriesResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/inventory/categories'
+        });
+    }
+    
+    /**
+     * Read Items
+     * Items with current quantity, average cost, and value. Search matches SKU, name, or barcode.
+     * @param data The data for the request.
+     * @param data.q
+     * @param data.categoryId
+     * @param data.itemType
+     * @param data.isActive
+     * @param data.lowStock
+     * @param data.negativeStock
+     * @param data.skip
+     * @param data.limit
+     * @returns InventoryItemsPublic Successful Response
+     * @throws ApiError
+     */
+    public static readItems(data: InventoryReadItemsData = {}): CancelablePromise<InventoryReadItemsResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/inventory/items',
+            query: {
+                q: data.q,
+                category_id: data.categoryId,
+                item_type: data.itemType,
+                is_active: data.isActive,
+                low_stock: data.lowStock,
+                negative_stock: data.negativeStock,
+                skip: data.skip,
+                limit: data.limit
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Create Item
+     * Create an item with zero quantity and zero average cost.
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns InventoryItemPublic Successful Response
+     * @throws ApiError
+     */
+    public static createItem(data: InventoryCreateItemData): CancelablePromise<InventoryCreateItemResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/inventory/items',
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Read Low Stock
+     * Active items at or below their minimum stock threshold.
+     * @param data The data for the request.
+     * @param data.skip
+     * @param data.limit
+     * @returns InventoryItemsPublic Successful Response
+     * @throws ApiError
+     */
+    public static readLowStock(data: InventoryReadLowStockData = {}): CancelablePromise<InventoryReadLowStockResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/inventory/low-stock',
+            query: {
+                skip: data.skip,
+                limit: data.limit
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Read Negative Stock
+     * Items whose quantity is below zero.
+     * @param data The data for the request.
+     * @param data.skip
+     * @param data.limit
+     * @returns InventoryItemsPublic Successful Response
+     * @throws ApiError
+     */
+    public static readNegativeStock(data: InventoryReadNegativeStockData = {}): CancelablePromise<InventoryReadNegativeStockResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/inventory/negative-stock',
+            query: {
+                skip: data.skip,
+                limit: data.limit
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Read Item
+     * @param data The data for the request.
+     * @param data.itemId
+     * @returns InventoryItemPublic Successful Response
+     * @throws ApiError
+     */
+    public static readItem(data: InventoryReadItemData): CancelablePromise<InventoryReadItemResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/inventory/items/{item_id}',
+            path: {
+                item_id: data.itemId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Update Item
+     * Edit the item definition. Quantity and cost change only through movements.
+     * @param data The data for the request.
+     * @param data.itemId
+     * @param data.requestBody
+     * @returns InventoryItemPublic Successful Response
+     * @throws ApiError
+     */
+    public static updateItem(data: InventoryUpdateItemData): CancelablePromise<InventoryUpdateItemResponse> {
+        return __request(OpenAPI, {
+            method: 'PATCH',
+            url: '/api/v1/inventory/items/{item_id}',
+            path: {
+                item_id: data.itemId
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Delete Item
+     * Delete an item without movements. Items with history must be deactivated.
+     * @param data The data for the request.
+     * @param data.itemId
+     * @returns Message Successful Response
+     * @throws ApiError
+     */
+    public static deleteItem(data: InventoryDeleteItemData): CancelablePromise<InventoryDeleteItemResponse> {
+        return __request(OpenAPI, {
+            method: 'DELETE',
+            url: '/api/v1/inventory/items/{item_id}',
+            path: {
+                item_id: data.itemId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Read Item Movements
+     * Movement history, newest first. `quantity_after` is the running balance.
+     * @param data The data for the request.
+     * @param data.itemId
+     * @param data.movementType
+     * @param data.occurredFrom
+     * @param data.occurredTo Exclusive upper bound
+     * @param data.skip
+     * @param data.limit
+     * @returns InventoryMovementsPublic Successful Response
+     * @throws ApiError
+     */
+    public static readItemMovements(data: InventoryReadItemMovementsData): CancelablePromise<InventoryReadItemMovementsResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/inventory/items/{item_id}/movements',
+            path: {
+                item_id: data.itemId
+            },
+            query: {
+                movement_type: data.movementType,
+                occurred_from: data.occurredFrom,
+                occurred_to: data.occurredTo,
+                skip: data.skip,
+                limit: data.limit
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Read Adjustments
+     * @param data The data for the request.
+     * @param data.status
+     * @param data.skip
+     * @param data.limit
+     * @returns StockAdjustmentsPublic Successful Response
+     * @throws ApiError
+     */
+    public static readAdjustments(data: InventoryReadAdjustmentsData = {}): CancelablePromise<InventoryReadAdjustmentsResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/inventory/adjustments',
+            query: {
+                status: data.status,
+                skip: data.skip,
+                limit: data.limit
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Post Adjustment
+     * Post a reason-coded adjustment atomically. Requires an `Idempotency-Key` header;
+     * a repeat returns the original adjustment.
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @param data.idempotencyKey
+     * @returns StockAdjustmentPublic Successful Response
+     * @throws ApiError
+     */
+    public static postAdjustment(data: InventoryPostAdjustmentData): CancelablePromise<InventoryPostAdjustmentResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/inventory/adjustments',
+            headers: {
+                'Idempotency-Key': data.idempotencyKey
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Read Adjustment
+     * @param data The data for the request.
+     * @param data.adjustmentId
+     * @returns StockAdjustmentPublic Successful Response
+     * @throws ApiError
+     */
+    public static readAdjustment(data: InventoryReadAdjustmentData): CancelablePromise<InventoryReadAdjustmentResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/inventory/adjustments/{adjustment_id}',
+            path: {
+                adjustment_id: data.adjustmentId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Reverse Adjustment
+     * Reverse a posted adjustment with equal and opposite movements.
+     * @param data The data for the request.
+     * @param data.adjustmentId
+     * @param data.requestBody
+     * @param data.idempotencyKey
+     * @returns StockAdjustmentPublic Successful Response
+     * @throws ApiError
+     */
+    public static reverseAdjustment(data: InventoryReverseAdjustmentData): CancelablePromise<InventoryReverseAdjustmentResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/inventory/adjustments/{adjustment_id}/reverse',
+            path: {
+                adjustment_id: data.adjustmentId
+            },
+            headers: {
+                'Idempotency-Key': data.idempotencyKey
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+}
 
 export class LoginService {
     /**
@@ -102,6 +675,275 @@ export class LoginService {
     }
 }
 
+export class OrdersService {
+    /**
+     * Read Orders
+     * Order history, newest first. Date bounds are inclusive business-timezone dates.
+     * Users with only own-history permission see only their orders.
+     * @param data The data for the request.
+     * @param data.number
+     * @param data.dateFrom
+     * @param data.dateTo
+     * @param data.status
+     * @param data.orderType
+     * @param data.cashierId
+     * @param data.skip
+     * @param data.limit
+     * @returns OrdersPublic Successful Response
+     * @throws ApiError
+     */
+    public static readOrders(data: OrdersReadOrdersData = {}): CancelablePromise<OrdersReadOrdersResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/orders/',
+            query: {
+                number: data.number,
+                date_from: data.dateFrom,
+                date_to: data.dateTo,
+                status: data.status,
+                order_type: data.orderType,
+                cashier_id: data.cashierId,
+                skip: data.skip,
+                limit: data.limit
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Create Order
+     * Start a draft order (optionally with lines). Totals are computed by the server.
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns OrderPublic Successful Response
+     * @throws ApiError
+     */
+    public static createOrder(data: OrdersCreateOrderData): CancelablePromise<OrdersCreateOrderResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/orders/',
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Read Order
+     * @param data The data for the request.
+     * @param data.orderId
+     * @returns OrderPublic Successful Response
+     * @throws ApiError
+     */
+    public static readOrder(data: OrdersReadOrderData): CancelablePromise<OrdersReadOrderResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/orders/{order_id}',
+            path: {
+                order_id: data.orderId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Update Order
+     * Change order type, table label, or notes while the order is open.
+     * @param data The data for the request.
+     * @param data.orderId
+     * @param data.requestBody
+     * @returns OrderPublic Successful Response
+     * @throws ApiError
+     */
+    public static updateOrder(data: OrdersUpdateOrderData): CancelablePromise<OrdersUpdateOrderResponse> {
+        return __request(OpenAPI, {
+            method: 'PATCH',
+            url: '/api/v1/orders/{order_id}',
+            path: {
+                order_id: data.orderId
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Replace Order Lines
+     * Replace the cart in one call. Unchanged lines keep their price snapshot;
+     * new or changed lines snapshot the current menu item, which must be active
+     * and available.
+     * @param data The data for the request.
+     * @param data.orderId
+     * @param data.requestBody
+     * @returns OrderPublic Successful Response
+     * @throws ApiError
+     */
+    public static replaceOrderLines(data: OrdersReplaceOrderLinesData): CancelablePromise<OrdersReplaceOrderLinesResponse> {
+        return __request(OpenAPI, {
+            method: 'PUT',
+            url: '/api/v1/orders/{order_id}/lines',
+            path: {
+                order_id: data.orderId
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Set Order Discount
+     * Set or clear the order-level discount. Requires discount permission.
+     * @param data The data for the request.
+     * @param data.orderId
+     * @param data.requestBody
+     * @returns OrderPublic Successful Response
+     * @throws ApiError
+     */
+    public static setOrderDiscount(data: OrdersSetOrderDiscountData): CancelablePromise<OrdersSetOrderDiscountResponse> {
+        return __request(OpenAPI, {
+            method: 'PUT',
+            url: '/api/v1/orders/{order_id}/discount',
+            path: {
+                order_id: data.orderId
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Set Line Discount
+     * Set or clear a line discount. Requires discount permission.
+     * @param data The data for the request.
+     * @param data.orderId
+     * @param data.lineId
+     * @param data.requestBody
+     * @returns OrderPublic Successful Response
+     * @throws ApiError
+     */
+    public static setLineDiscount(data: OrdersSetLineDiscountData): CancelablePromise<OrdersSetLineDiscountResponse> {
+        return __request(OpenAPI, {
+            method: 'PUT',
+            url: '/api/v1/orders/{order_id}/lines/{line_id}/discount',
+            path: {
+                order_id: data.orderId,
+                line_id: data.lineId
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Confirm Order
+     * @param data The data for the request.
+     * @param data.orderId
+     * @returns OrderPublic Successful Response
+     * @throws ApiError
+     */
+    public static confirmOrder(data: OrdersConfirmOrderData): CancelablePromise<OrdersConfirmOrderResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/orders/{order_id}/confirm',
+            path: {
+                order_id: data.orderId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Cancel Order
+     * Cancel a draft or confirmed order with a reason. Lines are kept for history.
+     * @param data The data for the request.
+     * @param data.orderId
+     * @param data.requestBody
+     * @returns OrderPublic Successful Response
+     * @throws ApiError
+     */
+    public static cancelOrder(data: OrdersCancelOrderData): CancelablePromise<OrdersCancelOrderResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/orders/{order_id}/cancel',
+            path: {
+                order_id: data.orderId
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Complete Order
+     * Complete the order. Requires an `Idempotency-Key` header; a repeat returns
+     * the original result.
+     * @param data The data for the request.
+     * @param data.orderId
+     * @param data.idempotencyKey
+     * @returns OrderPublic Successful Response
+     * @throws ApiError
+     */
+    public static completeOrder(data: OrdersCompleteOrderData): CancelablePromise<OrdersCompleteOrderResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/orders/{order_id}/complete',
+            path: {
+                order_id: data.orderId
+            },
+            headers: {
+                'Idempotency-Key': data.idempotencyKey
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Read Receipt
+     * Printable receipt data for confirmed and later orders.
+     * @param data The data for the request.
+     * @param data.orderId
+     * @returns ReceiptPublic Successful Response
+     * @throws ApiError
+     */
+    public static readReceipt(data: OrdersReadReceiptData): CancelablePromise<OrdersReadReceiptResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/orders/{order_id}/receipt',
+            path: {
+                order_id: data.orderId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+}
+
 export class PrivateService {
     /**
      * Create User
@@ -115,6 +957,61 @@ export class PrivateService {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/v1/private/users/',
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+}
+
+export class SettingsService {
+    /**
+     * Read Business Settings
+     * Business-wide settings (currency, timezone, stock policy).
+     * @returns BusinessSettingsPublic Successful Response
+     * @throws ApiError
+     */
+    public static readBusinessSettings(): CancelablePromise<SettingsReadBusinessSettingsResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/settings/business'
+        });
+    }
+    
+    /**
+     * Update Business Settings
+     * Update business settings. Owner only; every change is audited.
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns BusinessSettingsPublic Successful Response
+     * @throws ApiError
+     */
+    public static updateBusinessSettings(data: SettingsUpdateBusinessSettingsData): CancelablePromise<SettingsUpdateBusinessSettingsResponse> {
+        return __request(OpenAPI, {
+            method: 'PUT',
+            url: '/api/v1/settings/business',
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Update Language
+     * Set the interface language for every user. Owner only; audited.
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns BusinessSettingsPublic Successful Response
+     * @throws ApiError
+     */
+    public static updateLanguage(data: SettingsUpdateLanguageData): CancelablePromise<SettingsUpdateLanguageResponse> {
+        return __request(OpenAPI, {
+            method: 'PUT',
+            url: '/api/v1/settings/business/language',
             body: data.requestBody,
             mediaType: 'application/json',
             errors: {
@@ -170,8 +1067,8 @@ export class UsersService {
     
     /**
      * Read User Me
-     * Get current user.
-     * @returns UserPublic Successful Response
+     * Get current user, including the effective role and its permissions.
+     * @returns UserMePublic Successful Response
      * @throws ApiError
      */
     public static readUserMe(): CancelablePromise<UsersReadUserMeResponse> {
@@ -277,7 +1174,7 @@ export class UsersService {
     
     /**
      * Update User
-     * Update a user.
+     * Update a user, including role and activation. Role changes are audited.
      * @param data The data for the request.
      * @param data.userId
      * @param data.requestBody
@@ -345,6 +1242,7 @@ export class UtilsService {
     
     /**
      * Health Check
+     * Liveness: the process is up. Does not touch the database.
      * @returns boolean Successful Response
      * @throws ApiError
      */
@@ -352,6 +1250,22 @@ export class UtilsService {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/api/v1/utils/health-check/'
+        });
+    }
+    
+    /**
+     * Readiness Check
+     * Readiness: the database answers `SELECT 1`.
+     * @returns boolean Successful Response
+     * @throws ApiError
+     */
+    public static readinessCheck(): CancelablePromise<UtilsReadinessCheckResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/utils/ready/',
+            errors: {
+                503: 'Database unavailable'
+            }
         });
     }
 }
