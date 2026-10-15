@@ -1,5 +1,6 @@
 import {
   Banknote,
+  BarChart3,
   ChefHat,
   Coffee,
   History,
@@ -106,6 +107,31 @@ const navItems: NavItem[] = [
     title: "nav.cash",
     path: "/cash",
     permissions: ["cash:view"],
+  },
+  {
+    icon: BarChart3,
+    title: "nav.reports",
+    path: "/reports/sales",
+    children: [
+      {
+        icon: BarChart3,
+        title: "nav.salesReports",
+        path: "/reports/sales",
+        permissions: ["reports:sales"],
+      },
+      {
+        icon: Package,
+        title: "nav.inventoryReports",
+        path: "/reports/inventory",
+        permissions: ["reports:inventory"],
+      },
+      {
+        icon: Wallet,
+        title: "nav.profitReports",
+        path: "/reports/profit",
+        permissions: ["reports:financial"],
+      },
+    ],
   },
   {
     icon: Shield,

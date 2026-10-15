@@ -120,8 +120,20 @@ test("create a supplier, post a receipt, then reverse it", async ({ page }) => {
   const receiptForm = page.getByRole("dialog")
   await receiptForm.getByLabel(L.supplier, { exact: true }).click()
   await page.getByRole("option", { name: supplierName }).click()
-  await receiptForm.getByLabel(L.searchItems).fill(itemName)
   await receiptForm.getByLabel(`${L.item} 1`).click()
+  const itemList = page.locator("[data-radix-select-viewport]")
+  await itemList.evaluate((node) => {
+    node.scrollTop = node.scrollHeight
+  })
+  const searchBox = await page.getByLabel(L.searchItems).boundingBox()
+  const popupBox = await page.locator("[data-slot=select-content]").boundingBox()
+  const listBox = await itemList.boundingBox()
+  if (!searchBox || !popupBox || !listBox) {
+    throw new Error("item dropdown search is not visible")
+  }
+  expect(searchBox.y).toBeLessThan(listBox.y)
+  expect(searchBox.y - popupBox.y).toBeLessThan(12)
+  await page.getByLabel(L.searchItems).fill(itemName)
   await page.getByRole("option", { name: new RegExp(itemName) }).click()
   await receiptForm.getByLabel(`${L.quantity} 1`).fill("1")
   await receiptForm.getByLabel(`${L.cost} 1`).fill("1000")

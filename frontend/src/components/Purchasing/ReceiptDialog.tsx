@@ -15,6 +15,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { LoadingButton } from "@/components/ui/loading-button"
+import { SearchableSelect } from "@/components/ui/searchable-select"
 import {
   Select,
   SelectContent,
@@ -75,7 +76,6 @@ export function ReceiptDialog({
     receipt?.receipt_date ?? new Date().toISOString().slice(0, 10),
   )
   const [notes, setNotes] = useState(receipt?.notes ?? "")
-  const [itemSearch, setItemSearch] = useState("")
   const [lines, setLines] = useState<Line[]>(
     receipt
       ? receipt.lines.map((line) => ({
@@ -94,7 +94,7 @@ export function ReceiptDialog({
     enabled: open,
   })
   const { data: items } = useQuery({
-    ...inventoryItemsQueryOptions({ q: itemSearch.trim(), isActive: true }),
+    ...inventoryItemsQueryOptions({ isActive: true }),
     enabled: open,
   })
   const itemRows = items?.data ?? []
@@ -184,16 +184,6 @@ export function ReceiptDialog({
               onChange={(event) => setNotes(event.target.value)}
             />
           </div>
-          <div className="grid gap-1.5">
-            <Label htmlFor="item-search">
-              {t("purchasing.receipts.field.itemSearch")}
-            </Label>
-            <Input
-              id="item-search"
-              value={itemSearch}
-              onChange={(event) => setItemSearch(event.target.value)}
-            />
-          </div>
           {lines.map((line, index) => {
             const item = itemRows.find((row) => row.id === line.itemId)
             const linePreview = preview(line)
@@ -201,8 +191,15 @@ export function ReceiptDialog({
               <div key={line.key} className="grid gap-2 rounded-md border p-3">
                 <div className="grid gap-1.5">
                   <Label>{t("purchasing.receipts.field.item")}</Label>
-                  <Select
+                  <SearchableSelect
+                    aria-label={`${t("purchasing.receipts.field.item")} ${index + 1}`}
                     value={line.itemId}
+                    placeholder={t("purchasing.receipts.chooseItem")}
+                    searchLabel={t("purchasing.receipts.field.itemSearch")}
+                    options={itemRows.map((row) => ({
+                      value: row.id,
+                      label: `${row.sku} · ${row.name}`,
+                    }))}
                     onValueChange={(itemId) =>
                       setLines((current) =>
                         current.map((row) =>
@@ -210,22 +207,7 @@ export function ReceiptDialog({
                         ),
                       )
                     }
-                  >
-                    <SelectTrigger
-                      aria-label={`${t("purchasing.receipts.field.item")} ${index + 1}`}
-                    >
-                      <SelectValue
-                        placeholder={t("purchasing.receipts.chooseItem")}
-                      />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {itemRows.map((row) => (
-                        <SelectItem key={row.id} value={row.id}>
-                          {row.sku} · {row.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  />
                 </div>
                 <p className="text-sm text-muted-foreground">
                   {t("purchasing.receipts.field.unit")}:{" "}

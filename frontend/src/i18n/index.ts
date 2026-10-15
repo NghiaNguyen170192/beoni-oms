@@ -13,6 +13,7 @@ import * as ordering from "./messages/ordering"
 import * as payments from "./messages/payments"
 import * as purchasing from "./messages/purchasing"
 import * as recipes from "./messages/recipes"
+import * as reports from "./messages/reports"
 
 export type { Language }
 
@@ -29,6 +30,7 @@ const en = {
   ...payments.en,
   ...recipes.en,
   ...accounting.en,
+  ...reports.en,
 }
 
 export type MessageKey = keyof typeof en
@@ -47,6 +49,7 @@ const vi: Record<MessageKey, string> = {
   ...payments.vi,
   ...recipes.vi,
   ...accounting.vi,
+  ...reports.vi,
 }
 
 const dictionaries: Record<Language, Record<MessageKey, string>> = { en, vi }

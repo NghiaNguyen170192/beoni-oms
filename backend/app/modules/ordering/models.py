@@ -59,6 +59,7 @@ class Order(SQLModel, table=True):
         Index("ix_orders_business_date", "business_date"),
         Index("ix_orders_cashier_created", "cashier_id", "created_at"),
         Index("ix_orders_status", "status"),
+        Index("ix_orders_completed_at", "completed_at"),
         CheckConstraint(
             f"status IN ({_sql_values(OrderStatus)})", name="ck_orders_status"
         ),

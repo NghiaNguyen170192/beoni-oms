@@ -29,6 +29,9 @@ import { Route as LayoutInventoryRouteImport } from './routes/_layout/inventory'
 import { Route as LayoutExpensesRouteImport } from './routes/_layout/expenses'
 import { Route as LayoutCashRouteImport } from './routes/_layout/cash'
 import { Route as LayoutAdminRouteImport } from './routes/_layout/admin'
+import { Route as LayoutReportsSalesRouteImport } from './routes/_layout/reports/sales'
+import { Route as LayoutReportsProfitRouteImport } from './routes/_layout/reports/profit'
+import { Route as LayoutReportsInventoryRouteImport } from './routes/_layout/reports/inventory'
 import { Route as LayoutAdminLanguageRouteImport } from './routes/_layout/admin_.language'
 import { Route as LayoutAdminAuditLogRouteImport } from './routes/_layout/admin_.audit-log'
 
@@ -131,6 +134,21 @@ const LayoutAdminRoute = LayoutAdminRouteImport.update({
   path: '/admin',
   getParentRoute: () => LayoutRoute,
 } as any)
+const LayoutReportsSalesRoute = LayoutReportsSalesRouteImport.update({
+  id: '/reports/sales',
+  path: '/reports/sales',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const LayoutReportsProfitRoute = LayoutReportsProfitRouteImport.update({
+  id: '/reports/profit',
+  path: '/reports/profit',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const LayoutReportsInventoryRoute = LayoutReportsInventoryRouteImport.update({
+  id: '/reports/inventory',
+  path: '/reports/inventory',
+  getParentRoute: () => LayoutRoute,
+} as any)
 const LayoutAdminLanguageRoute = LayoutAdminLanguageRouteImport.update({
   id: '/admin_/language',
   path: '/admin/language',
@@ -164,6 +182,9 @@ export interface FileRoutesByFullPath {
   '/receipt/$orderId': typeof ReceiptOrderIdRoute
   '/admin/audit-log': typeof LayoutAdminAuditLogRoute
   '/admin/language': typeof LayoutAdminLanguageRoute
+  '/reports/inventory': typeof LayoutReportsInventoryRoute
+  '/reports/profit': typeof LayoutReportsProfitRoute
+  '/reports/sales': typeof LayoutReportsSalesRoute
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
@@ -187,6 +208,9 @@ export interface FileRoutesByTo {
   '/': typeof LayoutIndexRoute
   '/admin/audit-log': typeof LayoutAdminAuditLogRoute
   '/admin/language': typeof LayoutAdminLanguageRoute
+  '/reports/inventory': typeof LayoutReportsInventoryRoute
+  '/reports/profit': typeof LayoutReportsProfitRoute
+  '/reports/sales': typeof LayoutReportsSalesRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -212,6 +236,9 @@ export interface FileRoutesById {
   '/_layout/': typeof LayoutIndexRoute
   '/_layout/admin_/audit-log': typeof LayoutAdminAuditLogRoute
   '/_layout/admin_/language': typeof LayoutAdminLanguageRoute
+  '/_layout/reports/inventory': typeof LayoutReportsInventoryRoute
+  '/_layout/reports/profit': typeof LayoutReportsProfitRoute
+  '/_layout/reports/sales': typeof LayoutReportsSalesRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -237,6 +264,9 @@ export interface FileRouteTypes {
     | '/receipt/$orderId'
     | '/admin/audit-log'
     | '/admin/language'
+    | '/reports/inventory'
+    | '/reports/profit'
+    | '/reports/sales'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/login'
@@ -260,6 +290,9 @@ export interface FileRouteTypes {
     | '/'
     | '/admin/audit-log'
     | '/admin/language'
+    | '/reports/inventory'
+    | '/reports/profit'
+    | '/reports/sales'
   id:
     | '__root__'
     | '/_layout'
@@ -284,6 +317,9 @@ export interface FileRouteTypes {
     | '/_layout/'
     | '/_layout/admin_/audit-log'
     | '/_layout/admin_/language'
+    | '/_layout/reports/inventory'
+    | '/_layout/reports/profit'
+    | '/_layout/reports/sales'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -437,6 +473,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutAdminRouteImport
       parentRoute: typeof LayoutRoute
     }
+    '/_layout/reports/sales': {
+      id: '/_layout/reports/sales'
+      path: '/reports/sales'
+      fullPath: '/reports/sales'
+      preLoaderRoute: typeof LayoutReportsSalesRouteImport
+      parentRoute: typeof LayoutRoute
+    }
+    '/_layout/reports/profit': {
+      id: '/_layout/reports/profit'
+      path: '/reports/profit'
+      fullPath: '/reports/profit'
+      preLoaderRoute: typeof LayoutReportsProfitRouteImport
+      parentRoute: typeof LayoutRoute
+    }
+    '/_layout/reports/inventory': {
+      id: '/_layout/reports/inventory'
+      path: '/reports/inventory'
+      fullPath: '/reports/inventory'
+      preLoaderRoute: typeof LayoutReportsInventoryRouteImport
+      parentRoute: typeof LayoutRoute
+    }
     '/_layout/admin_/language': {
       id: '/_layout/admin_/language'
       path: '/admin/language'
@@ -471,6 +528,9 @@ interface LayoutRouteChildren {
   LayoutIndexRoute: typeof LayoutIndexRoute
   LayoutAdminAuditLogRoute: typeof LayoutAdminAuditLogRoute
   LayoutAdminLanguageRoute: typeof LayoutAdminLanguageRoute
+  LayoutReportsInventoryRoute: typeof LayoutReportsInventoryRoute
+  LayoutReportsProfitRoute: typeof LayoutReportsProfitRoute
+  LayoutReportsSalesRoute: typeof LayoutReportsSalesRoute
 }
 
 const LayoutRouteChildren: LayoutRouteChildren = {
@@ -490,6 +550,9 @@ const LayoutRouteChildren: LayoutRouteChildren = {
   LayoutIndexRoute: LayoutIndexRoute,
   LayoutAdminAuditLogRoute: LayoutAdminAuditLogRoute,
   LayoutAdminLanguageRoute: LayoutAdminLanguageRoute,
+  LayoutReportsInventoryRoute: LayoutReportsInventoryRoute,
+  LayoutReportsProfitRoute: LayoutReportsProfitRoute,
+  LayoutReportsSalesRoute: LayoutReportsSalesRoute,
 }
 
 const LayoutRouteWithChildren =

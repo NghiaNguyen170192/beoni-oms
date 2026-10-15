@@ -475,6 +475,45 @@ export const CategoryTotalSchema = {
     title: 'CategoryTotal'
 } as const;
 
+export const ComparisonLineSchema = {
+    properties: {
+        key: {
+            type: 'string',
+            title: 'Key'
+        },
+        current: {
+            type: 'string',
+            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
+            title: 'Current'
+        },
+        previous: {
+            type: 'string',
+            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
+            title: 'Previous'
+        },
+        change: {
+            type: 'string',
+            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
+            title: 'Change'
+        },
+        change_percent: {
+            anyOf: [
+                {
+                    type: 'string',
+                    pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Change Percent'
+        }
+    },
+    type: 'object',
+    required: ['key', 'current', 'previous', 'change', 'change_percent'],
+    title: 'ComparisonLine'
+} as const;
+
 export const CostPreviewLinePublicSchema = {
     properties: {
         inventory_item_id: {
@@ -550,6 +589,118 @@ export const CostPreviewPublicSchema = {
     title: 'CostPreviewPublic'
 } as const;
 
+export const DashboardFinancialSchema = {
+    properties: {
+        date_from: {
+            type: 'string',
+            format: 'date',
+            title: 'Date From'
+        },
+        date_to: {
+            type: 'string',
+            format: 'date',
+            title: 'Date To'
+        },
+        net_sales: {
+            type: 'string',
+            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
+            title: 'Net Sales'
+        },
+        order_count: {
+            type: 'integer',
+            title: 'Order Count'
+        },
+        average_order_value: {
+            type: 'string',
+            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
+            title: 'Average Order Value'
+        },
+        discounts: {
+            type: 'string',
+            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
+            title: 'Discounts'
+        },
+        refunds: {
+            type: 'string',
+            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
+            title: 'Refunds'
+        },
+        low_stock_count: {
+            type: 'integer',
+            title: 'Low Stock Count'
+        },
+        cogs: {
+            type: 'string',
+            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
+            title: 'Cogs'
+        },
+        gross_profit: {
+            type: 'string',
+            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
+            title: 'Gross Profit'
+        },
+        expenses: {
+            type: 'string',
+            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
+            title: 'Expenses'
+        },
+        operating_profit: {
+            type: 'string',
+            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
+            title: 'Operating Profit'
+        }
+    },
+    type: 'object',
+    required: ['date_from', 'date_to', 'net_sales', 'order_count', 'average_order_value', 'discounts', 'refunds', 'low_stock_count', 'cogs', 'gross_profit', 'expenses', 'operating_profit'],
+    title: 'DashboardFinancial'
+} as const;
+
+export const DashboardSalesSchema = {
+    properties: {
+        date_from: {
+            type: 'string',
+            format: 'date',
+            title: 'Date From'
+        },
+        date_to: {
+            type: 'string',
+            format: 'date',
+            title: 'Date To'
+        },
+        net_sales: {
+            type: 'string',
+            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
+            title: 'Net Sales'
+        },
+        order_count: {
+            type: 'integer',
+            title: 'Order Count'
+        },
+        average_order_value: {
+            type: 'string',
+            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
+            title: 'Average Order Value'
+        },
+        discounts: {
+            type: 'string',
+            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
+            title: 'Discounts'
+        },
+        refunds: {
+            type: 'string',
+            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
+            title: 'Refunds'
+        },
+        low_stock_count: {
+            type: 'integer',
+            title: 'Low Stock Count'
+        }
+    },
+    type: 'object',
+    required: ['date_from', 'date_to', 'net_sales', 'order_count', 'average_order_value', 'discounts', 'refunds', 'low_stock_count'],
+    title: 'DashboardSales'
+} as const;
+
 export const DiscountTypeSchema = {
     type: 'string',
     enum: ['amount', 'percent'],
@@ -589,6 +740,63 @@ export const DiscountUpdateSchema = {
     required: ['discount_type'],
     title: 'DiscountUpdate',
     description: `\`discount_type: null\` removes the discount.`
+} as const;
+
+export const ExpenseBreakdownPublicSchema = {
+    properties: {
+        date_from: {
+            type: 'string',
+            format: 'date',
+            title: 'Date From'
+        },
+        date_to: {
+            type: 'string',
+            format: 'date',
+            title: 'Date To'
+        },
+        total: {
+            type: 'string',
+            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
+            title: 'Total'
+        },
+        data: {
+            items: {
+                '$ref': '#/components/schemas/ExpenseBreakdownRow'
+            },
+            type: 'array',
+            title: 'Data'
+        }
+    },
+    type: 'object',
+    required: ['date_from', 'date_to', 'total', 'data'],
+    title: 'ExpenseBreakdownPublic'
+} as const;
+
+export const ExpenseBreakdownRowSchema = {
+    properties: {
+        category_id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Category Id'
+        },
+        category_name: {
+            type: 'string',
+            title: 'Category Name'
+        },
+        amount: {
+            type: 'string',
+            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
+            title: 'Amount'
+        },
+        share: {
+            type: 'string',
+            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
+            title: 'Share'
+        }
+    },
+    type: 'object',
+    required: ['category_id', 'category_name', 'amount', 'share'],
+    title: 'ExpenseBreakdownRow'
 } as const;
 
 export const ExpenseCategoryCreateSchema = {
@@ -864,6 +1072,12 @@ export const FinancialSummaryPublicSchema = {
     type: 'object',
     required: ['gross_sales', 'discounts', 'refunds', 'tax', 'net_sales', 'cogs', 'gross_profit', 'expenses', 'operating_profit', 'uncertain_cost_lines', 'missing_cost_lines'],
     title: 'FinancialSummaryPublic'
+} as const;
+
+export const GroupBySchema = {
+    type: 'string',
+    enum: ['day', 'week', 'month'],
+    title: 'GroupBy'
 } as const;
 
 export const HTTPValidationErrorSchema = {
@@ -1936,6 +2150,130 @@ export const MoneyAccountsPublicSchema = {
     title: 'MoneyAccountsPublic'
 } as const;
 
+export const MovementReportPublicSchema = {
+    properties: {
+        date_from: {
+            type: 'string',
+            format: 'date',
+            title: 'Date From'
+        },
+        date_to: {
+            type: 'string',
+            format: 'date',
+            title: 'Date To'
+        },
+        data: {
+            items: {
+                '$ref': '#/components/schemas/MovementRow'
+            },
+            type: 'array',
+            title: 'Data'
+        },
+        count: {
+            type: 'integer',
+            title: 'Count'
+        }
+    },
+    type: 'object',
+    required: ['date_from', 'date_to', 'data', 'count'],
+    title: 'MovementReportPublic'
+} as const;
+
+export const MovementRowSchema = {
+    properties: {
+        item_id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Item Id'
+        },
+        sku: {
+            type: 'string',
+            title: 'Sku'
+        },
+        name: {
+            type: 'string',
+            title: 'Name'
+        },
+        base_unit: {
+            type: 'string',
+            title: 'Base Unit'
+        },
+        opening: {
+            type: 'string',
+            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
+            title: 'Opening'
+        },
+        received: {
+            type: 'string',
+            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
+            title: 'Received'
+        },
+        consumed: {
+            type: 'string',
+            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
+            title: 'Consumed'
+        },
+        adjustments: {
+            type: 'string',
+            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
+            title: 'Adjustments'
+        },
+        spoilage: {
+            type: 'string',
+            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
+            title: 'Spoilage'
+        },
+        expired: {
+            type: 'string',
+            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
+            title: 'Expired'
+        },
+        damaged: {
+            type: 'string',
+            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
+            title: 'Damaged'
+        },
+        missing: {
+            type: 'string',
+            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
+            title: 'Missing'
+        },
+        physical_count: {
+            type: 'string',
+            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
+            title: 'Physical Count'
+        },
+        correction: {
+            type: 'string',
+            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
+            title: 'Correction'
+        },
+        returns: {
+            type: 'string',
+            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
+            title: 'Returns'
+        },
+        reversals: {
+            type: 'string',
+            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
+            title: 'Reversals'
+        },
+        closing: {
+            type: 'string',
+            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
+            title: 'Closing'
+        },
+        closing_value: {
+            type: 'string',
+            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
+            title: 'Closing Value'
+        }
+    },
+    type: 'object',
+    required: ['item_id', 'sku', 'name', 'base_unit', 'opening', 'received', 'consumed', 'adjustments', 'spoilage', 'expired', 'damaged', 'missing', 'physical_count', 'correction', 'returns', 'reversals', 'closing', 'closing_value'],
+    title: 'MovementRow'
+} as const;
+
 export const MovementTypeSchema = {
     type: 'string',
     enum: ['receipt', 'sale_consumption', 'adjustment', 'return', 'reversal'],
@@ -2661,6 +2999,28 @@ export const OrdersPublicSchema = {
     title: 'OrdersPublic'
 } as const;
 
+export const PaymentBreakdownRowSchema = {
+    properties: {
+        method_id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Method Id'
+        },
+        method_name: {
+            type: 'string',
+            title: 'Method Name'
+        },
+        amount: {
+            type: 'string',
+            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
+            title: 'Amount'
+        }
+    },
+    type: 'object',
+    required: ['method_id', 'method_name', 'amount'],
+    title: 'PaymentBreakdownRow'
+} as const;
+
 export const PaymentCreateSchema = {
     properties: {
         method_id: {
@@ -2980,6 +3340,12 @@ export const PaymentsPublicSchema = {
     title: 'PaymentsPublic'
 } as const;
 
+export const PeriodPresetSchema = {
+    type: 'string',
+    enum: ['today', 'yesterday', 'last_7_days', 'this_month', 'last_month'],
+    title: 'PeriodPreset'
+} as const;
+
 export const PermissionSchema = {
     type: 'string',
     enum: ['users:manage', 'settings:manage', 'audit:read', 'catalog:view', 'catalog:manage', 'inventory:view', 'inventory:manage', 'inventory:adjust', 'inventory:reverse', 'inventory:return', 'purchasing:read', 'purchasing:manage', 'purchasing:post', 'purchasing:reverse', 'recipes:read', 'recipes:manage', 'ordering:create', 'ordering:view_own', 'ordering:view_all', 'ordering:discount', 'ordering:cancel', 'payments:read', 'payments:record', 'payments:void', 'payments:refund', 'payments:configure', 'expenses:read', 'expenses:manage', 'supplier_payments:read', 'supplier_payments:record', 'cash:view', 'cash:adjust', 'finance:view', 'reports:sales', 'reports:inventory', 'reports:financial'],
@@ -3015,10 +3381,300 @@ export const PrivateUserCreateSchema = {
     title: 'PrivateUserCreate'
 } as const;
 
+export const ProductPerformanceFinancialSchema = {
+    properties: {
+        date_from: {
+            type: 'string',
+            format: 'date',
+            title: 'Date From'
+        },
+        date_to: {
+            type: 'string',
+            format: 'date',
+            title: 'Date To'
+        },
+        net_sales: {
+            type: 'string',
+            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
+            title: 'Net Sales'
+        },
+        data: {
+            items: {
+                '$ref': '#/components/schemas/ProductRowFinancial'
+            },
+            type: 'array',
+            title: 'Data'
+        }
+    },
+    type: 'object',
+    required: ['date_from', 'date_to', 'net_sales', 'data'],
+    title: 'ProductPerformanceFinancial'
+} as const;
+
+export const ProductPerformancePublicSchema = {
+    properties: {
+        date_from: {
+            type: 'string',
+            format: 'date',
+            title: 'Date From'
+        },
+        date_to: {
+            type: 'string',
+            format: 'date',
+            title: 'Date To'
+        },
+        net_sales: {
+            type: 'string',
+            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
+            title: 'Net Sales'
+        },
+        data: {
+            items: {
+                '$ref': '#/components/schemas/ProductRow'
+            },
+            type: 'array',
+            title: 'Data'
+        }
+    },
+    type: 'object',
+    required: ['date_from', 'date_to', 'net_sales', 'data'],
+    title: 'ProductPerformancePublic'
+} as const;
+
+export const ProductRowSchema = {
+    properties: {
+        menu_item_id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Menu Item Id'
+        },
+        name: {
+            type: 'string',
+            title: 'Name'
+        },
+        quantity: {
+            type: 'string',
+            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
+            title: 'Quantity'
+        },
+        gross_sales: {
+            type: 'string',
+            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
+            title: 'Gross Sales'
+        },
+        discounts: {
+            type: 'string',
+            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
+            title: 'Discounts'
+        },
+        net_sales: {
+            type: 'string',
+            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
+            title: 'Net Sales'
+        },
+        share: {
+            type: 'string',
+            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
+            title: 'Share'
+        },
+        best_seller: {
+            type: 'boolean',
+            title: 'Best Seller',
+            default: false
+        },
+        least_seller: {
+            type: 'boolean',
+            title: 'Least Seller',
+            default: false
+        }
+    },
+    type: 'object',
+    required: ['menu_item_id', 'name', 'quantity', 'gross_sales', 'discounts', 'net_sales', 'share'],
+    title: 'ProductRow'
+} as const;
+
+export const ProductRowFinancialSchema = {
+    properties: {
+        menu_item_id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Menu Item Id'
+        },
+        name: {
+            type: 'string',
+            title: 'Name'
+        },
+        quantity: {
+            type: 'string',
+            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
+            title: 'Quantity'
+        },
+        gross_sales: {
+            type: 'string',
+            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
+            title: 'Gross Sales'
+        },
+        discounts: {
+            type: 'string',
+            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
+            title: 'Discounts'
+        },
+        net_sales: {
+            type: 'string',
+            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
+            title: 'Net Sales'
+        },
+        share: {
+            type: 'string',
+            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
+            title: 'Share'
+        },
+        best_seller: {
+            type: 'boolean',
+            title: 'Best Seller',
+            default: false
+        },
+        least_seller: {
+            type: 'boolean',
+            title: 'Least Seller',
+            default: false
+        },
+        estimated_cost: {
+            type: 'string',
+            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
+            title: 'Estimated Cost'
+        },
+        estimated_gross_profit: {
+            type: 'string',
+            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
+            title: 'Estimated Gross Profit'
+        }
+    },
+    type: 'object',
+    required: ['menu_item_id', 'name', 'quantity', 'gross_sales', 'discounts', 'net_sales', 'share', 'estimated_cost', 'estimated_gross_profit'],
+    title: 'ProductRowFinancial'
+} as const;
+
 export const ProductTypeSchema = {
     type: 'string',
     enum: ['prepared', 'direct_sale', 'non_stock'],
     title: 'ProductType'
+} as const;
+
+export const ProfitComparisonPublicSchema = {
+    properties: {
+        date_from: {
+            type: 'string',
+            format: 'date',
+            title: 'Date From'
+        },
+        date_to: {
+            type: 'string',
+            format: 'date',
+            title: 'Date To'
+        },
+        compare_from: {
+            type: 'string',
+            format: 'date',
+            title: 'Compare From'
+        },
+        compare_to: {
+            type: 'string',
+            format: 'date',
+            title: 'Compare To'
+        },
+        lines: {
+            items: {
+                '$ref': '#/components/schemas/ComparisonLine'
+            },
+            type: 'array',
+            title: 'Lines'
+        },
+        note: {
+            type: 'string',
+            title: 'Note',
+            default: 'Management estimate, not statutory accounts'
+        },
+        uncertain_cost_lines: {
+            type: 'integer',
+            title: 'Uncertain Cost Lines',
+            default: 0
+        },
+        missing_cost_lines: {
+            type: 'integer',
+            title: 'Missing Cost Lines',
+            default: 0
+        }
+    },
+    type: 'object',
+    required: ['date_from', 'date_to', 'compare_from', 'compare_to', 'lines'],
+    title: 'ProfitComparisonPublic'
+} as const;
+
+export const ProfitStatementPublicSchema = {
+    properties: {
+        date_from: {
+            type: 'string',
+            format: 'date',
+            title: 'Date From'
+        },
+        date_to: {
+            type: 'string',
+            format: 'date',
+            title: 'Date To'
+        },
+        net_sales: {
+            type: 'string',
+            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
+            title: 'Net Sales'
+        },
+        cogs: {
+            type: 'string',
+            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
+            title: 'Cogs'
+        },
+        gross_profit: {
+            type: 'string',
+            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
+            title: 'Gross Profit'
+        },
+        gross_margin: {
+            type: 'string',
+            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
+            title: 'Gross Margin'
+        },
+        expenses: {
+            type: 'string',
+            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
+            title: 'Expenses'
+        },
+        operating_profit: {
+            type: 'string',
+            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
+            title: 'Operating Profit'
+        },
+        estimate: {
+            type: 'boolean',
+            title: 'Estimate',
+            default: true
+        },
+        note: {
+            type: 'string',
+            title: 'Note',
+            default: 'Management estimate, not statutory accounts'
+        },
+        uncertain_cost_lines: {
+            type: 'integer',
+            title: 'Uncertain Cost Lines'
+        },
+        missing_cost_lines: {
+            type: 'integer',
+            title: 'Missing Cost Lines'
+        }
+    },
+    type: 'object',
+    required: ['date_from', 'date_to', 'net_sales', 'cogs', 'gross_profit', 'gross_margin', 'expenses', 'operating_profit', 'uncertain_cost_lines', 'missing_cost_lines'],
+    title: 'ProfitStatementPublic'
 } as const;
 
 export const ReceiptCreateSchema = {
@@ -3819,6 +4475,28 @@ export const RefundsPublicSchema = {
     title: 'RefundsPublic'
 } as const;
 
+export const ResolvedPeriodSchema = {
+    properties: {
+        preset: {
+            type: 'string',
+            title: 'Preset'
+        },
+        date_from: {
+            type: 'string',
+            format: 'date',
+            title: 'Date From'
+        },
+        date_to: {
+            type: 'string',
+            format: 'date',
+            title: 'Date To'
+        }
+    },
+    type: 'object',
+    required: ['preset', 'date_from', 'date_to'],
+    title: 'ResolvedPeriod'
+} as const;
+
 export const ReversalSchema = {
     properties: {
         reason: {
@@ -3837,6 +4515,112 @@ export const RoleSchema = {
     type: 'string',
     enum: ['owner', 'manager', 'cashier', 'inventory_staff', 'accountant'],
     title: 'Role'
+} as const;
+
+export const SalesSummaryPublicSchema = {
+    properties: {
+        date_from: {
+            type: 'string',
+            format: 'date',
+            title: 'Date From'
+        },
+        date_to: {
+            type: 'string',
+            format: 'date',
+            title: 'Date To'
+        },
+        group_by: {
+            '$ref': '#/components/schemas/GroupBy'
+        },
+        gross_sales: {
+            type: 'string',
+            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
+            title: 'Gross Sales'
+        },
+        discounts: {
+            type: 'string',
+            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
+            title: 'Discounts'
+        },
+        refunds: {
+            type: 'string',
+            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
+            title: 'Refunds'
+        },
+        net_sales: {
+            type: 'string',
+            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
+            title: 'Net Sales'
+        },
+        order_count: {
+            type: 'integer',
+            title: 'Order Count'
+        },
+        average_order_value: {
+            type: 'string',
+            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
+            title: 'Average Order Value'
+        },
+        data: {
+            items: {
+                '$ref': '#/components/schemas/SalesSummaryRow'
+            },
+            type: 'array',
+            title: 'Data'
+        },
+        payments: {
+            items: {
+                '$ref': '#/components/schemas/PaymentBreakdownRow'
+            },
+            type: 'array',
+            title: 'Payments'
+        }
+    },
+    type: 'object',
+    required: ['date_from', 'date_to', 'group_by', 'gross_sales', 'discounts', 'refunds', 'net_sales', 'order_count', 'average_order_value', 'data', 'payments'],
+    title: 'SalesSummaryPublic'
+} as const;
+
+export const SalesSummaryRowSchema = {
+    properties: {
+        period_start: {
+            type: 'string',
+            format: 'date',
+            title: 'Period Start'
+        },
+        gross_sales: {
+            type: 'string',
+            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
+            title: 'Gross Sales'
+        },
+        discounts: {
+            type: 'string',
+            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
+            title: 'Discounts'
+        },
+        refunds: {
+            type: 'string',
+            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
+            title: 'Refunds'
+        },
+        net_sales: {
+            type: 'string',
+            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
+            title: 'Net Sales'
+        },
+        order_count: {
+            type: 'integer',
+            title: 'Order Count'
+        },
+        average_order_value: {
+            type: 'string',
+            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
+            title: 'Average Order Value'
+        }
+    },
+    type: 'object',
+    required: ['period_start', 'gross_sales', 'discounts', 'refunds', 'net_sales', 'order_count', 'average_order_value'],
+    title: 'SalesSummaryRow'
 } as const;
 
 export const StatementEntrySchema = {
@@ -4586,6 +5370,63 @@ export const StockReturnsPublicSchema = {
     type: 'object',
     required: ['data', 'count'],
     title: 'StockReturnsPublic'
+} as const;
+
+export const StockStatusItemSchema = {
+    properties: {
+        item_id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Item Id'
+        },
+        sku: {
+            type: 'string',
+            title: 'Sku'
+        },
+        name: {
+            type: 'string',
+            title: 'Name'
+        },
+        quantity: {
+            type: 'string',
+            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
+            title: 'Quantity'
+        },
+        base_unit: {
+            type: 'string',
+            title: 'Base Unit'
+        }
+    },
+    type: 'object',
+    required: ['item_id', 'sku', 'name', 'quantity', 'base_unit'],
+    title: 'StockStatusItem'
+} as const;
+
+export const StockStatusPublicSchema = {
+    properties: {
+        total_value: {
+            type: 'string',
+            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
+            title: 'Total Value'
+        },
+        low_stock: {
+            items: {
+                '$ref': '#/components/schemas/StockStatusItem'
+            },
+            type: 'array',
+            title: 'Low Stock'
+        },
+        negative_stock: {
+            items: {
+                '$ref': '#/components/schemas/StockStatusItem'
+            },
+            type: 'array',
+            title: 'Negative Stock'
+        }
+    },
+    type: 'object',
+    required: ['total_value', 'low_stock', 'negative_stock'],
+    title: 'StockStatusPublic'
 } as const;
 
 export const SupplierBalanceSchema = {

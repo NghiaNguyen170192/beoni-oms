@@ -181,9 +181,9 @@ export function RecipeVersionDialog({
             {lines.map((line) => (
               <div
                 key={line.inventory_item_id}
-                className="flex items-end gap-2"
+                className="grid grid-cols-[minmax(0,1fr)_7rem_6.5rem] items-center gap-2"
               >
-                <div className="min-w-0 flex-1">
+                <div className="min-w-0">
                   <div className="truncate text-sm font-medium">
                     {line.item_name}
                   </div>
@@ -194,7 +194,7 @@ export function RecipeVersionDialog({
                 </div>
                 <Input
                   aria-label={t("recipes.quantity")}
-                  className="w-28"
+                  className="w-full"
                   inputMode="decimal"
                   value={line.quantity}
                   onChange={(event) =>
@@ -210,7 +210,8 @@ export function RecipeVersionDialog({
                 />
                 <Button
                   type="button"
-                  variant="ghost"
+                  variant="outline"
+                  className="w-full"
                   onClick={() =>
                     setLines((current) =>
                       current.filter(
@@ -220,7 +221,7 @@ export function RecipeVersionDialog({
                     )
                   }
                 >
-                  {t("recipes.removeLine", { name: line.item_name })}
+                  {t("recipes.removeLine")}
                 </Button>
               </div>
             ))}

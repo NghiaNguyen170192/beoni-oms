@@ -2,7 +2,9 @@ import { useQuery } from "@tanstack/react-query"
 import { createFileRoute } from "@tanstack/react-router"
 import { type FormEvent, useState } from "react"
 
-import { type PaymentStatus, PaymentsService } from "@/client"
+import { type PaymentStatus, PaymentsService, ReportsService } from "@/client"
+import { reportFilename } from "@/components/Reports/download"
+import { ExportButton } from "@/components/Reports/ExportButton"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -92,8 +94,33 @@ function PaymentsPage() {
             onChange={(event) => setDateTo(event.target.value)}
           />
         </div>
-        <Button type="submit">{t("payments.filter")}</Button>
+        <Button type="submit" data-testid="payments-filter">
+          {t("payments.filter")}
+        </Button>
+        {applied.dateFrom && applied.dateTo ? (
+          <ExportButton
+            testId="export-payments"
+            label={t("reports.export")}
+            filename={reportFilename(
+              "payments",
+              applied.dateFrom,
+              applied.dateTo,
+            )}
+            load={() =>
+              ReportsService.exportPayments({
+                dateFrom: applied.dateFrom,
+                dateTo: applied.dateTo,
+                status: applied.status || undefined,
+              })
+            }
+          />
+        ) : null}
       </form>
+      <p
+        className="sr-only"
+        data-testid="payments-count"
+        data-count={payments.data?.count ?? 0}
+      />
       <div className="flex flex-wrap gap-3">
         {payments.data?.totals.map((row) => (
           <div key={row.method_id} className="rounded-md border px-3 py-2">
@@ -163,7 +190,7 @@ function PaymentsPage() {
             </TableHeader>
             <TableBody>
               {payments.data?.data.map((row) => (
-                <TableRow key={row.id}>
+                <TableRow key={row.id} data-amount={row.amount}>
                   <TableCell>{formatDateTime(row.recorded_at)}</TableCell>
                   <TableCell>{row.order_number}</TableCell>
                   <TableCell>{row.method_name}</TableCell>

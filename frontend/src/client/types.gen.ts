@@ -102,6 +102,14 @@ export type CategoryTotal = {
     total: string;
 };
 
+export type ComparisonLine = {
+    key: string;
+    current: string;
+    previous: string;
+    change: string;
+    change_percent: (string | null);
+};
+
 export type CostPreviewLinePublic = {
     inventory_item_id: string;
     item_sku: string;
@@ -119,6 +127,32 @@ export type CostPreviewPublic = {
     lines: Array<CostPreviewLinePublic>;
 };
 
+export type DashboardFinancial = {
+    date_from: string;
+    date_to: string;
+    net_sales: string;
+    order_count: number;
+    average_order_value: string;
+    discounts: string;
+    refunds: string;
+    low_stock_count: number;
+    cogs: string;
+    gross_profit: string;
+    expenses: string;
+    operating_profit: string;
+};
+
+export type DashboardSales = {
+    date_from: string;
+    date_to: string;
+    net_sales: string;
+    order_count: number;
+    average_order_value: string;
+    discounts: string;
+    refunds: string;
+    low_stock_count: number;
+};
+
 export type DiscountType = 'amount' | 'percent';
 
 /**
@@ -127,6 +161,20 @@ export type DiscountType = 'amount' | 'percent';
 export type DiscountUpdate = {
     discount_type: (DiscountType | null);
     discount_value?: (number | string | null);
+};
+
+export type ExpenseBreakdownPublic = {
+    date_from: string;
+    date_to: string;
+    total: string;
+    data: Array<ExpenseBreakdownRow>;
+};
+
+export type ExpenseBreakdownRow = {
+    category_id: string;
+    category_name: string;
+    amount: string;
+    share: string;
 };
 
 export type ExpenseCategoryCreate = {
@@ -188,6 +236,8 @@ export type FinancialSummaryPublic = {
     uncertain_cost_lines: number;
     missing_cost_lines: number;
 };
+
+export type GroupBy = 'day' | 'week' | 'month';
 
 export type HTTPValidationError = {
     detail?: Array<ValidationError>;
@@ -412,6 +462,34 @@ export type MoneyAccountsPublic = {
     count: number;
 };
 
+export type MovementReportPublic = {
+    date_from: string;
+    date_to: string;
+    data: Array<MovementRow>;
+    count: number;
+};
+
+export type MovementRow = {
+    item_id: string;
+    sku: string;
+    name: string;
+    base_unit: string;
+    opening: string;
+    received: string;
+    consumed: string;
+    adjustments: string;
+    spoilage: string;
+    expired: string;
+    damaged: string;
+    missing: string;
+    physical_count: string;
+    correction: string;
+    returns: string;
+    reversals: string;
+    closing: string;
+    closing_value: string;
+};
+
 export type MovementType = 'receipt' | 'sale_consumption' | 'adjustment' | 'return' | 'reversal';
 
 export type NewPassword = {
@@ -539,6 +617,12 @@ export type OrderUpdate = {
     notes?: (string | null);
 };
 
+export type PaymentBreakdownRow = {
+    method_id: string;
+    method_name: string;
+    amount: string;
+};
+
 export type PaymentCreate = {
     method_id: string;
     amount?: (number | string | null);
@@ -602,6 +686,8 @@ export type PaymentVoid = {
     reason: string;
 };
 
+export type PeriodPreset = 'today' | 'yesterday' | 'last_7_days' | 'this_month' | 'last_month';
+
 export type Permission = 'users:manage' | 'settings:manage' | 'audit:read' | 'catalog:view' | 'catalog:manage' | 'inventory:view' | 'inventory:manage' | 'inventory:adjust' | 'inventory:reverse' | 'inventory:return' | 'purchasing:read' | 'purchasing:manage' | 'purchasing:post' | 'purchasing:reverse' | 'recipes:read' | 'recipes:manage' | 'ordering:create' | 'ordering:view_own' | 'ordering:view_all' | 'ordering:discount' | 'ordering:cancel' | 'payments:read' | 'payments:record' | 'payments:void' | 'payments:refund' | 'payments:configure' | 'expenses:read' | 'expenses:manage' | 'supplier_payments:read' | 'supplier_payments:record' | 'cash:view' | 'cash:adjust' | 'finance:view' | 'reports:sales' | 'reports:inventory' | 'reports:financial';
 
 export type PrivateUserCreate = {
@@ -612,7 +698,73 @@ export type PrivateUserCreate = {
     role?: Role;
 };
 
+export type ProductPerformanceFinancial = {
+    date_from: string;
+    date_to: string;
+    net_sales: string;
+    data: Array<ProductRowFinancial>;
+};
+
+export type ProductPerformancePublic = {
+    date_from: string;
+    date_to: string;
+    net_sales: string;
+    data: Array<ProductRow>;
+};
+
+export type ProductRow = {
+    menu_item_id: string;
+    name: string;
+    quantity: string;
+    gross_sales: string;
+    discounts: string;
+    net_sales: string;
+    share: string;
+    best_seller?: boolean;
+    least_seller?: boolean;
+};
+
+export type ProductRowFinancial = {
+    menu_item_id: string;
+    name: string;
+    quantity: string;
+    gross_sales: string;
+    discounts: string;
+    net_sales: string;
+    share: string;
+    best_seller?: boolean;
+    least_seller?: boolean;
+    estimated_cost: string;
+    estimated_gross_profit: string;
+};
+
 export type ProductType = 'prepared' | 'direct_sale' | 'non_stock';
+
+export type ProfitComparisonPublic = {
+    date_from: string;
+    date_to: string;
+    compare_from: string;
+    compare_to: string;
+    lines: Array<ComparisonLine>;
+    note?: string;
+    uncertain_cost_lines?: number;
+    missing_cost_lines?: number;
+};
+
+export type ProfitStatementPublic = {
+    date_from: string;
+    date_to: string;
+    net_sales: string;
+    cogs: string;
+    gross_profit: string;
+    gross_margin: string;
+    expenses: string;
+    operating_profit: string;
+    estimate?: boolean;
+    note?: string;
+    uncertain_cost_lines: number;
+    missing_cost_lines: number;
+};
 
 export type ReceiptCreate = {
     reference?: (string | null);
@@ -774,11 +926,41 @@ export type RefundsPublic = {
     totals: Array<MethodTotal>;
 };
 
+export type ResolvedPeriod = {
+    preset: string;
+    date_from: string;
+    date_to: string;
+};
+
 export type Reversal = {
     reason: string;
 };
 
 export type Role = 'owner' | 'manager' | 'cashier' | 'inventory_staff' | 'accountant';
+
+export type SalesSummaryPublic = {
+    date_from: string;
+    date_to: string;
+    group_by: GroupBy;
+    gross_sales: string;
+    discounts: string;
+    refunds: string;
+    net_sales: string;
+    order_count: number;
+    average_order_value: string;
+    data: Array<SalesSummaryRow>;
+    payments: Array<PaymentBreakdownRow>;
+};
+
+export type SalesSummaryRow = {
+    period_start: string;
+    gross_sales: string;
+    discounts: string;
+    refunds: string;
+    net_sales: string;
+    order_count: number;
+    average_order_value: string;
+};
 
 export type StatementEntry = {
     kind: string;
@@ -914,6 +1096,20 @@ export type StockReturnPublic = {
 export type StockReturnsPublic = {
     data: Array<StockReturnPublic>;
     count: number;
+};
+
+export type StockStatusItem = {
+    item_id: string;
+    sku: string;
+    name: string;
+    quantity: string;
+    base_unit: string;
+};
+
+export type StockStatusPublic = {
+    total_value: string;
+    low_stock: Array<StockStatusItem>;
+    negative_stock: Array<StockStatusItem>;
 };
 
 export type SupplierBalance = {
@@ -1690,6 +1886,148 @@ export type RecipesReadCostPreviewData = {
 };
 
 export type RecipesReadCostPreviewResponse = (CostPreviewPublic);
+
+export type ReportsReadPresetData = {
+    preset: PeriodPreset;
+};
+
+export type ReportsReadPresetResponse = (ResolvedPeriod);
+
+export type ReportsReadDashboardData = {
+    dateFrom?: (string | null);
+    dateTo?: (string | null);
+};
+
+export type ReportsReadDashboardResponse = ((DashboardSales | DashboardFinancial));
+
+export type ReportsReadSalesSummaryData = {
+    cashierId?: (string | null);
+    categoryId?: (string | null);
+    dateFrom: string;
+    dateTo: string;
+    groupBy?: GroupBy;
+    methodId?: (string | null);
+    status?: (string | null);
+};
+
+export type ReportsReadSalesSummaryResponse = (SalesSummaryPublic);
+
+export type ReportsExportSalesSummaryData = {
+    cashierId?: (string | null);
+    categoryId?: (string | null);
+    dateFrom: string;
+    dateTo: string;
+    groupBy?: GroupBy;
+    methodId?: (string | null);
+    status?: (string | null);
+};
+
+export type ReportsExportSalesSummaryResponse = (unknown);
+
+export type ReportsReadProductsData = {
+    cashierId?: (string | null);
+    categoryId?: (string | null);
+    dateFrom: string;
+    dateTo: string;
+    methodId?: (string | null);
+    sort?: string;
+    status?: (string | null);
+};
+
+export type ReportsReadProductsResponse = ((ProductPerformancePublic | ProductPerformanceFinancial));
+
+export type ReportsExportProductsData = {
+    cashierId?: (string | null);
+    categoryId?: (string | null);
+    dateFrom: string;
+    dateTo: string;
+    methodId?: (string | null);
+    sort?: string;
+    status?: (string | null);
+};
+
+export type ReportsExportProductsResponse = (unknown);
+
+export type ReportsReadMovementsData = {
+    categoryId?: (string | null);
+    dateFrom: string;
+    dateTo: string;
+    isActive?: (boolean | null);
+    itemType?: (string | null);
+};
+
+export type ReportsReadMovementsResponse = (MovementReportPublic);
+
+export type ReportsExportMovementsData = {
+    categoryId?: (string | null);
+    dateFrom: string;
+    dateTo: string;
+    isActive?: (boolean | null);
+    itemType?: (string | null);
+};
+
+export type ReportsExportMovementsResponse = (unknown);
+
+export type ReportsReadStockStatusData = {
+    categoryId?: (string | null);
+    isActive?: (boolean | null);
+    itemType?: (string | null);
+};
+
+export type ReportsReadStockStatusResponse = (StockStatusPublic);
+
+export type ReportsReadExpensesData = {
+    dateFrom: string;
+    dateTo: string;
+};
+
+export type ReportsReadExpensesResponse = (ExpenseBreakdownPublic);
+
+export type ReportsExportExpensesData = {
+    dateFrom: string;
+    dateTo: string;
+};
+
+export type ReportsExportExpensesResponse = (unknown);
+
+export type ReportsReadStatementData = {
+    dateFrom: string;
+    dateTo: string;
+};
+
+export type ReportsReadStatementResponse = (ProfitStatementPublic);
+
+export type ReportsExportStatementData = {
+    dateFrom: string;
+    dateTo: string;
+};
+
+export type ReportsExportStatementResponse = (unknown);
+
+export type ReportsReadComparisonData = {
+    compareFrom?: (string | null);
+    compareTo?: (string | null);
+    dateFrom: string;
+    dateTo: string;
+};
+
+export type ReportsReadComparisonResponse = (ProfitComparisonPublic);
+
+export type ReportsExportPaymentsData = {
+    dateFrom: string;
+    dateTo: string;
+    methodId?: (string | null);
+    status?: (PaymentStatus | null);
+};
+
+export type ReportsExportPaymentsResponse = (unknown);
+
+export type ReportsExportIncomeData = {
+    dateFrom: string;
+    dateTo: string;
+};
+
+export type ReportsExportIncomeResponse = (unknown);
 
 export type SettingsReadBusinessSettingsResponse = (BusinessSettingsPublic);
 

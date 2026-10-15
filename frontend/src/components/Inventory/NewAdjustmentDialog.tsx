@@ -22,13 +22,7 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
+import { SearchableSelect } from "@/components/ui/searchable-select"
 import useCustomToast from "@/hooks/useCustomToast"
 import { type MessageKey, useI18n } from "@/i18n"
 import { formatNumber } from "@/lib/format"
@@ -217,119 +211,104 @@ export function NewAdjustmentDialog() {
             return (
               <div
                 key={line.key}
-                className="grid gap-2 rounded-md border p-3 sm:grid-cols-[2fr_1.4fr_1fr_1fr_auto] sm:items-end"
+                className="grid gap-2 rounded-md border p-3"
                 data-testid={`adjustment-line-${index}`}
               >
-                <div className="grid gap-1.5">
-                  <Label>{t("inventory.adjustments.item")}</Label>
-                  <Select
-                    value={line.itemId}
-                    onValueChange={(itemId) => updateLine(line.key, { itemId })}
-                  >
-                    <SelectTrigger
-                      className="w-full"
+                <div className="grid gap-2 sm:grid-cols-[minmax(0,2fr)_minmax(0,1.4fr)_minmax(0,1fr)_minmax(0,1fr)_auto] sm:items-end">
+                  <div className="grid gap-1.5">
+                    <Label>{t("inventory.adjustments.item")}</Label>
+                    <SearchableSelect
+                      value={line.itemId}
+                      onValueChange={(itemId) =>
+                        updateLine(line.key, { itemId })
+                      }
+                      placeholder={t("inventory.newAdjustment.chooseItem")}
                       aria-label={t("inventory.newAdjustment.itemForLine", {
                         line: index + 1,
                       })}
-                    >
-                      <SelectValue
-                        placeholder={t("inventory.newAdjustment.chooseItem")}
-                      />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {items.map((option) => (
-                        <SelectItem key={option.id} value={option.id}>
-                          {option.sku} · {option.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {item && (
-                    <span className="text-xs text-muted-foreground">
-                      {t("inventory.newAdjustment.onHand", {
-                        quantity: formatNumber(item.quantity),
-                        unit: t(UNIT_LABELS[item.base_unit]),
-                      })}
-                    </span>
-                  )}
-                </div>
-                <div className="grid gap-1.5">
-                  <Label>{t("inventory.adjustments.reason")}</Label>
-                  <Select
-                    value={line.reason}
-                    onValueChange={(reason) =>
-                      updateLine(line.key, {
-                        reason: reason as AdjustmentReason,
-                        unitCost: "",
-                      })
-                    }
-                  >
-                    <SelectTrigger
-                      className="w-full"
+                      options={items.map((option) => ({
+                        value: option.id,
+                        label: `${option.sku} · ${option.name}`,
+                      }))}
+                    />
+                  </div>
+                  <div className="grid gap-1.5">
+                    <Label>{t("inventory.adjustments.reason")}</Label>
+                    <SearchableSelect
+                      value={line.reason}
+                      onValueChange={(reason) =>
+                        updateLine(line.key, {
+                          reason: reason as AdjustmentReason,
+                          unitCost: "",
+                        })
+                      }
                       aria-label={t("inventory.newAdjustment.reasonForLine", {
                         line: index + 1,
                       })}
-                    >
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {ADJUSTMENT_REASONS.map((reason) => (
-                        <SelectItem key={reason} value={reason}>
-                          {t(ADJUSTMENT_REASON_LABELS[reason])}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="grid gap-1.5">
-                  <Label htmlFor={`adjustment-amount-${line.key}`}>
-                    {t(amountLabel(line.reason))}
-                  </Label>
-                  <Input
-                    id={`adjustment-amount-${line.key}`}
-                    inputMode="decimal"
-                    value={line.amount}
-                    onChange={(e) =>
-                      updateLine(line.key, { amount: e.target.value })
+                      options={ADJUSTMENT_REASONS.map((reason) => ({
+                        value: reason,
+                        label: t(ADJUSTMENT_REASON_LABELS[reason]),
+                      }))}
+                    />
+                  </div>
+                  <div className="grid gap-1.5">
+                    <Label htmlFor={`adjustment-amount-${line.key}`}>
+                      {t(amountLabel(line.reason))}
+                    </Label>
+                    <Input
+                      id={`adjustment-amount-${line.key}`}
+                      inputMode="decimal"
+                      value={line.amount}
+                      onChange={(e) =>
+                        updateLine(line.key, { amount: e.target.value })
+                      }
+                    />
+                  </div>
+                  <div className="grid gap-1.5">
+                    <Label htmlFor={`adjustment-cost-${line.key}`}>
+                      {t("inventory.newAdjustment.unitCost")}
+                    </Label>
+                    <Input
+                      id={`adjustment-cost-${line.key}`}
+                      inputMode="decimal"
+                      placeholder={
+                        allowsUnitCost(line)
+                          ? t("inventory.newAdjustment.averageCost")
+                          : "—"
+                      }
+                      disabled={!allowsUnitCost(line)}
+                      value={line.unitCost}
+                      onChange={(e) =>
+                        updateLine(line.key, { unitCost: e.target.value })
+                      }
+                    />
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    aria-label={t("inventory.newAdjustment.removeLine", {
+                      line: index + 1,
+                    })}
+                    disabled={lines.length === 1}
+                    onClick={() =>
+                      edit((current) =>
+                        current.filter((l) => l.key !== line.key),
+                      )
                     }
-                  />
+                  >
+                    <Trash2 />
+                  </Button>
                 </div>
-                <div className="grid gap-1.5">
-                  <Label htmlFor={`adjustment-cost-${line.key}`}>
-                    {t("inventory.newAdjustment.unitCost")}
-                  </Label>
-                  <Input
-                    id={`adjustment-cost-${line.key}`}
-                    inputMode="decimal"
-                    placeholder={
-                      allowsUnitCost(line)
-                        ? t("inventory.newAdjustment.averageCost")
-                        : "—"
-                    }
-                    disabled={!allowsUnitCost(line)}
-                    value={line.unitCost}
-                    onChange={(e) =>
-                      updateLine(line.key, { unitCost: e.target.value })
-                    }
-                  />
-                </div>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  aria-label={t("inventory.newAdjustment.removeLine", {
-                    line: index + 1,
-                  })}
-                  disabled={lines.length === 1}
-                  onClick={() =>
-                    edit((current) => current.filter((l) => l.key !== line.key))
-                  }
-                >
-                  <Trash2 />
-                </Button>
+                {item && (
+                  <span className="text-xs text-muted-foreground">
+                    {t("inventory.newAdjustment.onHand", {
+                      quantity: formatNumber(item.quantity),
+                      unit: t(UNIT_LABELS[item.base_unit]),
+                    })}
+                  </span>
+                )}
                 {error && (
-                  <p className="text-sm text-destructive sm:col-span-5">
-                    {t(error)}
-                  </p>
+                  <p className="text-sm text-destructive">{t(error)}</p>
                 )}
               </div>
             )

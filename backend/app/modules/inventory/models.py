@@ -172,6 +172,7 @@ class InventoryMovement(SQLModel, table=True):
         Index("ix_inventory_movements_item_seq", "item_id", "seq"),
         Index("ix_inventory_movements_source", "source_type", "source_id"),
         Index("ix_inventory_movements_occurred_at", "occurred_at"),
+        Index("ix_inventory_movements_item_occurred", "item_id", "occurred_at"),
     )
 
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)

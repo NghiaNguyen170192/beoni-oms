@@ -24,3 +24,10 @@ All source tables exist. `accounting.financial_summary` and the timezone period 
 
 - [Large ranges slow on bigger shops] → Index + date-range cap of 366 days per request; revisit with summary tables only if p95 targets are missed.
 - [New frontend dependency (recharts)] → Justified by charts requirement; limited to the reports route chunk via lazy loading.
+
+## Performance check
+
+No Postgres MCP server is connected in this workspace, so the check used `EXPLAIN (ANALYZE, BUFFERS)` and timed the report functions through the backend database session. About 50,000 completed orders (one line each) were inserted for 2020-01-15, statistics were refreshed, each report ran 20 times, and the seed was deleted (`remaining 0`).
+
+- Dashboard p95 0.291 s (max 0.299 s). Sales summary p95 0.200 s (max 0.202 s). Both are under the 2 s target.
+- The order aggregate executed in 40 ms and the line aggregate in 77 ms. Both plans chose a sequential scan because almost every order fell inside the measured day (50,000 matching rows, 19 removed by the filter). `ix_orders_completed_at` remains in place for selective ranges, where a scan of one day among many is the usual case.
