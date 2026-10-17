@@ -5,18 +5,25 @@ import { useI18n } from "@/i18n"
 import { formatNumber } from "@/lib/format"
 import { ORDER_STATUS_LABELS } from "@/lib/labels"
 import { cn } from "@/lib/utils"
+import badgeStyles from "@/styles/badge.module.css"
+
+const orderStatusClassMap: Record<OrderStatus, string> = {
+  draft: badgeStyles.blue,
+  confirmed: badgeStyles.yellow,
+  paid: badgeStyles.green,
+  completed: badgeStyles.green,
+  cancelled: badgeStyles.red,
+  partially_refunded: badgeStyles.yellow,
+  refunded: badgeStyles.red,
+}
 
 export function OrderStatusBadge({ status }: { status: OrderStatus }) {
   const { t } = useI18n()
-  const variant =
-    status === "completed"
-      ? "default"
-      : status === "cancelled"
-        ? "destructive"
-        : status === "draft"
-          ? "outline"
-          : "secondary"
-  return <Badge variant={variant}>{t(ORDER_STATUS_LABELS[status])}</Badge>
+  return (
+    <Badge className={orderStatusClassMap[status]}>
+      {t(ORDER_STATUS_LABELS[status])}
+    </Badge>
+  )
 }
 
 /** Totals exactly as calculated by the backend. */

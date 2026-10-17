@@ -21,6 +21,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useFormatters } from "@/hooks/useBusinessSettings"
 import { t as translate, useI18n } from "@/i18n"
 import { requirePermission } from "@/lib/permissions"
+import badgeStyles from "@/styles/badge.module.css"
 
 export const Route = createFileRoute("/_layout/payments")({
   component: PaymentsPage,
@@ -29,6 +30,11 @@ export const Route = createFileRoute("/_layout/payments")({
     meta: [{ title: translate("payments.pageTitle") }],
   }),
 })
+
+const paymentStatusClassMap: Record<PaymentStatus, string> = {
+  active: badgeStyles.green,
+  voided: badgeStyles.red,
+}
 
 function PaymentsPage() {
   const { t } = useI18n()
@@ -125,7 +131,7 @@ function PaymentsPage() {
         {payments.data?.totals.map((row) => (
           <div key={row.method_id} className="rounded-md border px-3 py-2">
             <div className="text-xs text-muted-foreground">
-              {row.method_name}
+              {t(`payments.kind.${row.method_kind}`)}
             </div>
             <div className="text-lg font-semibold tabular-nums">
               {formatMoney(row.total)}
@@ -193,7 +199,7 @@ function PaymentsPage() {
                 <TableRow key={row.id} data-amount={row.amount}>
                   <TableCell>{formatDateTime(row.recorded_at)}</TableCell>
                   <TableCell>{row.order_number}</TableCell>
-                  <TableCell>{row.method_name}</TableCell>
+                  <TableCell>{t(`payments.kind.${row.method_kind}`)}</TableCell>
                   <TableCell className="text-right tabular-nums">
                     {formatMoney(row.amount)}
                   </TableCell>
@@ -201,11 +207,7 @@ function PaymentsPage() {
                     {row.change_amount ? formatMoney(row.change_amount) : "—"}
                   </TableCell>
                   <TableCell>
-                    <Badge
-                      variant={
-                        row.status === "voided" ? "outline" : "secondary"
-                      }
-                    >
+                    <Badge className={paymentStatusClassMap[row.status]}>
                       {t(
                         row.status === "voided"
                           ? "payments.status.voided"
@@ -241,7 +243,7 @@ function PaymentsPage() {
                 <TableRow key={row.id}>
                   <TableCell>{formatDateTime(row.recorded_at)}</TableCell>
                   <TableCell>{row.order_number}</TableCell>
-                  <TableCell>{row.method_name}</TableCell>
+                  <TableCell>{t(`payments.kind.${row.method_kind}`)}</TableCell>
                   <TableCell className="text-right tabular-nums">
                     {formatMoney(row.amount)}
                   </TableCell>

@@ -128,7 +128,7 @@ export function SupplierPaymentDialog({
               <SelectContent>
                 {accounts.data?.data.map((account) => (
                   <SelectItem key={account.id} value={account.id}>
-                    {account.name}
+                    {t(`accounting.account.kind.${account.kind}`)}
                   </SelectItem>
                 ))}
               </SelectContent>

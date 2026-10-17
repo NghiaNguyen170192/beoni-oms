@@ -138,7 +138,7 @@ function Cash() {
               onClick={() => setSelectedId(account.id)}
             >
               <div className="text-sm text-muted-foreground">
-                {account.name}
+                {t(`accounting.account.kind.${account.kind}`)}
               </div>
               <div className="text-xl font-semibold tabular-nums">
                 {formatMoney(account.balance)}

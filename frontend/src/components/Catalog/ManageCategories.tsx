@@ -19,6 +19,7 @@ import useCustomToast from "@/hooks/useCustomToast"
 import { useI18n } from "@/i18n"
 import { handleError } from "@/utils"
 import { menuCategoriesQueryOptions } from "./queries"
+import badgeStyles from "@/styles/badge.module.css"
 
 function CategoryRow({
   category,
@@ -64,7 +65,7 @@ function CategoryRow({
         className="flex-1"
       />
       {!category.is_active && (
-        <Badge variant="secondary">{t("common.inactive")}</Badge>
+        <Badge className={badgeStyles.red}>{t("common.inactive")}</Badge>
       )}
       <Button
         type="button"

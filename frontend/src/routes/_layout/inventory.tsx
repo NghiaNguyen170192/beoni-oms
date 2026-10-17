@@ -30,6 +30,7 @@ import { t as translate, useI18n } from "@/i18n"
 import { formatNumber } from "@/lib/format"
 import { UNIT_LABELS } from "@/lib/labels"
 import { hasPermission, requirePermission } from "@/lib/permissions"
+import badgeStyles from "@/styles/badge.module.css"
 
 export const Route = createFileRoute("/_layout/inventory")({
   component: Inventory,
@@ -154,7 +155,7 @@ function Inventory() {
               </Badge>
             )}
             {!row.original.is_active && (
-              <Badge variant="secondary">
+              <Badge className={badgeStyles.red}>
                 {translate("inventory.status.inactive")}
               </Badge>
             )}

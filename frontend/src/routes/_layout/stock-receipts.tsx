@@ -40,6 +40,7 @@ import { t as translate, useI18n } from "@/i18n"
 import { useIdempotencyKey } from "@/lib/idempotency"
 import { hasPermission, requirePermission } from "@/lib/permissions"
 import { handleError } from "@/utils"
+import badgeStyles from "@/styles/badge.module.css"
 
 export const Route = createFileRoute("/_layout/stock-receipts")({
   component: StockReceipts,
@@ -53,8 +54,15 @@ const ALL = "all"
 
 function StatusBadge({ status }: { status: ReceiptStatus }) {
   const { t } = useI18n()
+
+  const statusClassMap: Record<ReceiptStatus, string> = {
+    draft: badgeStyles.blue,
+    posted: badgeStyles.green,
+    reversed: badgeStyles.yellow,
+  }
+
   return (
-    <Badge variant="secondary">
+    <Badge className={statusClassMap[status]}>
       {t(`purchasing.receipts.status.${status}`)}
     </Badge>
   )
@@ -62,8 +70,15 @@ function StatusBadge({ status }: { status: ReceiptStatus }) {
 
 function PaymentBadge({ status }: { status: ReceiptPaymentStatus }) {
   const { t } = useI18n()
+
+  const paymentClassMap: Record<ReceiptPaymentStatus, string> = {
+    paid: badgeStyles.green,
+    partially_paid: badgeStyles.yellow,
+    unpaid: badgeStyles.red,
+  }
+
   return (
-    <Badge variant="outline">
+    <Badge className={paymentClassMap[status]}>
       {t(`purchasing.receipts.payment.${status}`)}
     </Badge>
   )
@@ -459,7 +474,7 @@ function ReceiptDetail({
                 <SelectContent>
                   {accountOptions.map((account) => (
                     <SelectItem key={account.id} value={account.id}>
-                      {account.name}
+                      {t(`accounting.account.kind.${account.kind}`)}
                     </SelectItem>
                   ))}
                 </SelectContent>

@@ -27,6 +27,7 @@ import useAuth from "@/hooks/useAuth"
 import { useFormatters } from "@/hooks/useBusinessSettings"
 import { t as translate, useI18n } from "@/i18n"
 import { hasPermission, requirePermission } from "@/lib/permissions"
+import badgeStyles from "@/styles/badge.module.css"
 
 export const Route = createFileRoute("/_layout/suppliers")({
   component: Suppliers,
@@ -97,12 +98,11 @@ function Suppliers() {
         id: "status",
         enableSorting: false,
         header: () => translate("common.status"),
-        cell: ({ row }) =>
-          row.original.is_active ? (
-            <Badge variant="secondary">{translate("common.active")}</Badge>
-          ) : (
-            <Badge variant="outline">{translate("common.inactive")}</Badge>
-          ),
+        cell: ({ row }) => (
+          <Badge className={row.original.is_active ? badgeStyles.green : badgeStyles.red}>
+            {translate(row.original.is_active ? "common.active" : "common.inactive")}
+          </Badge>
+        ),
       },
       {
         id: "actions",
