@@ -45,6 +45,17 @@ const ALL = "all"
 type StatusFilter = typeof ALL | "active" | "inactive"
 type StockFilter = typeof ALL | "low" | "negative"
 
+const categoryBadgeColors = [
+  badgeStyles.blue,
+  badgeStyles.green,
+  badgeStyles.yellow,
+  badgeStyles.red,
+  badgeStyles.purple,
+  badgeStyles.orange,
+  badgeStyles.cyan,
+  badgeStyles.pink,
+]
+
 function Inventory() {
   const { t } = useI18n()
   const { user } = useAuth()
@@ -74,6 +85,16 @@ function Inventory() {
     () => new Map(categories.map((c) => [c.id, c.name])),
     [categories],
   )
+  const categoryColors = useMemo(
+    () =>
+      new Map(
+        categories.map((category, index) => [
+          category.id,
+          categoryBadgeColors[index % categoryBadgeColors.length],
+        ]),
+      ),
+    [categories],
+  )
   const { data, isPending } = useQuery(inventoryItemsQueryOptions(filters))
   const items = data?.data ?? []
   const editing = items.find((item) => item.id === editingId)
@@ -94,7 +115,15 @@ function Inventory() {
         id: "category",
         accessorFn: (row) => categoryNames.get(row.category_id) ?? "",
         header: () => translate("inventory.field.category"),
-        cell: ({ row }) => categoryNames.get(row.original.category_id) ?? "—",
+        cell: ({ row }) => {
+          const categoryId = row.original.category_id
+          const name = categoryNames.get(categoryId)
+          return name ? (
+            <Badge className={categoryColors.get(categoryId)}>{name}</Badge>
+          ) : (
+            "—"
+          )
+        },
       },
       {
         id: "quantity",
@@ -148,20 +177,26 @@ function Inventory() {
         cell: ({ row }) => (
           <div className="flex flex-wrap gap-1">
             {row.original.is_negative_stock && (
-              <Badge variant="destructive">
+              <Badge className={badgeStyles.red}>
                 {translate("inventory.negativeStock")}
               </Badge>
             )}
             {row.original.is_low_stock && !row.original.is_negative_stock && (
-              <Badge className="bg-amber-500 text-white">
+              <Badge className={badgeStyles.yellow}>
                 {translate("inventory.lowStock")}
               </Badge>
             )}
-            {!row.original.is_active && (
-              <Badge className={badgeStyles.red}>
-                {translate("inventory.status.inactive")}
-              </Badge>
-            )}
+            <Badge
+              className={
+                row.original.is_active ? badgeStyles.green : badgeStyles.red
+              }
+            >
+              {translate(
+                row.original.is_active
+                  ? "inventory.status.active"
+                  : "inventory.status.inactive",
+              )}
+            </Badge>
           </div>
         ),
       },
@@ -211,7 +246,7 @@ function Inventory() {
         ),
       },
     ],
-    [canManage, categoryNames, formatMoney, formatUnitCost],
+    [canManage, categoryColors, categoryNames, formatMoney, formatUnitCost],
   )
 
   return (

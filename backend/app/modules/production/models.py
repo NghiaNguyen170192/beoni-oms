@@ -126,6 +126,96 @@ class ProductionBatch(SQLModel, table=True):
     updated_at: datetime = _timestamp()
 
 
+class ProductionBatchTemplate(SQLModel, table=True):
+    __tablename__ = "production_batch_templates"
+    __table_args__ = (
+        CheckConstraint(
+            "formula_runs IS NULL OR formula_runs > 0",
+            name="ck_production_batch_templates_formula_runs_positive",
+        ),
+        CheckConstraint(
+            "(recipe_id IS NULL) = (formula_runs IS NULL)",
+            name="ck_production_batch_templates_formula_runs_source",
+        ),
+        Index("ix_production_batch_templates_name", "name"),
+    )
+
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    name: str = Field(max_length=120, nullable=False)
+    recipe_id: uuid.UUID | None = Field(
+        default=None, foreign_key="recipes.id", ondelete="RESTRICT"
+    )
+    formula_runs: Decimal | None = Field(
+        default=None,
+        sa_type=Numeric(18, 4),  # type: ignore
+    )
+    created_by_id: uuid.UUID = Field(foreign_key="user.id", ondelete="RESTRICT")
+    created_at: datetime = _timestamp()
+    updated_at: datetime = _timestamp()
+
+
+class ProductionBatchTemplateIngredientLine(SQLModel, table=True):
+    __tablename__ = "production_batch_template_ingredient_lines"
+    __table_args__ = (
+        UniqueConstraint(
+            "template_id", "line_no", name="uq_production_template_ingredient_line_no"
+        ),
+        UniqueConstraint(
+            "template_id",
+            "inventory_item_id",
+            name="uq_production_template_ingredient_item",
+        ),
+        CheckConstraint(
+            "line_no > 0", name="ck_production_template_ingredient_line_no"
+        ),
+        CheckConstraint(
+            "planned_quantity > 0",
+            name="ck_production_template_ingredient_planned_positive",
+        ),
+        Index("ix_production_template_ingredient_item", "inventory_item_id"),
+    )
+
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    template_id: uuid.UUID = Field(
+        foreign_key="production_batch_templates.id", ondelete="CASCADE", index=True
+    )
+    line_no: int
+    inventory_item_id: uuid.UUID = Field(
+        foreign_key="inventory_items.id", ondelete="RESTRICT"
+    )
+    planned_quantity: Decimal = Field(sa_type=Numeric(18, 4))  # type: ignore
+
+
+class ProductionBatchTemplateOutputLine(SQLModel, table=True):
+    __tablename__ = "production_batch_template_output_lines"
+    __table_args__ = (
+        UniqueConstraint(
+            "template_id", "line_no", name="uq_production_template_output_line_no"
+        ),
+        UniqueConstraint(
+            "template_id", "menu_item_id", name="uq_production_template_output_menu"
+        ),
+        CheckConstraint("line_no > 0", name="ck_production_template_output_line_no"),
+        CheckConstraint(
+            "planned_quantity > 0",
+            name="ck_production_template_output_planned_positive",
+        ),
+        Index("ix_production_template_output_menu", "menu_item_id"),
+        Index("ix_production_template_output_inventory", "inventory_item_id"),
+    )
+
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    template_id: uuid.UUID = Field(
+        foreign_key="production_batch_templates.id", ondelete="CASCADE", index=True
+    )
+    line_no: int
+    menu_item_id: uuid.UUID = Field(foreign_key="menu_items.id", ondelete="RESTRICT")
+    inventory_item_id: uuid.UUID = Field(
+        foreign_key="inventory_items.id", ondelete="RESTRICT"
+    )
+    planned_quantity: Decimal = Field(sa_type=Numeric(18, 4))  # type: ignore
+
+
 class ProductionBatchIngredientLine(SQLModel, table=True):
     __tablename__ = "production_batch_ingredient_lines"
     __table_args__ = (

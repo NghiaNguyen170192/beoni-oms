@@ -27,6 +27,7 @@ import { t as translate, useI18n } from "@/i18n"
 import { PRODUCT_TYPE_LABELS } from "@/lib/labels"
 import { mediaUrl } from "@/lib/media"
 import { hasPermission, requirePermission } from "@/lib/permissions"
+import badgeStyles from "@/styles/badge.module.css"
 import { handleError } from "@/utils"
 
 export const Route = createFileRoute("/_layout/menu")({
@@ -113,9 +114,9 @@ function Menu() {
           const item = row.original
           if (!canManage) {
             return item[field] ? (
-              <Badge variant="secondary">{t("common.yes")}</Badge>
+              <Badge className={badgeStyles.green}>{t("common.yes")}</Badge>
             ) : (
-              <Badge variant="outline">{t("common.no")}</Badge>
+              <Badge className={badgeStyles.red}>{t("common.no")}</Badge>
             )
           }
           return (

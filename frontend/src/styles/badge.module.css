@@ -15,3 +15,19 @@
 .red {
   @apply bg-red-100 text-red-900 border-red-300 dark:bg-red-900 dark:text-red-100 dark:border-red-700;
 }
+
+.purple {
+  @apply bg-purple-100 text-purple-900 border-purple-300 dark:bg-purple-900 dark:text-purple-100 dark:border-purple-700;
+}
+
+.orange {
+  @apply bg-orange-100 text-orange-900 border-orange-300 dark:bg-orange-900 dark:text-orange-100 dark:border-orange-700;
+}
+
+.cyan {
+  @apply bg-cyan-100 text-cyan-900 border-cyan-300 dark:bg-cyan-900 dark:text-cyan-100 dark:border-cyan-700;
+}
+
+.pink {
+  @apply bg-pink-100 text-pink-900 border-pink-300 dark:bg-pink-900 dark:text-pink-100 dark:border-pink-700;
+}

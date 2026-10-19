@@ -5,6 +5,10 @@ class BatchNotFound(NotFound):
     default_detail = "Production batch not found"
 
 
+class BatchTemplateNotFound(NotFound):
+    default_detail = "Production batch template not found"
+
+
 class BatchNotDraft(Conflict):
     default_detail = "Only draft production batches can be edited"
 

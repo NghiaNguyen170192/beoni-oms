@@ -13,14 +13,17 @@ from app.modules.identity.permissions import Permission
 from app.modules.production import service
 from app.modules.production.models import ProductionBatchStatus
 from app.modules.production.schemas import (
+    FinishedGoodsAvailabilityPublic,
     ProductionBatchComplete,
     ProductionBatchCreate,
     ProductionBatchesPublic,
     ProductionBatchPublic,
     ProductionBatchReverse,
+    ProductionBatchTemplateCreate,
+    ProductionBatchTemplatePublic,
+    ProductionBatchTemplatesPublic,
     ProductionBatchTraceabilityPublic,
     ProductionBatchUpdate,
-    FinishedGoodsAvailabilityPublic,
 )
 
 router = APIRouter(prefix="/production/batches", tags=["production"])
@@ -39,6 +42,30 @@ PosAvailabilityReader = Annotated[
 ]
 Skip = Annotated[int, Query(ge=0)]
 Limit = Annotated[int, Query(ge=1, le=500)]
+
+
+@router.get("/templates", response_model=ProductionBatchTemplatesPublic)
+def read_batch_templates(session: SessionDep, _current_user: Reader) -> Any:
+    data = service.list_batch_templates(session)
+    return ProductionBatchTemplatesPublic(data=data, count=len(data))
+
+
+@router.post(
+    "/templates",
+    response_model=ProductionBatchTemplatePublic,
+    status_code=201,
+)
+def create_batch_template(
+    session: SessionDep, actor: Manager, template_in: ProductionBatchTemplateCreate
+) -> Any:
+    return service.create_batch_template(session, data=template_in, actor=actor)
+
+
+@router.delete("/templates/{template_id}", status_code=204)
+def delete_batch_template(
+    session: SessionDep, actor: Manager, template_id: uuid.UUID
+) -> None:
+    service.delete_batch_template(session, template_id=template_id, actor=actor)
 
 
 @router.get("", response_model=ProductionBatchesPublic)

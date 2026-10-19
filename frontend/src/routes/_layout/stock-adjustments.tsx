@@ -52,6 +52,7 @@ import {
   hasPermission,
   requirePermission,
 } from "@/lib/permissions"
+import badgeStyles from "@/styles/badge.module.css"
 import { handleError } from "@/utils"
 
 export const Route = createFileRoute("/_layout/stock-adjustments")({
@@ -68,10 +69,16 @@ const ALL = "all"
 
 function StatusBadge({ status }: { status: AdjustmentStatus }) {
   const { t } = useI18n()
-  return status === "posted" ? (
-    <Badge variant="secondary">{t("inventory.adjustments.posted")}</Badge>
-  ) : (
-    <Badge variant="outline">{t("inventory.adjustments.reversed")}</Badge>
+  return (
+    <Badge
+      className={status === "posted" ? badgeStyles.green : badgeStyles.red}
+    >
+      {t(
+        status === "posted"
+          ? "inventory.adjustments.posted"
+          : "inventory.adjustments.reversed",
+      )}
+    </Badge>
   )
 }
 

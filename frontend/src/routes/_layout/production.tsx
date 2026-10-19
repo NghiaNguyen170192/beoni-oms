@@ -18,6 +18,7 @@ import useAuth from "@/hooks/useAuth";
 import { useFormatters } from "@/hooks/useBusinessSettings";
 import { t as translate, useI18n } from "@/i18n";
 import { hasPermission, requirePermission } from "@/lib/permissions";
+import badgeStyles from "@/styles/badge.module.css";
 
 export const Route = createFileRoute("/_layout/production")({
 	component: Production,
@@ -28,6 +29,13 @@ export const Route = createFileRoute("/_layout/production")({
 });
 
 const ALL = "all";
+
+const batchStatusClassMap: Record<BatchStatus, string> = {
+	draft: badgeStyles.blue,
+	completed: badgeStyles.green,
+	cancelled: badgeStyles.red,
+	reversed: badgeStyles.red,
+};
 
 function Production() {
 	const { t } = useI18n();
@@ -71,7 +79,7 @@ function Production() {
 			{
 				accessorKey: "status",
 				header: () => t("common.status"),
-				cell: ({ row }) => <Badge variant={row.original.status === "completed" ? "default" : "secondary"}>{t(`production.status.${row.original.status}`)}</Badge>,
+				cell: ({ row }) => <Badge className={batchStatusClassMap[row.original.status]}>{t(`production.status.${row.original.status}`)}</Badge>,
 			},
 			{
 				id: "cost",

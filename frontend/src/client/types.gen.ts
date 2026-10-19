@@ -36,9 +36,14 @@ export type BatchIngredientActual = {
     actual_quantity: (number | string);
 };
 
-export type BatchIngredientCreate = {
+export type BatchIngredientCreate_Input = {
     inventory_item_id: string;
     planned_quantity: (number | string);
+};
+
+export type BatchIngredientCreate_Output = {
+    inventory_item_id: string;
+    planned_quantity: string;
 };
 
 export type BatchIngredientPublic = {
@@ -58,10 +63,16 @@ export type BatchOutputActual = {
     waste_quantity?: (number | string);
 };
 
-export type BatchOutputCreate = {
+export type BatchOutputCreate_Input = {
     menu_item_id: string;
     inventory_item_id: string;
     planned_quantity: (number | string);
+};
+
+export type BatchOutputCreate_Output = {
+    menu_item_id: string;
+    inventory_item_id: string;
+    planned_quantity: string;
 };
 
 export type BatchOutputPublic = {
@@ -822,8 +833,8 @@ export type ProductionBatchCreate = {
     notes?: (string | null);
     recipe_id?: (string | null);
     formula_runs?: (number | string | null);
-    ingredients?: (Array<BatchIngredientCreate> | null);
-    outputs?: (Array<BatchOutputCreate> | null);
+    ingredients?: (Array<BatchIngredientCreate_Input> | null);
+    outputs?: (Array<BatchOutputCreate_Input> | null);
 };
 
 export type ProductionBatchesPublic = {
@@ -885,6 +896,32 @@ export type ProductionBatchSummary = {
     created_at: string;
 };
 
+export type ProductionBatchTemplateCreate = {
+    name: string;
+    recipe_id?: (string | null);
+    formula_runs?: (number | string | null);
+    ingredients?: (Array<BatchIngredientCreate_Input> | null);
+    outputs: Array<BatchOutputCreate_Input>;
+};
+
+export type ProductionBatchTemplatePublic = {
+    id: string;
+    name: string;
+    recipe_id: (string | null);
+    recipe_menu_item_id: (string | null);
+    formula_runs: (string | null);
+    ingredients: Array<BatchIngredientCreate_Output>;
+    outputs: Array<BatchOutputCreate_Output>;
+    created_by_id: string;
+    created_at: string;
+    updated_at: string;
+};
+
+export type ProductionBatchTemplatesPublic = {
+    data: Array<ProductionBatchTemplatePublic>;
+    count: number;
+};
+
 export type ProductionBatchTraceabilityPublic = {
     batch: ProductionBatchPublic;
     lots: Array<ProductionBatchLotTracePublic>;
@@ -895,8 +932,8 @@ export type ProductionBatchUpdate = {
     notes?: (string | null);
     recipe_id?: (string | null);
     formula_runs?: (number | string | null);
-    ingredients?: (Array<BatchIngredientCreate> | null);
-    outputs?: (Array<BatchOutputCreate> | null);
+    ingredients?: (Array<BatchIngredientCreate_Input> | null);
+    outputs?: (Array<BatchOutputCreate_Input> | null);
 };
 
 export type ProductionLotOrderTracePublic = {
@@ -2036,6 +2073,20 @@ export type PrivateCreateUserData = {
 };
 
 export type PrivateCreateUserResponse = (UserPublic);
+
+export type ProductionReadBatchTemplatesResponse = (ProductionBatchTemplatesPublic);
+
+export type ProductionCreateBatchTemplateData = {
+    requestBody: ProductionBatchTemplateCreate;
+};
+
+export type ProductionCreateBatchTemplateResponse = (ProductionBatchTemplatePublic);
+
+export type ProductionDeleteBatchTemplateData = {
+    templateId: string;
+};
+
+export type ProductionDeleteBatchTemplateResponse = (void);
 
 export type ProductionReadBatchesData = {
     limit?: number;

@@ -31,8 +31,7 @@ export const AllocationInSchema = {
                     type: 'number'
                 },
                 {
-                    type: 'string',
-                    pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$'
+                    type: 'string'
                 }
             ],
             title: 'Amount'
@@ -163,8 +162,7 @@ export const BatchIngredientActualSchema = {
                     minimum: 0
                 },
                 {
-                    type: 'string',
-                    pattern: '^(?!^[-+.]*$)[+-]?0*(?:\\d{0,14}|(?=[\\d.]{1,19}0*$)\\d{0,14}\\.\\d{0,4}0*$)'
+                    type: 'string'
                 }
             ],
             title: 'Actual Quantity'
@@ -175,7 +173,7 @@ export const BatchIngredientActualSchema = {
     title: 'BatchIngredientActual'
 } as const;
 
-export const BatchIngredientCreateSchema = {
+export const BatchIngredientCreate_InputSchema = {
     properties: {
         inventory_item_id: {
             type: 'string',
@@ -189,10 +187,26 @@ export const BatchIngredientCreateSchema = {
                     exclusiveMinimum: 0
                 },
                 {
-                    type: 'string',
-                    pattern: '^(?!^[-+.]*$)[+-]?0*(?:\\d{0,14}|(?=[\\d.]{1,19}0*$)\\d{0,14}\\.\\d{0,4}0*$)'
+                    type: 'string'
                 }
             ],
+            title: 'Planned Quantity'
+        }
+    },
+    type: 'object',
+    required: ['inventory_item_id', 'planned_quantity'],
+    title: 'BatchIngredientCreate'
+} as const;
+
+export const BatchIngredientCreate_OutputSchema = {
+    properties: {
+        inventory_item_id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Inventory Item Id'
+        },
+        planned_quantity: {
+            type: 'string',
             title: 'Planned Quantity'
         }
     },
@@ -230,14 +244,12 @@ export const BatchIngredientPublicSchema = {
         },
         planned_quantity: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Planned Quantity'
         },
         actual_quantity: {
             anyOf: [
                 {
-                    type: 'string',
-                    pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$'
+                    type: 'string'
                 },
                 {
                     type: 'null'
@@ -265,8 +277,7 @@ export const BatchOutputActualSchema = {
                     minimum: 0
                 },
                 {
-                    type: 'string',
-                    pattern: '^(?!^[-+.]*$)[+-]?0*(?:\\d{0,14}|(?=[\\d.]{1,19}0*$)\\d{0,14}\\.\\d{0,4}0*$)'
+                    type: 'string'
                 }
             ],
             title: 'Actual Good Quantity'
@@ -278,8 +289,7 @@ export const BatchOutputActualSchema = {
                     minimum: 0
                 },
                 {
-                    type: 'string',
-                    pattern: '^(?!^[-+.]*$)[+-]?0*(?:\\d{0,14}|(?=[\\d.]{1,19}0*$)\\d{0,14}\\.\\d{0,4}0*$)'
+                    type: 'string'
                 }
             ],
             title: 'Waste Quantity',
@@ -291,7 +301,7 @@ export const BatchOutputActualSchema = {
     title: 'BatchOutputActual'
 } as const;
 
-export const BatchOutputCreateSchema = {
+export const BatchOutputCreate_InputSchema = {
     properties: {
         menu_item_id: {
             type: 'string',
@@ -310,10 +320,31 @@ export const BatchOutputCreateSchema = {
                     exclusiveMinimum: 0
                 },
                 {
-                    type: 'string',
-                    pattern: '^(?!^[-+.]*$)[+-]?0*(?:\\d{0,14}|(?=[\\d.]{1,19}0*$)\\d{0,14}\\.\\d{0,4}0*$)'
+                    type: 'string'
                 }
             ],
+            title: 'Planned Quantity'
+        }
+    },
+    type: 'object',
+    required: ['menu_item_id', 'inventory_item_id', 'planned_quantity'],
+    title: 'BatchOutputCreate'
+} as const;
+
+export const BatchOutputCreate_OutputSchema = {
+    properties: {
+        menu_item_id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Menu Item Id'
+        },
+        inventory_item_id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Inventory Item Id'
+        },
+        planned_quantity: {
+            type: 'string',
             title: 'Planned Quantity'
         }
     },
@@ -364,14 +395,12 @@ export const BatchOutputPublicSchema = {
         },
         planned_quantity: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Planned Quantity'
         },
         actual_good_quantity: {
             anyOf: [
                 {
-                    type: 'string',
-                    pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$'
+                    type: 'string'
                 },
                 {
                     type: 'null'
@@ -381,14 +410,12 @@ export const BatchOutputPublicSchema = {
         },
         waste_quantity: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Waste Quantity'
         },
         unit_cost: {
             anyOf: [
                 {
-                    type: 'string',
-                    pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$'
+                    type: 'string'
                 },
                 {
                     type: 'null'
@@ -410,7 +437,7 @@ export const Body_catalog_upload_item_imageSchema = {
     properties: {
         file: {
             type: 'string',
-            format: 'binary',
+            contentMediaType: 'application/octet-stream',
             title: 'File'
         }
     },
@@ -496,7 +523,6 @@ export const BusinessSettingsPublicSchema = {
         },
         tax_rate: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Tax Rate'
         },
         language: {
@@ -545,8 +571,7 @@ export const BusinessSettingsUpdateSchema = {
                     minimum: 0
                 },
                 {
-                    type: 'string',
-                    pattern: '^(?!^[-+.]*$)[+-]?0*(?:\\d{0,3}|(?=[\\d.]{1,6}0*$)\\d{0,3}\\.\\d{0,2}0*$)'
+                    type: 'string'
                 }
             ],
             title: 'Tax Rate'
@@ -570,8 +595,7 @@ export const CashAdjustmentCreateSchema = {
                     type: 'number'
                 },
                 {
-                    type: 'string',
-                    pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$'
+                    type: 'string'
                 }
             ],
             title: 'Amount'
@@ -602,7 +626,6 @@ export const CashAdjustmentPublicSchema = {
         },
         amount: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Amount'
         },
         reason: {
@@ -637,7 +660,6 @@ export const CashMovementPublicSchema = {
         },
         amount: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Amount'
         },
         occurred_at: {
@@ -675,22 +697,18 @@ export const CashMovementsPublicSchema = {
     properties: {
         opening: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Opening'
         },
         inflows: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Inflows'
         },
         outflows: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Outflows'
         },
         closing: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Closing'
         },
         data: {
@@ -723,7 +741,6 @@ export const CategoryTotalSchema = {
         },
         total: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Total'
         }
     },
@@ -740,24 +757,20 @@ export const ComparisonLineSchema = {
         },
         current: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Current'
         },
         previous: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Previous'
         },
         change: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Change'
         },
         change_percent: {
             anyOf: [
                 {
-                    type: 'string',
-                    pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$'
+                    type: 'string'
                 },
                 {
                     type: 'null'
@@ -791,19 +804,16 @@ export const CostPreviewLinePublicSchema = {
         },
         quantity: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Quantity'
         },
         avg_unit_cost: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Avg Unit Cost'
         },
         line_cost: {
             anyOf: [
                 {
-                    type: 'string',
-                    pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$'
+                    type: 'string'
                 },
                 {
                     type: 'null'
@@ -830,7 +840,6 @@ export const CostPreviewPublicSchema = {
         },
         estimated_cost: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Estimated Cost'
         },
         lines: {
@@ -860,7 +869,6 @@ export const DashboardFinancialSchema = {
         },
         net_sales: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Net Sales'
         },
         order_count: {
@@ -869,17 +877,14 @@ export const DashboardFinancialSchema = {
         },
         average_order_value: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Average Order Value'
         },
         discounts: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Discounts'
         },
         refunds: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Refunds'
         },
         low_stock_count: {
@@ -888,22 +893,18 @@ export const DashboardFinancialSchema = {
         },
         cogs: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Cogs'
         },
         gross_profit: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Gross Profit'
         },
         expenses: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Expenses'
         },
         operating_profit: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Operating Profit'
         }
     },
@@ -926,7 +927,6 @@ export const DashboardSalesSchema = {
         },
         net_sales: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Net Sales'
         },
         order_count: {
@@ -935,17 +935,14 @@ export const DashboardSalesSchema = {
         },
         average_order_value: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Average Order Value'
         },
         discounts: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Discounts'
         },
         refunds: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Refunds'
         },
         low_stock_count: {
@@ -983,8 +980,7 @@ export const DiscountUpdateSchema = {
                     minimum: 0
                 },
                 {
-                    type: 'string',
-                    pattern: '^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)'
+                    type: 'string'
                 },
                 {
                     type: 'null'
@@ -1013,7 +1009,6 @@ export const ExpenseBreakdownPublicSchema = {
         },
         total: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Total'
         },
         data: {
@@ -1049,12 +1044,10 @@ export const ExpenseBreakdownRowSchema = {
         },
         amount: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Amount'
         },
         share: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Share'
         }
     },
@@ -1111,8 +1104,7 @@ export const ExpenseCreateSchema = {
                     type: 'number'
                 },
                 {
-                    type: 'string',
-                    pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$'
+                    type: 'string'
                 }
             ],
             title: 'Amount'
@@ -1187,7 +1179,6 @@ export const ExpensePublicSchema = {
         },
         amount: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Amount'
         },
         expense_date: {
@@ -1281,47 +1272,38 @@ export const FinancialSummaryPublicSchema = {
     properties: {
         gross_sales: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Gross Sales'
         },
         discounts: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Discounts'
         },
         refunds: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Refunds'
         },
         tax: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Tax'
         },
         net_sales: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Net Sales'
         },
         cogs: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Cogs'
         },
         gross_profit: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Gross Profit'
         },
         expenses: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Expenses'
         },
         operating_profit: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Operating Profit'
         },
         uncertain_cost_lines: {
@@ -1364,7 +1346,6 @@ export const FinishedGoodAvailabilityPublicSchema = {
         },
         available_quantity: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Available Quantity'
         },
         unit: {
@@ -1421,29 +1402,24 @@ export const FinishedGoodLotPublicSchema = {
         },
         produced_quantity: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Produced Quantity'
         },
         quantity_on_hand: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Quantity On Hand'
         },
         reserved_quantity: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Reserved Quantity'
         },
         available_quantity: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Available Quantity'
         },
         unit_cost: {
             anyOf: [
                 {
-                    type: 'string',
-                    pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$'
+                    type: 'string'
                 },
                 {
                     type: 'null'
@@ -1534,7 +1510,6 @@ export const FinishedGoodOrderAllocationPublicSchema = {
         },
         quantity: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Quantity'
         }
     },
@@ -1615,27 +1590,22 @@ export const IncomeRowSchema = {
         },
         gross_sales: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Gross Sales'
         },
         discounts: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Discounts'
         },
         refunds: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Refunds'
         },
         tax: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Tax'
         },
         net_sales: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Net Sales'
         },
         payment_status: {
@@ -1743,8 +1713,7 @@ export const InventoryItemCreateSchema = {
                     exclusiveMinimum: 0
                 },
                 {
-                    type: 'string',
-                    pattern: '^(?!^[-+.]*$)[+-]?0*(?:\\d{0,14}|(?=[\\d.]{1,19}0*$)\\d{0,14}\\.\\d{0,4}0*$)'
+                    type: 'string'
                 }
             ],
             title: 'Conversion Factor'
@@ -1756,8 +1725,7 @@ export const InventoryItemCreateSchema = {
                     minimum: 0
                 },
                 {
-                    type: 'string',
-                    pattern: '^(?!^[-+.]*$)[+-]?0*(?:\\d{0,14}|(?=[\\d.]{1,19}0*$)\\d{0,14}\\.\\d{0,4}0*$)'
+                    type: 'string'
                 }
             ],
             title: 'Min Stock',
@@ -1832,12 +1800,10 @@ export const InventoryItemPublicSchema = {
         },
         conversion_factor: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Conversion Factor'
         },
         min_stock: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Min Stock'
         },
         is_active: {
@@ -1867,17 +1833,14 @@ export const InventoryItemPublicSchema = {
         },
         quantity: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Quantity'
         },
         avg_unit_cost: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Avg Unit Cost'
         },
         value: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Value'
         },
         is_low_stock: {
@@ -1980,8 +1943,7 @@ export const InventoryItemUpdateSchema = {
                     exclusiveMinimum: 0
                 },
                 {
-                    type: 'string',
-                    pattern: '^(?!^[-+.]*$)[+-]?0*(?:\\d{0,14}|(?=[\\d.]{1,19}0*$)\\d{0,14}\\.\\d{0,4}0*$)'
+                    type: 'string'
                 },
                 {
                     type: 'null'
@@ -1996,8 +1958,7 @@ export const InventoryItemUpdateSchema = {
                     minimum: 0
                 },
                 {
-                    type: 'string',
-                    pattern: '^(?!^[-+.]*$)[+-]?0*(?:\\d{0,14}|(?=[\\d.]{1,19}0*$)\\d{0,14}\\.\\d{0,4}0*$)'
+                    type: 'string'
                 },
                 {
                     type: 'null'
@@ -2075,22 +2036,18 @@ export const InventoryMovementPublicSchema = {
         },
         quantity: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Quantity'
         },
         unit_cost: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Unit Cost'
         },
         value: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Value'
         },
         quantity_after: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Quantity After'
         },
         cost_uncertain: {
@@ -2231,7 +2188,6 @@ export const LotMovementRowSchema = {
         },
         quantity: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Quantity'
         },
         occurred_at: {
@@ -2411,8 +2367,7 @@ export const MenuItemCreateSchema = {
                     minimum: 0
                 },
                 {
-                    type: 'string',
-                    pattern: '^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)'
+                    type: 'string'
                 }
             ],
             title: 'Price'
@@ -2470,7 +2425,6 @@ export const MenuItemPublicSchema = {
         },
         price: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Price'
         },
         product_type: {
@@ -2557,8 +2511,7 @@ export const MenuItemUpdateSchema = {
                     minimum: 0
                 },
                 {
-                    type: 'string',
-                    pattern: '^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)'
+                    type: 'string'
                 },
                 {
                     type: 'null'
@@ -2651,7 +2604,6 @@ export const MethodTotalSchema = {
         },
         total: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Total'
         }
     },
@@ -2676,7 +2628,6 @@ export const MoneyAccountPublicSchema = {
         },
         balance: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Balance'
         },
         label: {
@@ -2759,82 +2710,66 @@ export const MovementRowSchema = {
         },
         opening: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Opening'
         },
         received: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Received'
         },
         production_received: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Production Received'
         },
         consumed: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Consumed'
         },
         production_consumed: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Production Consumed'
         },
         adjustments: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Adjustments'
         },
         spoilage: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Spoilage'
         },
         expired: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Expired'
         },
         damaged: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Damaged'
         },
         missing: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Missing'
         },
         physical_count: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Physical Count'
         },
         correction: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Correction'
         },
         returns: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Returns'
         },
         reversals: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Reversals'
         },
         closing: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Closing'
         },
         closing_value: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Closing Value'
         },
         lot_movements: {
@@ -2957,8 +2892,7 @@ export const OrderLineInputSchema = {
                     exclusiveMinimum: 0
                 },
                 {
-                    type: 'string',
-                    pattern: '^(?!^[-+.]*$)[+-]?0*(?:\\d{0,12}|(?=[\\d.]{1,16}0*$)\\d{0,12}\\.\\d{0,3}0*$)'
+                    type: 'string'
                 }
             ],
             title: 'Quantity'
@@ -3012,12 +2946,10 @@ export const OrderLinePublicSchema = {
         },
         unit_price: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Unit Price'
         },
         quantity: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Quantity'
         },
         note: {
@@ -3044,8 +2976,7 @@ export const OrderLinePublicSchema = {
         discount_value: {
             anyOf: [
                 {
-                    type: 'string',
-                    pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$'
+                    type: 'string'
                 },
                 {
                     type: 'null'
@@ -3055,7 +2986,6 @@ export const OrderLinePublicSchema = {
         },
         discount_amount: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Discount Amount'
         },
         discount_by_id: {
@@ -3072,27 +3002,22 @@ export const OrderLinePublicSchema = {
         },
         line_total: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Line Total'
         },
         order_discount_share: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Order Discount Share'
         },
         net_total: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Net Total'
         },
         tax_rate: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Tax Rate'
         },
         tax_amount: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Tax Amount'
         },
         recipe_version_id: {
@@ -3110,8 +3035,7 @@ export const OrderLinePublicSchema = {
         cogs_amount: {
             anyOf: [
                 {
-                    type: 'string',
-                    pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$'
+                    type: 'string'
                 },
                 {
                     type: 'null'
@@ -3162,22 +3086,18 @@ export const OrderPaymentSummarySchema = {
         },
         order_total: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Order Total'
         },
         paid_amount: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Paid Amount'
         },
         refunded_amount: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Refunded Amount'
         },
         remaining: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Remaining'
         },
         payments: {
@@ -3239,17 +3159,14 @@ export const OrderPublicSchema = {
         },
         tax_rate: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Tax Rate'
         },
         subtotal: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Subtotal'
         },
         discount_total: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Discount Total'
         },
         order_discount_type: {
@@ -3265,8 +3182,7 @@ export const OrderPublicSchema = {
         order_discount_value: {
             anyOf: [
                 {
-                    type: 'string',
-                    pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$'
+                    type: 'string'
                 },
                 {
                     type: 'null'
@@ -3276,7 +3192,6 @@ export const OrderPublicSchema = {
         },
         order_discount_amount: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Order Discount Amount'
         },
         order_discount_by_id: {
@@ -3293,12 +3208,10 @@ export const OrderPublicSchema = {
         },
         tax_total: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Tax Total'
         },
         total: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Total'
         },
         cashier_id: {
@@ -3463,7 +3376,6 @@ export const OrderSummarySchema = {
         },
         total: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Total'
         },
         cashier_id: {
@@ -3595,7 +3507,6 @@ export const PaymentBreakdownRowSchema = {
         },
         amount: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Amount'
         }
     },
@@ -3618,8 +3529,7 @@ export const PaymentCreateSchema = {
                     exclusiveMinimum: 0
                 },
                 {
-                    type: 'string',
-                    pattern: '^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)'
+                    type: 'string'
                 },
                 {
                     type: 'null'
@@ -3634,8 +3544,7 @@ export const PaymentCreateSchema = {
                     exclusiveMinimum: 0
                 },
                 {
-                    type: 'string',
-                    pattern: '^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)'
+                    type: 'string'
                 },
                 {
                     type: 'null'
@@ -3797,14 +3706,12 @@ export const PaymentPublicSchema = {
         },
         amount: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Amount'
         },
         tendered: {
             anyOf: [
                 {
-                    type: 'string',
-                    pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$'
+                    type: 'string'
                 },
                 {
                     type: 'null'
@@ -3815,8 +3722,7 @@ export const PaymentPublicSchema = {
         change_amount: {
             anyOf: [
                 {
-                    type: 'string',
-                    pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$'
+                    type: 'string'
                 },
                 {
                     type: 'null'
@@ -3978,7 +3884,6 @@ export const ProductPerformanceFinancialSchema = {
         },
         net_sales: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Net Sales'
         },
         data: {
@@ -4008,7 +3913,6 @@ export const ProductPerformancePublicSchema = {
         },
         net_sales: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Net Sales'
         },
         data: {
@@ -4037,27 +3941,22 @@ export const ProductRowSchema = {
         },
         quantity: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Quantity'
         },
         gross_sales: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Gross Sales'
         },
         discounts: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Discounts'
         },
         net_sales: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Net Sales'
         },
         share: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Share'
         },
         best_seller: {
@@ -4089,27 +3988,22 @@ export const ProductRowFinancialSchema = {
         },
         quantity: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Quantity'
         },
         gross_sales: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Gross Sales'
         },
         discounts: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Discounts'
         },
         net_sales: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Net Sales'
         },
         share: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Share'
         },
         best_seller: {
@@ -4124,12 +4018,10 @@ export const ProductRowFinancialSchema = {
         },
         estimated_cost: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Estimated Cost'
         },
         estimated_gross_profit: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Estimated Gross Profit'
         }
     },
@@ -4220,8 +4112,7 @@ export const ProductionBatchCreateSchema = {
                     exclusiveMinimum: 0
                 },
                 {
-                    type: 'string',
-                    pattern: '^(?!^[-+.]*$)[+-]?0*(?:\\d{0,14}|(?=[\\d.]{1,19}0*$)\\d{0,14}\\.\\d{0,4}0*$)'
+                    type: 'string'
                 },
                 {
                     type: 'null'
@@ -4233,7 +4124,7 @@ export const ProductionBatchCreateSchema = {
             anyOf: [
                 {
                     items: {
-                        '$ref': '#/components/schemas/BatchIngredientCreate'
+                        '$ref': '#/components/schemas/BatchIngredientCreate-Input'
                     },
                     type: 'array',
                     maxItems: 100,
@@ -4249,7 +4140,7 @@ export const ProductionBatchCreateSchema = {
             anyOf: [
                 {
                     items: {
-                        '$ref': '#/components/schemas/BatchOutputCreate'
+                        '$ref': '#/components/schemas/BatchOutputCreate-Input'
                     },
                     type: 'array',
                     maxItems: 100,
@@ -4289,17 +4180,14 @@ export const ProductionBatchLotTracePublicSchema = {
         },
         produced_quantity: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Produced Quantity'
         },
         quantity_on_hand: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Quantity On Hand'
         },
         available_quantity: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Available Quantity'
         },
         finished_at: {
@@ -4361,8 +4249,7 @@ export const ProductionBatchPublicSchema = {
         formula_runs: {
             anyOf: [
                 {
-                    type: 'string',
-                    pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$'
+                    type: 'string'
                 },
                 {
                     type: 'null'
@@ -4373,8 +4260,7 @@ export const ProductionBatchPublicSchema = {
         total_material_cost: {
             anyOf: [
                 {
-                    type: 'string',
-                    pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$'
+                    type: 'string'
                 },
                 {
                     type: 'null'
@@ -4545,8 +4431,7 @@ export const ProductionBatchSummarySchema = {
         formula_runs: {
             anyOf: [
                 {
-                    type: 'string',
-                    pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$'
+                    type: 'string'
                 },
                 {
                     type: 'null'
@@ -4557,8 +4442,7 @@ export const ProductionBatchSummarySchema = {
         total_material_cost: {
             anyOf: [
                 {
-                    type: 'string',
-                    pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$'
+                    type: 'string'
                 },
                 {
                     type: 'null'
@@ -4596,6 +4480,172 @@ export const ProductionBatchSummarySchema = {
     type: 'object',
     required: ['id', 'number', 'status', 'recipe_id', 'formula_runs', 'total_material_cost', 'cost_uncertain', 'planned_for', 'finished_at', 'created_at'],
     title: 'ProductionBatchSummary'
+} as const;
+
+export const ProductionBatchTemplateCreateSchema = {
+    properties: {
+        name: {
+            type: 'string',
+            maxLength: 120,
+            minLength: 1,
+            title: 'Name'
+        },
+        recipe_id: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'uuid'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Recipe Id'
+        },
+        formula_runs: {
+            anyOf: [
+                {
+                    type: 'number',
+                    exclusiveMinimum: 0
+                },
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Formula Runs'
+        },
+        ingredients: {
+            anyOf: [
+                {
+                    items: {
+                        '$ref': '#/components/schemas/BatchIngredientCreate-Input'
+                    },
+                    type: 'array',
+                    maxItems: 100,
+                    minItems: 1
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Ingredients'
+        },
+        outputs: {
+            items: {
+                '$ref': '#/components/schemas/BatchOutputCreate-Input'
+            },
+            type: 'array',
+            maxItems: 100,
+            minItems: 1,
+            title: 'Outputs'
+        }
+    },
+    type: 'object',
+    required: ['name', 'outputs'],
+    title: 'ProductionBatchTemplateCreate'
+} as const;
+
+export const ProductionBatchTemplatePublicSchema = {
+    properties: {
+        id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Id'
+        },
+        name: {
+            type: 'string',
+            title: 'Name'
+        },
+        recipe_id: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'uuid'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Recipe Id'
+        },
+        recipe_menu_item_id: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'uuid'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Recipe Menu Item Id'
+        },
+        formula_runs: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Formula Runs'
+        },
+        ingredients: {
+            items: {
+                '$ref': '#/components/schemas/BatchIngredientCreate-Output'
+            },
+            type: 'array',
+            title: 'Ingredients'
+        },
+        outputs: {
+            items: {
+                '$ref': '#/components/schemas/BatchOutputCreate-Output'
+            },
+            type: 'array',
+            title: 'Outputs'
+        },
+        created_by_id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Created By Id'
+        },
+        created_at: {
+            type: 'string',
+            format: 'date-time',
+            title: 'Created At'
+        },
+        updated_at: {
+            type: 'string',
+            format: 'date-time',
+            title: 'Updated At'
+        }
+    },
+    type: 'object',
+    required: ['id', 'name', 'recipe_id', 'recipe_menu_item_id', 'formula_runs', 'ingredients', 'outputs', 'created_by_id', 'created_at', 'updated_at'],
+    title: 'ProductionBatchTemplatePublic'
+} as const;
+
+export const ProductionBatchTemplatesPublicSchema = {
+    properties: {
+        data: {
+            items: {
+                '$ref': '#/components/schemas/ProductionBatchTemplatePublic'
+            },
+            type: 'array',
+            title: 'Data'
+        },
+        count: {
+            type: 'integer',
+            title: 'Count'
+        }
+    },
+    type: 'object',
+    required: ['data', 'count'],
+    title: 'ProductionBatchTemplatesPublic'
 } as const;
 
 export const ProductionBatchTraceabilityPublicSchema = {
@@ -4661,8 +4711,7 @@ export const ProductionBatchUpdateSchema = {
                     exclusiveMinimum: 0
                 },
                 {
-                    type: 'string',
-                    pattern: '^(?!^[-+.]*$)[+-]?0*(?:\\d{0,14}|(?=[\\d.]{1,19}0*$)\\d{0,14}\\.\\d{0,4}0*$)'
+                    type: 'string'
                 },
                 {
                     type: 'null'
@@ -4674,7 +4723,7 @@ export const ProductionBatchUpdateSchema = {
             anyOf: [
                 {
                     items: {
-                        '$ref': '#/components/schemas/BatchIngredientCreate'
+                        '$ref': '#/components/schemas/BatchIngredientCreate-Input'
                     },
                     type: 'array',
                     maxItems: 100,
@@ -4690,7 +4739,7 @@ export const ProductionBatchUpdateSchema = {
             anyOf: [
                 {
                     items: {
-                        '$ref': '#/components/schemas/BatchOutputCreate'
+                        '$ref': '#/components/schemas/BatchOutputCreate-Input'
                     },
                     type: 'array',
                     maxItems: 100,
@@ -4764,12 +4813,10 @@ export const ProductionLotOrderTracePublicSchema = {
         },
         allocated_quantity: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Allocated Quantity'
         },
         returned_quantity: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Returned Quantity'
         },
         returns: {
@@ -4804,7 +4851,6 @@ export const ProductionLotReturnTracePublicSchema = {
         },
         quantity: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Quantity'
         },
         sellable: {
@@ -4885,14 +4931,12 @@ export const ProductionReportRowSchema = {
         },
         planned_quantity: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Planned Quantity'
         },
         actual_good_quantity: {
             anyOf: [
                 {
-                    type: 'string',
-                    pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$'
+                    type: 'string'
                 },
                 {
                     type: 'null'
@@ -4902,7 +4946,6 @@ export const ProductionReportRowSchema = {
         },
         waste_quantity: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Waste Quantity'
         }
     },
@@ -4975,32 +5018,26 @@ export const ProfitStatementPublicSchema = {
         },
         net_sales: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Net Sales'
         },
         cogs: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Cogs'
         },
         gross_profit: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Gross Profit'
         },
         gross_margin: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Gross Margin'
         },
         expenses: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Expenses'
         },
         operating_profit: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Operating Profit'
         },
         estimate: {
@@ -5078,8 +5115,7 @@ export const ReceiptCreateSchema = {
                     type: 'number'
                 },
                 {
-                    type: 'string',
-                    pattern: '^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)'
+                    type: 'string'
                 },
                 {
                     type: 'null'
@@ -5107,8 +5143,7 @@ export const ReceiptLineInSchema = {
                     exclusiveMinimum: 0
                 },
                 {
-                    type: 'string',
-                    pattern: '^(?!^[-+.]*$)[+-]?0*(?:\\d{0,14}|(?=[\\d.]{1,19}0*$)\\d{0,14}\\.\\d{0,4}0*$)'
+                    type: 'string'
                 }
             ],
             title: 'Purchase Quantity'
@@ -5120,8 +5155,7 @@ export const ReceiptLineInSchema = {
                     minimum: 0
                 },
                 {
-                    type: 'string',
-                    pattern: '^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)'
+                    type: 'string'
                 }
             ],
             title: 'Purchase Unit Cost'
@@ -5166,27 +5200,22 @@ export const ReceiptLinePublicSchema = {
         },
         purchase_qty: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Purchase Qty'
         },
         purchase_unit_cost: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Purchase Unit Cost'
         },
         base_qty: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Base Qty'
         },
         base_unit_cost: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Base Unit Cost'
         },
         line_total: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Line Total'
         }
     },
@@ -5209,8 +5238,7 @@ export const ReceiptPostSchema = {
                     type: 'number'
                 },
                 {
-                    type: 'string',
-                    pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$'
+                    type: 'string'
                 },
                 {
                     type: 'null'
@@ -5311,7 +5339,6 @@ export const ReceiptSummarySchema = {
         },
         total_value: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Total Value'
         },
         posted_at: {
@@ -5404,8 +5431,7 @@ export const ReceiptUpdateSchema = {
                     type: 'number'
                 },
                 {
-                    type: 'string',
-                    pattern: '^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)'
+                    type: 'string'
                 },
                 {
                     type: 'null'
@@ -5457,8 +5483,7 @@ export const RecipeLineCreateSchema = {
                     exclusiveMinimum: 0
                 },
                 {
-                    type: 'string',
-                    pattern: '^(?!^[-+.]*$)[+-]?0*(?:\\d{0,14}|(?=[\\d.]{1,19}0*$)\\d{0,14}\\.\\d{0,4}0*$)'
+                    type: 'string'
                 }
             ],
             title: 'Quantity'
@@ -5494,7 +5519,6 @@ export const RecipeLinePublicSchema = {
         },
         quantity: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Quantity'
         }
     },
@@ -5522,8 +5546,7 @@ export const RecipeOutputLineCreateSchema = {
                     exclusiveMinimum: 0
                 },
                 {
-                    type: 'string',
-                    pattern: '^(?!^[-+.]*$)[+-]?0*(?:\\d{0,14}|(?=[\\d.]{1,19}0*$)\\d{0,14}\\.\\d{0,4}0*$)'
+                    type: 'string'
                 }
             ],
             title: 'Quantity'
@@ -5572,7 +5595,6 @@ export const RecipeOutputLinePublicSchema = {
         },
         quantity: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Quantity'
         }
     },
@@ -5715,8 +5737,7 @@ export const RefundCreateSchema = {
                     exclusiveMinimum: 0
                 },
                 {
-                    type: 'string',
-                    pattern: '^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)'
+                    type: 'string'
                 }
             ],
             title: 'Amount'
@@ -5767,8 +5788,7 @@ export const RefundLineInSchema = {
                     exclusiveMinimum: 0
                 },
                 {
-                    type: 'string',
-                    pattern: '^(?!^[-+.]*$)[+-]?0*(?:\\d{0,14}|(?=[\\d.]{1,19}0*$)\\d{0,14}\\.\\d{0,4}0*$)'
+                    type: 'string'
                 }
             ],
             title: 'Quantity'
@@ -5780,8 +5800,7 @@ export const RefundLineInSchema = {
                     minimum: 0
                 },
                 {
-                    type: 'string',
-                    pattern: '^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)'
+                    type: 'string'
                 }
             ],
             title: 'Amount'
@@ -5806,12 +5825,10 @@ export const RefundLinePublicSchema = {
         },
         quantity: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Quantity'
         },
         amount: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Amount'
         }
     },
@@ -5850,7 +5867,6 @@ export const RefundPublicSchema = {
         },
         amount: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Amount'
         },
         reason: {
@@ -5977,22 +5993,18 @@ export const SalesSummaryPublicSchema = {
         },
         gross_sales: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Gross Sales'
         },
         discounts: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Discounts'
         },
         refunds: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Refunds'
         },
         net_sales: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Net Sales'
         },
         order_count: {
@@ -6001,7 +6013,6 @@ export const SalesSummaryPublicSchema = {
         },
         average_order_value: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Average Order Value'
         },
         data: {
@@ -6033,22 +6044,18 @@ export const SalesSummaryRowSchema = {
         },
         gross_sales: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Gross Sales'
         },
         discounts: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Discounts'
         },
         refunds: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Refunds'
         },
         net_sales: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Net Sales'
         },
         order_count: {
@@ -6057,7 +6064,6 @@ export const SalesSummaryRowSchema = {
         },
         average_order_value: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Average Order Value'
         }
     },
@@ -6095,17 +6101,14 @@ export const StatementEntrySchema = {
         },
         purchases: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Purchases'
         },
         payments: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Payments'
         },
         outstanding: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Outstanding'
         }
     },
@@ -6178,8 +6181,7 @@ export const StockAdjustmentLineCreateSchema = {
                     type: 'number'
                 },
                 {
-                    type: 'string',
-                    pattern: '^(?!^[-+.]*$)[+-]?0*(?:\\d{0,14}|(?=[\\d.]{1,19}0*$)\\d{0,14}\\.\\d{0,4}0*$)'
+                    type: 'string'
                 },
                 {
                     type: 'null'
@@ -6194,8 +6196,7 @@ export const StockAdjustmentLineCreateSchema = {
                     minimum: 0
                 },
                 {
-                    type: 'string',
-                    pattern: '^(?!^[-+.]*$)[+-]?0*(?:\\d{0,14}|(?=[\\d.]{1,19}0*$)\\d{0,14}\\.\\d{0,4}0*$)'
+                    type: 'string'
                 },
                 {
                     type: 'null'
@@ -6210,8 +6211,7 @@ export const StockAdjustmentLineCreateSchema = {
                     minimum: 0
                 },
                 {
-                    type: 'string',
-                    pattern: '^(?!^[-+.]*$)[+-]?0*(?:\\d{0,14}|(?=[\\d.]{1,19}0*$)\\d{0,14}\\.\\d{0,4}0*$)'
+                    type: 'string'
                 },
                 {
                     type: 'null'
@@ -6258,8 +6258,7 @@ export const StockAdjustmentLinePublicSchema = {
         counted_quantity: {
             anyOf: [
                 {
-                    type: 'string',
-                    pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$'
+                    type: 'string'
                 },
                 {
                     type: 'null'
@@ -6269,22 +6268,18 @@ export const StockAdjustmentLinePublicSchema = {
         },
         previous_quantity: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Previous Quantity'
         },
         quantity_change: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Quantity Change'
         },
         resulting_quantity: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Resulting Quantity'
         },
         unit_cost: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Unit Cost'
         },
         movement_id: {
@@ -6566,7 +6561,6 @@ export const StockReceiptPublicSchema = {
         },
         total_value: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Total Value'
         },
         created_by_id: {
@@ -6693,8 +6687,7 @@ export const StockReturnLineCreateSchema = {
                     exclusiveMinimum: 0
                 },
                 {
-                    type: 'string',
-                    pattern: '^(?!^[-+.]*$)[+-]?0*(?:\\d{0,14}|(?=[\\d.]{1,19}0*$)\\d{0,14}\\.\\d{0,4}0*$)'
+                    type: 'string'
                 }
             ],
             title: 'Quantity'
@@ -6727,7 +6720,6 @@ export const StockReturnLinePublicSchema = {
         },
         quantity: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Quantity'
         },
         sellable: {
@@ -6737,8 +6729,7 @@ export const StockReturnLinePublicSchema = {
         unit_cost: {
             anyOf: [
                 {
-                    type: 'string',
-                    pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$'
+                    type: 'string'
                 },
                 {
                     type: 'null'
@@ -6912,7 +6903,6 @@ export const StockStatusItemSchema = {
         },
         quantity: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Quantity'
         },
         base_unit: {
@@ -6921,7 +6911,6 @@ export const StockStatusItemSchema = {
         },
         value: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Value'
         }
     },
@@ -6934,7 +6923,6 @@ export const StockStatusPublicSchema = {
     properties: {
         total_value: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Total Value'
         },
         items: {
@@ -6973,17 +6961,14 @@ export const SupplierBalanceSchema = {
         },
         payables_total: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Payables Total'
         },
         paid_total: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Paid Total'
         },
         outstanding: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Outstanding'
         }
     },
@@ -7108,8 +7093,7 @@ export const SupplierPaymentCreateSchema = {
                     type: 'number'
                 },
                 {
-                    type: 'string',
-                    pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$'
+                    type: 'string'
                 }
             ],
             title: 'Amount'
@@ -7164,7 +7148,6 @@ export const SupplierPaymentPublicSchema = {
         },
         amount: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Amount'
         },
         payment_date: {
@@ -7301,17 +7284,14 @@ export const SupplierPublicSchema = {
         },
         payables_total: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Payables Total'
         },
         paid_total: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Paid Total'
         },
         outstanding: {
             type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Outstanding'
         }
     },

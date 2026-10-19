@@ -142,6 +142,51 @@ def test_production_routes_enforce_role_permissions(
     assert client.get(API, headers=manager).status_code == 200
 
 
+def test_shared_batch_templates_can_be_created_selected_and_deleted(
+    client: TestClient,
+    db: Session,
+    role_token_headers: RoleHeaders,
+) -> None:
+    manager = role_token_headers(Role.MANAGER)
+    inventory_staff = role_token_headers(Role.INVENTORY_STAFF)
+    cashier = role_token_headers(Role.CASHIER)
+    payload, (ingredient, outputs) = _batch_payload(db, output_count=2)
+    template_payload = {
+        "name": " Morning production ",
+        "ingredients": payload["ingredients"],
+        "outputs": payload["outputs"],
+    }
+    url = f"{API}/templates"
+
+    assert client.get(url, headers=cashier).status_code == 403
+    created = client.post(url, headers=inventory_staff, json=template_payload)
+    assert created.status_code == 201, created.text
+    template = created.json()
+    assert template["name"] == "Morning production"
+    assert len(template["ingredients"]) == 1
+    assert len(template["outputs"]) == 2
+
+    listed = client.get(url, headers=manager)
+    assert listed.status_code == 200
+    assert listed.json() == {"data": [template], "count": 1}
+
+    batch_payload = {
+        "planned_for": datetime.now(timezone.utc).date().isoformat(),
+        "ingredients": template["ingredients"],
+        "outputs": template["outputs"],
+    }
+    batch = client.post(API, headers=inventory_staff, json=batch_payload)
+    assert batch.status_code == 201, batch.text
+    assert batch.json()["ingredients"][0]["inventory_item_id"] == str(ingredient.id)
+    assert len(batch.json()["outputs"]) == len(outputs)
+
+    template_url = f"{url}/{template['id']}"
+    assert client.delete(template_url, headers=cashier).status_code == 403
+    assert client.delete(template_url, headers=inventory_staff).status_code == 204
+    assert client.get(url, headers=manager).json() == {"data": [], "count": 0}
+    assert client.delete(template_url, headers=manager).status_code == 404
+
+
 def test_complete_batch_api_handles_multiline_base_unit_quantities_and_retry(
     client: TestClient,
     db: Session,

@@ -31,6 +31,7 @@ import { useI18n } from "@/i18n"
 import { formatNumber } from "@/lib/format"
 import { UNIT_LABELS } from "@/lib/labels"
 import { hasPermission } from "@/lib/permissions"
+import badgeStyles from "@/styles/badge.module.css"
 import { handleError } from "@/utils"
 import { ProductionApi, type ProductionBatch } from "./api"
 import {
@@ -200,8 +201,12 @@ export function ProductionBatchDetail({
                   </SheetTitle>
                   <SheetDescription>
                     <Badge
-                      variant={
-                        batch.status === "completed" ? "default" : "secondary"
+                      className={
+                        batch.status === "completed"
+                          ? badgeStyles.green
+                          : batch.status === "draft"
+                            ? badgeStyles.blue
+                            : badgeStyles.red
                       }
                     >
                       {t(`production.status.${batch.status}`)}

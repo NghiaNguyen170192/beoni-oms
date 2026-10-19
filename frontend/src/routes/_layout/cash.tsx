@@ -26,7 +26,7 @@ import {
 import useAuth from "@/hooks/useAuth"
 import { useFormatters } from "@/hooks/useBusinessSettings"
 import useCustomToast from "@/hooks/useCustomToast"
-import { t as translate, useI18n } from "@/i18n"
+import { type MessageKey, t as translate, useI18n } from "@/i18n"
 import { useIdempotencyKey } from "@/lib/idempotency"
 import { hasPermission, requirePermission } from "@/lib/permissions"
 import { handleError } from "@/utils"
@@ -43,6 +43,19 @@ function todayInput(): string {
   const now = new Date()
   const pad = (value: number) => String(value).padStart(2, "0")
   return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`
+}
+
+const movementSourceLabels: Record<string, MessageKey> = {
+  cash_adjustment: "accounting.cash.sourceType.cashAdjustment",
+  cash_adjustment_reversal: "accounting.cash.sourceType.cashAdjustmentReversal",
+  expense: "accounting.cash.sourceType.expense",
+  expense_reversal: "accounting.cash.sourceType.expenseReversal",
+  payment: "accounting.cash.sourceType.payment",
+  payment_void: "accounting.cash.sourceType.paymentVoid",
+  refund: "accounting.cash.sourceType.refund",
+  supplier_payment: "accounting.cash.sourceType.supplierPayment",
+  supplier_payment_reversal:
+    "accounting.cash.sourceType.supplierPaymentReversal",
 }
 
 function Cash() {
@@ -219,7 +232,9 @@ function Cash() {
               <TableRow key={row.id}>
                 <TableCell>{formatDateTime(row.occurred_at)}</TableCell>
                 <TableCell>
-                  {row.source_type}
+                  {movementSourceLabels[row.source_type]
+                    ? t(movementSourceLabels[row.source_type])
+                    : row.source_type}
                   {row.note ? ` · ${row.note}` : ""}
                 </TableCell>
                 <TableCell className="text-right tabular-nums">

@@ -150,6 +150,7 @@ export function RefundDialog({ order, open, onOpenChange }: RefundDialogProps) {
             <Button
               type="button"
               variant="outline"
+              className="h-12"
               onClick={() => onOpenChange(false)}
             >
               {t("common.cancel")}

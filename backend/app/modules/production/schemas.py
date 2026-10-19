@@ -159,6 +159,46 @@ class ProductionBatchUpdate(SQLModel):
         return self
 
 
+class ProductionBatchTemplateCreate(SQLModel):
+    name: str = Field(min_length=1, max_length=120)
+    recipe_id: uuid.UUID | None = None
+    formula_runs: Decimal | None = Field(
+        default=None, gt=0, max_digits=18, decimal_places=4
+    )
+    ingredients: list[BatchIngredientCreate] | None = Field(
+        default=None, min_length=1, max_length=100
+    )
+    outputs: list[BatchOutputCreate] = Field(min_length=1, max_length=100)
+
+    @field_validator("name")
+    @classmethod
+    def clean_name(cls, value: str) -> str:
+        cleaned = value.strip()
+        if not cleaned:
+            raise ValueError("name must not be blank")
+        return cleaned
+
+    @model_validator(mode="after")
+    def validate_plan(self) -> Self:
+        if self.recipe_id is not None:
+            if self.formula_runs is None or self.ingredients is not None:
+                raise ValueError(
+                    "Formula templates require a run count and no manual ingredients"
+                )
+        elif self.formula_runs is not None or self.ingredients is None:
+            raise ValueError(
+                "Manual templates require ingredient lines without a formula"
+            )
+        if self.ingredients is not None:
+            ingredient_ids = [line.inventory_item_id for line in self.ingredients]
+            if len(set(ingredient_ids)) != len(ingredient_ids):
+                raise ValueError("Each ingredient inventory item can appear only once")
+        output_menu_ids = [line.menu_item_id for line in self.outputs]
+        if len(set(output_menu_ids)) != len(output_menu_ids):
+            raise ValueError("Each menu item can appear only once in outputs")
+        return self
+
+
 class BatchIngredientPublic(SQLModel):
     id: uuid.UUID
     line_no: int
@@ -220,6 +260,24 @@ class ProductionBatchPublic(SQLModel):
     updated_at: datetime
     ingredients: list[BatchIngredientPublic]
     outputs: list[BatchOutputPublic]
+
+
+class ProductionBatchTemplatePublic(SQLModel):
+    id: uuid.UUID
+    name: str
+    recipe_id: uuid.UUID | None
+    recipe_menu_item_id: uuid.UUID | None
+    formula_runs: Decimal | None
+    ingredients: list[BatchIngredientCreate]
+    outputs: list[BatchOutputCreate]
+    created_by_id: uuid.UUID
+    created_at: datetime
+    updated_at: datetime
+
+
+class ProductionBatchTemplatesPublic(SQLModel):
+    data: list[ProductionBatchTemplatePublic]
+    count: int
 
 
 class ProductionLotReturnTracePublic(SQLModel):

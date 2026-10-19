@@ -67,7 +67,7 @@ function StatusBadge({ status }: { status: ReceiptStatus }) {
   const statusClassMap: Record<ReceiptStatus, string> = {
     draft: badgeStyles.blue,
     posted: badgeStyles.green,
-    reversed: badgeStyles.yellow,
+    reversed: badgeStyles.red,
   }
 
   return (

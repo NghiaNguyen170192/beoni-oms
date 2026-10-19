@@ -37,6 +37,7 @@ from app.modules.production.errors import (
     BatchNotFound,
     BatchNotReversible,
     BatchOutputMappingConflict,
+    BatchTemplateNotFound,
     EmptyBatchUpdate,
     InvalidBatchCompletion,
     InvalidBatchInput,
@@ -52,26 +53,37 @@ from app.modules.production.models import (
     ProductionBatchIngredientLine,
     ProductionBatchOutputLine,
     ProductionBatchStatus,
+    ProductionBatchTemplate,
+    ProductionBatchTemplateIngredientLine,
+    ProductionBatchTemplateOutputLine,
 )
 from app.modules.production.schemas import (
     BatchIngredientCreate,
     BatchOutputCreate,
-    ProductionBatchComplete,
-    ProductionBatchCreate,
-    ProductionBatchPublic,
-    ProductionBatchReverse,
-    ProductionBatchTraceabilityPublic,
-    ProductionBatchLotTracePublic,
-    ProductionLotOrderTracePublic,
-    ProductionLotReturnTracePublic,
     FinishedGoodAvailabilityPublic,
     FinishedGoodsAvailabilityPublic,
+    ProductionBatchComplete,
+    ProductionBatchCreate,
+    ProductionBatchLotTracePublic,
+    ProductionBatchPublic,
+    ProductionBatchReverse,
     ProductionBatchSummary,
+    ProductionBatchTemplateCreate,
+    ProductionBatchTemplatePublic,
+    ProductionBatchTraceabilityPublic,
     ProductionBatchUpdate,
+    ProductionLotOrderTracePublic,
+    ProductionLotReturnTracePublic,
 )
 from app.modules.recipes.errors import RecipeNotFound
-from app.modules.recipes.models import Recipe, RecipeKind, RecipeLine, RecipeOutputLine
-from app.modules.recipes.models import StockReturn, StockReturnLine
+from app.modules.recipes.models import (
+    Recipe,
+    RecipeKind,
+    RecipeLine,
+    RecipeOutputLine,
+    StockReturn,
+    StockReturnLine,
+)
 from app.modules.settings.service import get_settings
 
 
@@ -134,13 +146,10 @@ def _validated_outputs(
         .where(col(RecipeOutputLine.menu_item_id).in_(menu_item_ids))
         .order_by(col(RecipeOutputLine.menu_item_id))
     ).all()
-    batch_mapping_query = (
-        select(
-            ProductionBatchOutputLine.menu_item_id,
-            ProductionBatchOutputLine.inventory_item_id,
-        )
-        .where(col(ProductionBatchOutputLine.menu_item_id).in_(menu_item_ids))
-    )
+    batch_mapping_query = select(
+        ProductionBatchOutputLine.menu_item_id,
+        ProductionBatchOutputLine.inventory_item_id,
+    ).where(col(ProductionBatchOutputLine.menu_item_id).in_(menu_item_ids))
     if exclude_batch_id is not None:
         batch_mapping_query = batch_mapping_query.where(
             ProductionBatchOutputLine.batch_id != exclude_batch_id
@@ -157,7 +166,11 @@ def _validated_outputs(
         raise BatchOutputMappingConflict()
 
     return [
-        (line, menu_item_map[line.menu_item_id], inventory_item_map[line.inventory_item_id])
+        (
+            line,
+            menu_item_map[line.menu_item_id],
+            inventory_item_map[line.inventory_item_id],
+        )
         for line in lines
     ]
 
@@ -239,9 +252,7 @@ def _batch_summary(batch: ProductionBatch) -> ProductionBatchSummary:
     return ProductionBatchSummary.model_validate(batch.model_dump())
 
 
-def _batch_public(
-    session: Session, batch: ProductionBatch
-) -> ProductionBatchPublic:
+def _batch_public(session: Session, batch: ProductionBatch) -> ProductionBatchPublic:
     ingredient_rows = session.exec(
         select(ProductionBatchIngredientLine, InventoryItem)
         .join(
@@ -260,8 +271,7 @@ def _batch_public(
         )
         .join(
             InventoryItem,
-            col(InventoryItem.id)
-            == col(ProductionBatchOutputLine.inventory_item_id),
+            col(InventoryItem.id) == col(ProductionBatchOutputLine.inventory_item_id),
         )
         .where(ProductionBatchOutputLine.batch_id == batch.id)
         .order_by(col(ProductionBatchOutputLine.line_no))
@@ -289,6 +299,136 @@ def _batch_public(
             ],
         }
     )
+
+
+def _batch_template_public(
+    session: Session, template: ProductionBatchTemplate
+) -> ProductionBatchTemplatePublic:
+    ingredient_rows = session.exec(
+        select(ProductionBatchTemplateIngredientLine)
+        .where(ProductionBatchTemplateIngredientLine.template_id == template.id)
+        .order_by(col(ProductionBatchTemplateIngredientLine.line_no))
+    ).all()
+    output_rows = session.exec(
+        select(ProductionBatchTemplateOutputLine)
+        .where(ProductionBatchTemplateOutputLine.template_id == template.id)
+        .order_by(col(ProductionBatchTemplateOutputLine.line_no))
+    ).all()
+    recipe = session.get(Recipe, template.recipe_id) if template.recipe_id else None
+    return ProductionBatchTemplatePublic(
+        id=template.id,
+        name=template.name,
+        recipe_id=template.recipe_id,
+        recipe_menu_item_id=recipe.menu_item_id if recipe else None,
+        formula_runs=template.formula_runs,
+        ingredients=[
+            BatchIngredientCreate(
+                inventory_item_id=line.inventory_item_id,
+                planned_quantity=line.planned_quantity,
+            )
+            for line in ingredient_rows
+        ],
+        outputs=[
+            BatchOutputCreate(
+                menu_item_id=line.menu_item_id,
+                inventory_item_id=line.inventory_item_id,
+                planned_quantity=line.planned_quantity,
+            )
+            for line in output_rows
+        ],
+        created_by_id=template.created_by_id,
+        created_at=template.created_at,
+        updated_at=template.updated_at,
+    )
+
+
+def list_batch_templates(
+    session: Session,
+) -> list[ProductionBatchTemplatePublic]:
+    templates = session.exec(
+        select(ProductionBatchTemplate).order_by(
+            col(ProductionBatchTemplate.name), col(ProductionBatchTemplate.created_at)
+        )
+    ).all()
+    return [_batch_template_public(session, template) for template in templates]
+
+
+def create_batch_template(
+    session: Session, *, data: ProductionBatchTemplateCreate, actor: User
+) -> ProductionBatchTemplatePublic:
+    if data.recipe_id is not None:
+        assert data.formula_runs is not None
+        ingredient_plan, output_plan = _formula_plan(
+            session, data.recipe_id, data.formula_runs, data.outputs
+        )
+    else:
+        assert data.ingredients is not None
+        ingredient_plan, output_plan = data.ingredients, data.outputs
+
+    _validated_ingredients(session, ingredient_plan)
+    outputs = _validated_outputs(session, output_plan)
+    template = ProductionBatchTemplate(
+        name=data.name,
+        recipe_id=data.recipe_id,
+        formula_runs=data.formula_runs,
+        created_by_id=actor.id,
+    )
+    session.add(template)
+    session.flush()
+    if data.ingredients is not None:
+        session.add_all(
+            [
+                ProductionBatchTemplateIngredientLine(
+                    template_id=template.id,
+                    line_no=line_no,
+                    inventory_item_id=line.inventory_item_id,
+                    planned_quantity=quantity(line.planned_quantity),
+                )
+                for line_no, line in enumerate(data.ingredients, start=1)
+            ]
+        )
+    session.add_all(
+        [
+            ProductionBatchTemplateOutputLine(
+                template_id=template.id,
+                line_no=line_no,
+                menu_item_id=line.menu_item_id,
+                inventory_item_id=line.inventory_item_id,
+                planned_quantity=quantity(line.planned_quantity),
+            )
+            for line_no, (line, _, _) in enumerate(outputs, start=1)
+        ]
+    )
+    session.flush()
+    audit.record(
+        session,
+        actor=actor,
+        entity_type="production_batch_template",
+        entity_id=template.id,
+        action="created",
+        changes={"name": template.name, "recipe_id": template.recipe_id},
+    )
+    session.commit()
+    session.refresh(template)
+    return _batch_template_public(session, template)
+
+
+def delete_batch_template(
+    session: Session, *, template_id: uuid.UUID, actor: User
+) -> None:
+    template = session.get(ProductionBatchTemplate, template_id)
+    if template is None:
+        raise BatchTemplateNotFound()
+    audit.record(
+        session,
+        actor=actor,
+        entity_type="production_batch_template",
+        entity_id=template.id,
+        action="deleted",
+        changes={"name": template.name},
+    )
+    session.delete(template)
+    session.commit()
 
 
 def get_batch_traceability(
@@ -431,7 +571,11 @@ def list_batches(
     skip: int = 0,
     limit: int = 100,
 ) -> tuple[list[ProductionBatchSummary], int]:
-    if planned_from is not None and planned_to is not None and planned_from > planned_to:
+    if (
+        planned_from is not None
+        and planned_to is not None
+        and planned_from > planned_to
+    ):
         raise Invalid("planned_from must be on or before planned_to")
     conditions: list[Any] = []
     if status is not None:
@@ -464,7 +608,9 @@ def list_batches(
     return [_batch_summary(row) for row in rows], count
 
 
-def list_finished_good_availability(session: Session) -> FinishedGoodsAvailabilityPublic:
+def list_finished_good_availability(
+    session: Session,
+) -> FinishedGoodsAvailabilityPublic:
     mappings = session.exec(
         select(RecipeOutputLine.menu_item_id, RecipeOutputLine.inventory_item_id)
     ).all()
@@ -492,10 +638,7 @@ def list_finished_good_availability(session: Session) -> FinishedGoodsAvailabili
             MenuItem.product_type != ProductType.NON_STOCK,
         )
     ).all()
-    item_ids = {
-        next(iter(inventory_ids_by_menu[item.id]))
-        for item in menu_items
-    }
+    item_ids = {next(iter(inventory_ids_by_menu[item.id])) for item in menu_items}
     inventory_items = session.exec(
         select(InventoryItem).where(col(InventoryItem.id).in_(item_ids))
     ).all()
@@ -535,9 +678,7 @@ def list_finished_good_availability(session: Session) -> FinishedGoodsAvailabili
                 inventory_item_id=item.id,
                 inventory_item_sku=item.sku,
                 inventory_item_name=item.name,
-                available_quantity=available_by_item.get(
-                    item.id, Decimal("0")
-                ),
+                available_quantity=available_by_item.get(item.id, Decimal("0")),
                 unit=item.base_unit,
             )
         )
@@ -551,9 +692,7 @@ def get_batch(session: Session, batch_id: uuid.UUID) -> ProductionBatchPublic:
     return _batch_public(session, batch)
 
 
-def _ingredient_snapshot(
-    session: Session, batch_id: uuid.UUID
-) -> list[dict[str, Any]]:
+def _ingredient_snapshot(session: Session, batch_id: uuid.UUID) -> list[dict[str, Any]]:
     lines = session.exec(
         select(ProductionBatchIngredientLine)
         .where(ProductionBatchIngredientLine.batch_id == batch_id)
@@ -572,9 +711,7 @@ def _ingredient_snapshot(
     ]
 
 
-def _output_snapshot(
-    session: Session, batch_id: uuid.UUID
-) -> list[dict[str, Any]]:
+def _output_snapshot(session: Session, batch_id: uuid.UUID) -> list[dict[str, Any]]:
     lines = session.exec(
         select(ProductionBatchOutputLine)
         .where(ProductionBatchOutputLine.batch_id == batch_id)
@@ -735,9 +872,7 @@ def update_batch(
         else None
     )
     validated_outputs = (
-        _validated_outputs(
-            session, outputs_to_update, exclude_batch_id=batch.id
-        )
+        _validated_outputs(session, outputs_to_update, exclude_batch_id=batch.id)
         if outputs_to_update is not None
         else None
     )
@@ -846,9 +981,8 @@ def _complete_batch(
     if data.finished_at is not None:
         timezone = ZoneInfo(get_settings(session).timezone)
         finished_date = data.finished_at.astimezone(timezone).date()
-        if (
-            finished_date < datetime.now(timezone).date()
-            and not has_permission(actor, Permission.PRODUCTION_BACKDATE)
+        if finished_date < datetime.now(timezone).date() and not has_permission(
+            actor, Permission.PRODUCTION_BACKDATE
         ):
             raise BatchBackdatePermissionRequired()
 
@@ -864,7 +998,9 @@ def _complete_batch(
         .order_by(col(ProductionBatchOutputLine.line_no))
         .with_for_update()
     ).all()
-    ingredient_actuals = {line.line_id: line.actual_quantity for line in data.ingredients}
+    ingredient_actuals = {
+        line.line_id: line.actual_quantity for line in data.ingredients
+    }
     output_actuals = {line.line_id: line for line in data.outputs}
     if (
         not ingredient_lines
@@ -1033,7 +1169,10 @@ def _complete_batch(
         entity_id=batch.id,
         action="completed",
         changes={
-            "status": {"old": ProductionBatchStatus.DRAFT.value, "new": batch.status.value},
+            "status": {
+                "old": ProductionBatchStatus.DRAFT.value,
+                "new": batch.status.value,
+            },
             "finished_at": batch.finished_at,
             "total_material_cost": batch.total_material_cost,
             "cost_uncertain": batch.cost_uncertain,
@@ -1053,9 +1192,7 @@ def complete_batch(
     idempotency_key: str,
 ) -> StoredResponse:
     def operation() -> tuple[int, Any]:
-        result = _complete_batch(
-            session, batch_id=batch_id, data=data, actor=actor
-        )
+        result = _complete_batch(session, batch_id=batch_id, data=data, actor=actor)
         return 200, result.model_dump(mode="json")
 
     return idempotency.execute(
@@ -1076,8 +1213,9 @@ def allocate_finished_good_order_lines(
     stock_lines = [line for line in lines if line.product_type.value != "non_stock"]
     menu_item_ids = {line.menu_item_id for line in stock_lines}
     mappings = session.exec(
-        select(RecipeOutputLine.menu_item_id, RecipeOutputLine.inventory_item_id)
-        .where(col(RecipeOutputLine.menu_item_id).in_(menu_item_ids))
+        select(RecipeOutputLine.menu_item_id, RecipeOutputLine.inventory_item_id).where(
+            col(RecipeOutputLine.menu_item_id).in_(menu_item_ids)
+        )
     ).all()
     mappings.extend(
         session.exec(
@@ -1110,7 +1248,9 @@ def allocate_finished_good_order_lines(
     inventory_by_id = {item.id: item for item in inventory_items}
     if len(inventory_by_id) != len(tracked_item_ids):
         raise InventoryItemNotFound()
-    if any(item.role != InventoryRole.FINISHED_GOOD for item in inventory_by_id.values()):
+    if any(
+        item.role != InventoryRole.FINISHED_GOOD for item in inventory_by_id.values()
+    ):
         raise InvalidBatchOutput()
     if tracked_item_ids:
         lock_balances(session, tracked_item_ids)
@@ -1205,9 +1345,7 @@ def allocate_finished_good_order_lines(
         require_active=False,
         allow_negative=False,
     )
-    movement_by_item = {
-        movement.item_id: movement for movement in movements
-    }
+    movement_by_item = {movement.item_id: movement for movement in movements}
 
     lot_movement_quantities: dict[tuple[uuid.UUID, uuid.UUID], Decimal] = {}
     allocations_by_lot_movement: dict[
@@ -1293,8 +1431,7 @@ def reverse_batch(
         output_lines_with_stock = [
             line
             for line in output_lines
-            if line.actual_good_quantity is not None
-            and line.actual_good_quantity > 0
+            if line.actual_good_quantity is not None and line.actual_good_quantity > 0
         ]
         input_lines_with_consumption = [
             line
@@ -1313,11 +1450,9 @@ def reverse_batch(
             .with_for_update()
         ).all()
         lots_by_output_line = {lot.output_line_id: lot for lot in lots}
-        if (
-            len(lots) != len(output_lines_with_stock)
-            or set(lots_by_output_line)
-            != {line.id for line in output_lines_with_stock}
-        ):
+        if len(lots) != len(output_lines_with_stock) or set(lots_by_output_line) != {
+            line.id for line in output_lines_with_stock
+        }:
             raise BatchHasDownstreamActivity()
 
         lot_movements = session.exec(
@@ -1339,31 +1474,31 @@ def reverse_batch(
             ):
                 raise BatchHasDownstreamActivity()
         lot_movement_ids = [movement.id for movement in lot_movements]
-        if lot_movement_ids and session.exec(
-            select(FinishedGoodLotAllocation.id)
-            .where(
-                col(FinishedGoodLotAllocation.lot_movement_id).in_(lot_movement_ids)
-            )
-            .limit(1)
-        ).first():
+        if (
+            lot_movement_ids
+            and session.exec(
+                select(FinishedGoodLotAllocation.id)
+                .where(
+                    col(FinishedGoodLotAllocation.lot_movement_id).in_(lot_movement_ids)
+                )
+                .limit(1)
+            ).first()
+        ):
             raise BatchHasDownstreamActivity()
 
         input_movement_ids = [line.movement_id for line in input_lines_with_consumption]
-        output_movement_ids = [
-            line.movement_id for line in output_lines_with_stock
-        ]
-        if (
-            any(movement_id is None for movement_id in input_movement_ids)
-            or any(movement_id is None for movement_id in output_movement_ids)
+        output_movement_ids = [line.movement_id for line in output_lines_with_stock]
+        if any(movement_id is None for movement_id in input_movement_ids) or any(
+            movement_id is None for movement_id in output_movement_ids
         ):
             raise BatchNotReversible()
         input_movement_ids = [
-            movement_id
-            for movement_id in input_movement_ids
-            if movement_id is not None
+            movement_id for movement_id in input_movement_ids if movement_id is not None
         ]
         output_movement_ids = [
-            movement_id for movement_id in output_movement_ids if movement_id is not None
+            movement_id
+            for movement_id in output_movement_ids
+            if movement_id is not None
         ]
         original_input_movements = session.exec(
             select(InventoryMovement).where(
@@ -1376,12 +1511,9 @@ def reverse_batch(
             )
         ).all()
         input_by_id = {movement.id: movement for movement in original_input_movements}
-        output_by_id = {
-            movement.id: movement for movement in original_output_movements
-        }
-        if (
-            len(input_by_id) != len(input_movement_ids)
-            or len(output_by_id) != len(output_movement_ids)
+        output_by_id = {movement.id: movement for movement in original_output_movements}
+        if len(input_by_id) != len(input_movement_ids) or len(output_by_id) != len(
+            output_movement_ids
         ):
             raise BatchNotReversible()
         ordered_input_movements = [
@@ -1488,9 +1620,7 @@ def reverse_batch(
         ):
             lot = lots_by_output_line[line.id]
             reversal_quantity = -movement.quantity
-            lot.quantity_on_hand = quantity(
-                lot.quantity_on_hand + reversal_quantity
-            )
+            lot.quantity_on_hand = quantity(lot.quantity_on_hand + reversal_quantity)
             lot.updated_at = movement.occurred_at
             session.add(lot)
             session.add(

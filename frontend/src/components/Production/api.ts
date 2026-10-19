@@ -5,6 +5,8 @@ import {
   type ProductionBatchPublic,
   type ProductionBatchStatus,
   type ProductionBatchSummary,
+  type ProductionBatchTemplateCreate,
+  type ProductionBatchTemplatePublic,
   type ProductionBatchUpdate,
   ProductionService,
 } from "@/client"
@@ -66,4 +68,15 @@ export const ProductionApi = {
       requestBody: { reason },
     })
   },
+  readBatchTemplates() {
+    return ProductionService.readBatchTemplates()
+  },
+  createBatchTemplate(requestBody: ProductionBatchTemplateCreate) {
+    return ProductionService.createBatchTemplate({ requestBody })
+  },
+  deleteBatchTemplate(templateId: string) {
+    return ProductionService.deleteBatchTemplate({ templateId })
+  },
 }
+
+export type ProductionBatchTemplate = ProductionBatchTemplatePublic

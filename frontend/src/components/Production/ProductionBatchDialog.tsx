@@ -8,8 +8,10 @@ import {
   InventoryService,
   type MenuItemPublic,
   type ProductionBatchCreate,
+  type ProductionBatchTemplateCreate,
   RecipesService,
 } from "@/client"
+import { ConfirmDialog } from "@/components/Common/ConfirmDialog"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -86,6 +88,9 @@ export function ProductionBatchDialog({
   const [formulaMenuItemId, setFormulaMenuItemId] = useState("")
   const [formulaVersionId, setFormulaVersionId] = useState("")
   const [formulaRuns, setFormulaRuns] = useState("1")
+  const [selectedTemplateId, setSelectedTemplateId] = useState("")
+  const [templateName, setTemplateName] = useState("")
+  const [templateToDelete, setTemplateToDelete] = useState<string>()
   const [ingredients, setIngredients] = useState<IngredientDraft[]>([
     { ...EMPTY_INGREDIENT },
   ])
@@ -100,6 +105,11 @@ export function ProductionBatchDialog({
     queryKey: ["catalogItems", "production-form"],
     queryFn: () => CatalogService.readItems({ isActive: true, limit: 500 }),
     enabled: open,
+  })
+  const templates = useQuery({
+    queryKey: ["productionBatchTemplates"],
+    queryFn: () => ProductionApi.readBatchTemplates(),
+    enabled: open && !batch,
   })
   const formulaVersions = useQuery({
     queryKey: ["productionRecipeVersions", formulaMenuItemId],
@@ -134,6 +144,9 @@ export function ProductionBatchDialog({
     setPlannedFor(batch?.planned_for ?? localDateValue())
     setNotes(batch?.notes ?? "")
     setMode(batch?.recipe_id ? "formula" : "manual")
+    setSelectedTemplateId("")
+    setTemplateName("")
+    setTemplateToDelete(undefined)
     setFormulaMenuItemId("")
     setFormulaVersionId(batch?.recipe_id ?? "")
     setFormulaRuns(batch?.formula_runs ?? "1")
@@ -208,6 +221,51 @@ export function ProductionBatchDialog({
     onError: (error: ApiError) => handleError.call(showErrorToast, error),
   })
 
+  const saveTemplate = useMutation({
+    mutationFn: () => {
+      const body = {
+        name: templateName.trim(),
+        recipe_id: mode === "manual" ? null : formulaVersionId,
+        formula_runs: mode === "manual" ? null : formulaRuns,
+        ingredients:
+          mode === "manual"
+            ? ingredients.map((line) => ({
+                inventory_item_id: line.inventory_item_id,
+                planned_quantity: line.planned_quantity,
+              }))
+            : null,
+        outputs: outputs.map((line) => ({
+          menu_item_id: line.menu_item_id,
+          inventory_item_id: line.inventory_item_id,
+          planned_quantity: line.planned_quantity,
+        })),
+      } satisfies ProductionBatchTemplateCreate
+      return ProductionApi.createBatchTemplate(body)
+    },
+    onSuccess: async () => {
+      showSuccessToast(t("production.templates.saved"))
+      setTemplateName("")
+      await queryClient.invalidateQueries({
+        queryKey: ["productionBatchTemplates"],
+      })
+    },
+    onError: (error: ApiError) => handleError.call(showErrorToast, error),
+  })
+
+  const deleteTemplate = useMutation({
+    mutationFn: (templateId: string) =>
+      ProductionApi.deleteBatchTemplate(templateId),
+    onSuccess: async () => {
+      showSuccessToast(t("production.templates.deleted"))
+      setSelectedTemplateId("")
+      setTemplateToDelete(undefined)
+      await queryClient.invalidateQueries({
+        queryKey: ["productionBatchTemplates"],
+      })
+    },
+    onError: (error: ApiError) => handleError.call(showErrorToast, error),
+  })
+
   const updateIngredient = (
     index: number,
     field: keyof IngredientDraft,
@@ -235,6 +293,37 @@ export function ProductionBatchDialog({
     save.mutate()
   }
 
+  const chooseTemplate = (value: string) => {
+    if (value === "none") {
+      setSelectedTemplateId("")
+      return
+    }
+    const template = templateRows.find((row) => row.id === value)
+    if (!template) return
+
+    setSelectedTemplateId(template.id)
+    setNotes("")
+    setMode(template.recipe_id ? "formula" : "manual")
+    setFormulaMenuItemId(template.recipe_menu_item_id ?? "")
+    setFormulaVersionId(template.recipe_id ?? "")
+    setFormulaRuns(quantityInput(template.formula_runs) || "1")
+    setIngredients(
+      template.ingredients.length
+        ? template.ingredients.map((line) => ({
+            inventory_item_id: line.inventory_item_id,
+            planned_quantity: quantityInput(line.planned_quantity),
+          }))
+        : [{ ...EMPTY_INGREDIENT }],
+    )
+    setOutputs(
+      template.outputs.map((line) => ({
+        menu_item_id: line.menu_item_id,
+        inventory_item_id: line.inventory_item_id,
+        planned_quantity: quantityInput(line.planned_quantity),
+      })),
+    )
+  }
+
   const catalogError =
     inventory.error instanceof Error
       ? inventory.error.message
@@ -245,6 +334,28 @@ export function ProductionBatchDialog({
           : batchFormula.error instanceof Error
             ? batchFormula.error.message
             : null
+  const templateError =
+    templates.error instanceof Error ? templates.error.message : null
+  const templateRows = templates.data?.data ?? []
+  const canSaveTemplate =
+    Boolean(templateName.trim()) &&
+    outputs.length > 0 &&
+    outputs.every(
+      (line) =>
+        Boolean(line.menu_item_id) &&
+        Boolean(line.inventory_item_id) &&
+        Number(line.planned_quantity) > 0,
+    ) &&
+    (mode === "manual"
+      ? ingredients.length > 0 &&
+        ingredients.every(
+          (line) =>
+            Boolean(line.inventory_item_id) &&
+            Number(line.planned_quantity) > 0,
+        )
+      : Boolean(formulaVersionId) &&
+        Number(formulaRuns) > 0 &&
+        !formulaVersions.isPending)
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -263,6 +374,76 @@ export function ProductionBatchDialog({
           </DialogDescription>
         </DialogHeader>
         <form className="flex flex-col gap-5" onSubmit={submit}>
+          {!batch && (
+            <section className="grid gap-3 rounded-md border p-4">
+              <div className="flex gap-2">
+                <Select
+                  value={selectedTemplateId || "none"}
+                  onValueChange={chooseTemplate}
+                  disabled={templates.isPending || templateRows.length === 0}
+                >
+                  <SelectTrigger>
+                    <SelectValue
+                      placeholder={t("production.templates.choose")}
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">
+                      {t("production.templates.choose")}
+                    </SelectItem>
+                    {templateRows.map((template) => (
+                      <SelectItem key={template.id} value={template.id}>
+                        {template.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {selectedTemplateId && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    aria-label={t("production.templates.delete")}
+                    onClick={() => setTemplateToDelete(selectedTemplateId)}
+                  >
+                    <Trash2 />
+                  </Button>
+                )}
+              </div>
+              {templateRows.length === 0 && !templates.isPending && (
+                <p className="text-sm text-muted-foreground">
+                  {t("production.templates.empty")}
+                </p>
+              )}
+              {templateError && (
+                <p role="alert" className="text-sm text-destructive">
+                  {templateError}
+                </p>
+              )}
+              <div className="grid gap-2 sm:grid-cols-[1fr_auto]">
+                <div className="flex flex-col gap-2">
+                  <Label htmlFor="production-template-name">
+                    {t("production.templates.name")}
+                  </Label>
+                  <Input
+                    id="production-template-name"
+                    value={templateName}
+                    maxLength={120}
+                    onChange={(event) => setTemplateName(event.target.value)}
+                  />
+                </div>
+                <LoadingButton
+                  type="button"
+                  className="self-end"
+                  loading={saveTemplate.isPending}
+                  disabled={!canSaveTemplate}
+                  onClick={() => saveTemplate.mutate()}
+                >
+                  {t("production.templates.saveAs")}
+                </LoadingButton>
+              </div>
+            </section>
+          )}
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="flex flex-col gap-2">
               <Label htmlFor="production-planned-for">
@@ -600,6 +781,18 @@ export function ProductionBatchDialog({
           </DialogFooter>
         </form>
       </DialogContent>
+      <ConfirmDialog
+        open={Boolean(templateToDelete)}
+        onOpenChange={(nextOpen) => !nextOpen && setTemplateToDelete(undefined)}
+        title={t("production.templates.deleteTitle")}
+        description={t("production.templates.deleteDescription")}
+        confirmLabel={t("production.templates.delete")}
+        destructive
+        loading={deleteTemplate.isPending}
+        onConfirm={() => {
+          if (templateToDelete) deleteTemplate.mutate(templateToDelete)
+        }}
+      />
     </Dialog>
   )
 }
