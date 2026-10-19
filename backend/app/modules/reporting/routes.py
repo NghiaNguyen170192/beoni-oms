@@ -11,6 +11,7 @@ from app.modules.identity.dependencies import require_permission
 from app.modules.identity.permissions import Permission, has_permission
 from app.modules.payments.models import PaymentStatus
 from app.modules.payments.service import list_payments
+from app.modules.production.models import ProductionBatchStatus
 from app.modules.reporting import service
 from app.modules.reporting.csv import csv_response
 from app.modules.reporting.periods import GroupBy, PeriodPreset, resolve_preset
@@ -19,6 +20,7 @@ from app.modules.reporting.schemas import (
     DashboardSales,
     ExpenseBreakdownPublic,
     MovementReportPublic,
+    ProductionReportPublic,
     ProductPerformanceFinancial,
     ProductPerformancePublic,
     ProfitComparisonPublic,
@@ -258,7 +260,9 @@ def export_movements(
         "name",
         "opening",
         "received",
+        "production_received",
         "consumed",
+        "production_consumed",
         "adjustments",
         "spoilage",
         "returns",
@@ -283,6 +287,64 @@ def read_stock_status(
             session, category_id=category_id, item_type=item_type, is_active=is_active
         )
     )
+
+
+@router.get("/production", response_model=ProductionReportPublic)
+def read_production_report(
+    session: SessionDep,
+    _user: InventoryReader,
+    date_from: date = Query(),
+    date_to: date = Query(),
+    status: ProductionBatchStatus | None = None,
+    menu_item_id: uuid.UUID | None = None,
+) -> ProductionReportPublic:
+    return service.production_report(
+        session,
+        date_from=date_from,
+        date_to=date_to,
+        status=status,
+        menu_item_id=menu_item_id,
+    )
+
+
+@router.get("/production.csv")
+def export_production_report(
+    session: SessionDep,
+    _user: InventoryReader,
+    date_from: date = Query(),
+    date_to: date = Query(),
+    status: ProductionBatchStatus | None = None,
+    menu_item_id: uuid.UUID | None = None,
+):
+    report = service.production_report(
+        session,
+        date_from=date_from,
+        date_to=date_to,
+        status=status,
+        menu_item_id=menu_item_id,
+    )
+    header = [
+        "report_date",
+        "batch_number",
+        "status",
+        "menu_item_name",
+        "planned_quantity",
+        "actual_good_quantity",
+        "waste_quantity",
+    ]
+    rows = [
+        [
+            row.report_date,
+            row.batch_number,
+            row.status.value,
+            row.menu_item_name,
+            row.planned_quantity,
+            row.actual_good_quantity,
+            row.waste_quantity,
+        ]
+        for row in report.data
+    ]
+    return csv_response("production-report", date_from, date_to, header, rows)
 
 
 @router.get("/profit/expenses", response_model=ExpenseBreakdownPublic)

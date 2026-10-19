@@ -32,6 +32,7 @@ from app.modules.ordering.models import (
 from app.modules.ordering.pricing import LineInput, PricingError, price_order
 from app.modules.ordering.schemas import (
     DiscountUpdate,
+    FinishedGoodOrderAllocationPublic,
     OrderCancel,
     OrderCreate,
     OrderLineInput,
@@ -45,6 +46,12 @@ from app.modules.ordering.states import (
     OPEN_STATUSES,
     OrderStatus,
     assert_transition,
+)
+from app.modules.production.models import (
+    FinishedGoodLot,
+    FinishedGoodLotAllocation,
+    FinishedGoodLotMovement,
+    ProductionBatch,
 )
 from app.modules.settings.service import get_settings
 
@@ -121,14 +128,61 @@ def _lines(session: Session, order_id: uuid.UUID) -> list[OrderLine]:
 
 def to_public(session: Session, order: Order) -> OrderPublic:
     cashier = session.get(User, order.cashier_id)
+    order_lines = _lines(session, order.id)
+    lot_allocation_rows = session.exec(
+        select(
+            FinishedGoodLotAllocation,
+            FinishedGoodLot,
+            ProductionBatch.number,
+        )
+        .join(
+            FinishedGoodLotMovement,
+            col(FinishedGoodLotMovement.id)
+            == col(FinishedGoodLotAllocation.lot_movement_id),
+        )
+        .join(
+            FinishedGoodLot,
+            col(FinishedGoodLot.id) == col(FinishedGoodLotMovement.lot_id),
+        )
+        .join(OrderLine, col(OrderLine.id) == col(FinishedGoodLotAllocation.order_line_id))
+        .outerjoin(
+            ProductionBatch,
+            col(ProductionBatch.id) == col(FinishedGoodLot.batch_id),
+        )
+        .where(OrderLine.order_id == order.id)
+        .order_by(
+            col(OrderLine.line_no),
+            col(FinishedGoodLotAllocation.created_at),
+            col(FinishedGoodLotAllocation.id),
+        )
+    ).all()
+    allocations_by_line: dict[uuid.UUID, list[FinishedGoodOrderAllocationPublic]] = {}
+    for allocation, lot, batch_number in lot_allocation_rows:
+        allocations_by_line.setdefault(allocation.order_line_id, []).append(
+            FinishedGoodOrderAllocationPublic(
+                finished_good_lot_id=lot.id,
+                lot_number=lot.lot_number,
+                batch_id=lot.batch_id,
+                batch_number=batch_number,
+                finished_at=lot.finished_at,
+                quantity=allocation.quantity,
+            )
+        )
     return OrderPublic.model_validate(
         {
             **order.model_dump(),
             "cashier_email": cashier.email if cashier else None,
             "cashier_name": cashier.full_name if cashier else None,
             "lines": [
-                OrderLinePublic.model_validate(line)
-                for line in _lines(session, order.id)
+                OrderLinePublic.model_validate(
+                    {
+                        **line.model_dump(),
+                        "finished_good_allocations": allocations_by_line.get(
+                            line.id, []
+                        ),
+                    }
+                )
+                for line in order_lines
             ],
         }
     )
@@ -416,9 +470,9 @@ def _require_lines(
 # (stock consumption); a step raises to abort completion.
 def completion_steps() -> list[CompletionStep]:
     from app.modules.payments.service import ensure_paid
-    from app.modules.recipes.service import consume_stock
+    from app.modules.production.service import allocate_finished_good_order_lines
 
-    return [_require_lines, ensure_paid, consume_stock]
+    return [_require_lines, ensure_paid, allocate_finished_good_order_lines]
 
 
 def apply_completion(session: Session, order: Order, actor: User) -> None:

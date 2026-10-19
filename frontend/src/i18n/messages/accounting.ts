@@ -29,6 +29,14 @@ export const en = {
   "accounting.expenses.status.paid": "Paid",
   "accounting.expenses.status.unpaid": "Unpaid",
   "accounting.expenses.status.reversed": "Reversed",
+  "accounting.expenseCategory.rent": "Rent",
+  "accounting.expenseCategory.utilities": "Utilities",
+  "accounting.expenseCategory.salaries": "Salaries",
+  "accounting.expenseCategory.equipment": "Equipment",
+  "accounting.expenseCategory.maintenance": "Maintenance",
+  "accounting.expenseCategory.marketing": "Marketing",
+  "accounting.expenseCategory.delivery": "Delivery",
+  "accounting.expenseCategory.other": "Other",
 
   "accounting.cash.title": "Cash and bank",
   "accounting.cash.description":
@@ -97,6 +105,14 @@ export const vi = {
   "accounting.expenses.status.paid": "Đã trả",
   "accounting.expenses.status.unpaid": "Chưa trả",
   "accounting.expenses.status.reversed": "Đã đảo",
+  "accounting.expenseCategory.rent": "Tiền thuê",
+  "accounting.expenseCategory.utilities": "Điện nước",
+  "accounting.expenseCategory.salaries": "Lương",
+  "accounting.expenseCategory.equipment": "Thiết bị",
+  "accounting.expenseCategory.maintenance": "Bảo trì",
+  "accounting.expenseCategory.marketing": "Tiếp thị",
+  "accounting.expenseCategory.delivery": "Giao hàng",
+  "accounting.expenseCategory.other": "Khác",
 
   "accounting.cash.title": "Tiền mặt và ngân hàng",
   "accounting.cash.description":

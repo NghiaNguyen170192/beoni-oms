@@ -41,3 +41,7 @@ class AdjustmentNotFound(NotFound):
 
 class AdjustmentAlreadyReversed(Conflict):
     default_detail = "Stock adjustment has already been reversed"
+
+
+class AdjustmentLotHasActivity(Conflict):
+    default_detail = "Stock adjustment cannot be reversed after its lot has been used"

@@ -33,14 +33,23 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet"
 import { Skeleton } from "@/components/ui/skeleton"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
 import useAuth from "@/hooks/useAuth"
 import { useFormatters } from "@/hooks/useBusinessSettings"
 import useCustomToast from "@/hooks/useCustomToast"
 import { t as translate, useI18n } from "@/i18n"
+import { formatNumber } from "@/lib/format"
 import { useIdempotencyKey } from "@/lib/idempotency"
 import { hasPermission, requirePermission } from "@/lib/permissions"
-import { handleError } from "@/utils"
 import badgeStyles from "@/styles/badge.module.css"
+import { handleError } from "@/utils"
 
 export const Route = createFileRoute("/_layout/stock-receipts")({
   component: StockReceipts,
@@ -364,7 +373,7 @@ function ReceiptDetail({
         open={receiptId != null}
         onOpenChange={(open) => !open && onClose()}
       >
-        <SheetContent className="sm:max-w-lg overflow-y-auto">
+        <SheetContent className="overflow-y-auto sm:max-w-4xl">
           {receipt && (
             <>
               <SheetHeader>
@@ -383,19 +392,45 @@ function ReceiptDetail({
                     {formatMoney(receipt.total_value)}
                   </p>
                 </div>
-                <ul className="space-y-2 text-sm">
-                  {receipt.lines.map((line) => (
-                    <li key={line.id} className="flex justify-between gap-2">
-                      <span>
-                        {line.item_name} · {line.purchase_qty}{" "}
-                        {line.purchase_unit}
-                      </span>
-                      <span className="tabular-nums">
-                        {formatMoney(line.line_total)}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>
+                        {t("purchasing.receipts.field.item")}
+                      </TableHead>
+                      <TableHead className="text-right">
+                        {t("purchasing.receipts.field.quantity")}
+                      </TableHead>
+                      <TableHead className="text-right">
+                        {t("purchasing.receipts.field.cost")}
+                      </TableHead>
+                      <TableHead className="text-right">
+                        {t("purchasing.receipts.field.total")}
+                      </TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {receipt.lines.map((line) => (
+                      <TableRow key={line.id}>
+                        <TableCell>
+                          <div className="font-medium">{line.item_name}</div>
+                          <div className="text-xs text-muted-foreground">
+                            {line.item_sku}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right tabular-nums">
+                          {formatNumber(line.purchase_qty)} {line.purchase_unit}
+                        </TableCell>
+                        <TableCell className="text-right tabular-nums">
+                          {formatMoney(line.purchase_unit_cost)}
+                        </TableCell>
+                        <TableCell className="text-right tabular-nums">
+                          {formatMoney(line.line_total)}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
                 <div className="flex flex-wrap gap-2">
                   {receipt.status === "draft" && canManage && (
                     <Button variant="outline" onClick={() => onEdit(receipt)}>

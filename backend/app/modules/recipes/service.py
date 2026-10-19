@@ -19,12 +19,19 @@ from app.modules.inventory.models import (
     InventoryBalance,
     InventoryItem,
     InventoryMovement,
+    InventoryRole,
     MovementType,
 )
 from app.modules.inventory.service import MovementLine, lock_balances, post_movements
 from app.modules.ordering.errors import OrderLineNotFound
 from app.modules.ordering.models import Order, OrderLine
 from app.modules.ordering.states import OrderStatus
+from app.modules.production.models import (
+    FinishedGoodLot,
+    FinishedGoodLotAllocation,
+    FinishedGoodLotMovement,
+    ProductionBatch,
+)
 from app.modules.recipes.consumption import (
     NON_STOCK,
     Allocation,
@@ -36,10 +43,13 @@ from app.modules.recipes.consumption import (
 from app.modules.recipes.errors import (
     DuplicateRecipeLine,
     InsufficientStock,
+    InvalidRecipeInput,
+    InvalidRecipeOutput,
     MissingConsumption,
     PreparedReturnRejected,
     RecipeNotAllowed,
     RecipeNotFound,
+    RecipeOutputMappingConflict,
     ReturnExceedsSold,
     ReturnNotAllowed,
     Shortage,
@@ -50,6 +60,7 @@ from app.modules.recipes.models import (
     Recipe,
     RecipeKind,
     RecipeLine,
+    RecipeOutputLine,
     StockReturn,
     StockReturnLine,
 )
@@ -57,6 +68,7 @@ from app.modules.recipes.schemas import (
     CostPreviewLinePublic,
     CostPreviewPublic,
     RecipeLinePublic,
+    RecipeOutputLinePublic,
     RecipePublic,
     RecipeVersionCreate,
     StockReturnCreate,
@@ -99,6 +111,18 @@ def _recipe_lines(session: Session, recipe_id: uuid.UUID) -> list[RecipeLine]:
     )
 
 
+def _recipe_outputs(
+    session: Session, recipe_id: uuid.UUID
+) -> list[RecipeOutputLine]:
+    return list(
+        session.exec(
+            select(RecipeOutputLine)
+            .where(RecipeOutputLine.recipe_id == recipe_id)
+            .order_by(col(RecipeOutputLine.menu_item_id))
+        ).all()
+    )
+
+
 def _inventory_map(
     session: Session, item_ids: set[uuid.UUID]
 ) -> dict[uuid.UUID, InventoryItem]:
@@ -118,6 +142,16 @@ def _to_public(session: Session, recipe: Recipe) -> RecipePublic:
         raise MenuItemNotFound()
     rows = _recipe_lines(session, recipe.id)
     items = _inventory_map(session, {row.inventory_item_id for row in rows})
+    output_rows = _recipe_outputs(session, recipe.id)
+    output_items = _inventory_map(
+        session, {row.inventory_item_id for row in output_rows}
+    )
+    output_menu_items: dict[uuid.UUID, MenuItem] = {}
+    for row in output_rows:
+        output_menu_item = session.get(MenuItem, row.menu_item_id)
+        if output_menu_item is None:
+            raise MenuItemNotFound()
+        output_menu_items[row.menu_item_id] = output_menu_item
     return RecipePublic(
         id=recipe.id,
         menu_item_id=recipe.menu_item_id,
@@ -139,12 +173,37 @@ def _to_public(session: Session, recipe: Recipe) -> RecipePublic:
             )
             for row in rows
         ],
+        outputs=[
+            RecipeOutputLinePublic(
+                id=row.id,
+                menu_item_id=row.menu_item_id,
+                menu_item_name=output_menu_items[row.menu_item_id].name,
+                menu_item_code=output_menu_items[row.menu_item_id].code,
+                inventory_item_id=row.inventory_item_id,
+                item_sku=output_items[row.inventory_item_id].sku,
+                item_name=output_items[row.inventory_item_id].name,
+                base_unit=output_items[row.inventory_item_id].base_unit,
+                quantity=row.quantity,
+            )
+            for row in output_rows
+        ],
     )
 
 
 def _line_snapshot(rows: list[RecipeLine]) -> list[dict[str, Any]]:
     return [
         {"inventory_item_id": row.inventory_item_id, "quantity": row.quantity}
+        for row in rows
+    ]
+
+
+def _output_snapshot(rows: list[RecipeOutputLine]) -> list[dict[str, Any]]:
+    return [
+        {
+            "menu_item_id": row.menu_item_id,
+            "inventory_item_id": row.inventory_item_id,
+            "quantity": row.quantity,
+        }
         for row in rows
     ]
 
@@ -157,6 +216,8 @@ def _flush_version(session: Session) -> None:
         constraint = violated_constraint(exc)
         if constraint == "uq_recipe_lines_item":
             raise DuplicateRecipeLine() from exc
+        if constraint == "uq_recipe_output_lines_menu_item":
+            raise InvalidRecipeOutput() from exc
         if constraint in {"uq_recipes_item_version", "uq_recipes_item_effective"}:
             raise VersionConflict() from exc
         raise
@@ -166,22 +227,78 @@ def create_version(
     session: Session, *, data: RecipeVersionCreate, actor: User
 ) -> RecipePublic:
     """Save a new recipe or stock-link version. Earlier versions stay as they were."""
-    menu_item = session.exec(
-        select(MenuItem).where(MenuItem.id == data.menu_item_id).with_for_update()
-    ).first()
-    if menu_item is None:
+    menu_item_ids = {data.menu_item_id} | {
+        output.menu_item_id for output in data.outputs
+    }
+    menu_items = session.exec(
+        select(MenuItem)
+        .where(col(MenuItem.id).in_(menu_item_ids))
+        .order_by(col(MenuItem.id))
+        .with_for_update()
+    ).all()
+    menu_item_map = {item.id: item for item in menu_items}
+    if len(menu_item_map) != len(menu_item_ids):
         raise MenuItemNotFound()
-    kind = _kind_for(menu_item.product_type)
+    menu_item = menu_item_map[data.menu_item_id]
+    if data.outputs and menu_item.product_type == ProductType.NON_STOCK:
+        raise RecipeNotAllowed("Non-stock items cannot be production formula outputs")
+    kind = RecipeKind.RECIPE if data.outputs else _kind_for(menu_item.product_type)
     if kind == RecipeKind.STOCK_LINK and len(data.lines) != 1:
         raise RecipeNotAllowed(
             "A direct-sale stock link has exactly one inventory item"
         )
+    if data.outputs and any(
+        output_menu_item.product_type == ProductType.NON_STOCK
+        or not output_menu_item.is_active
+        for output_menu_item in menu_items
+    ):
+        raise InvalidRecipeOutput()
 
     item_ids = {line.inventory_item_id for line in data.lines}
+    output_item_ids = {line.inventory_item_id for line in data.outputs}
     items = _inventory_map(session, item_ids)
+    output_items = _inventory_map(session, output_item_ids)
     for item in items.values():
         if not item.is_active:
             raise ItemInactive(f"Inventory item {item.sku} is inactive")
+        if data.outputs and item.role != InventoryRole.RAW_MATERIAL:
+            raise InvalidRecipeInput()
+    for item in output_items.values():
+        if (
+            not item.is_active
+            or item.role != InventoryRole.FINISHED_GOOD
+        ):
+            raise InvalidRecipeOutput()
+
+    if data.outputs:
+        existing_mappings = session.exec(
+            select(RecipeOutputLine)
+            .where(col(RecipeOutputLine.menu_item_id).in_(menu_item_ids))
+            .order_by(col(RecipeOutputLine.menu_item_id))
+        ).all()
+        mappings_by_menu: dict[uuid.UUID, set[uuid.UUID]] = {}
+        for row in existing_mappings:
+            mappings_by_menu.setdefault(row.menu_item_id, set()).add(
+                row.inventory_item_id
+            )
+        from app.modules.production.models import ProductionBatchOutputLine
+
+        batch_mappings = session.exec(
+            select(
+                ProductionBatchOutputLine.menu_item_id,
+                ProductionBatchOutputLine.inventory_item_id,
+            ).where(col(ProductionBatchOutputLine.menu_item_id).in_(menu_item_ids))
+        ).all()
+        for output_menu_item_id, inventory_item_id in batch_mappings:
+            mappings_by_menu.setdefault(output_menu_item_id, set()).add(
+                inventory_item_id
+            )
+        if any(
+            output.menu_item_id in mappings_by_menu
+            and mappings_by_menu[output.menu_item_id] != {output.inventory_item_id}
+            for output in data.outputs
+        ):
+            raise RecipeOutputMappingConflict()
 
     current = session.exec(
         select(func.coalesce(func.max(Recipe.version), 0)).where(
@@ -195,6 +312,9 @@ def create_version(
         )
     ).first()
     old_lines = _recipe_lines(session, previous.id) if previous is not None else []
+    old_outputs = (
+        _recipe_outputs(session, previous.id) if previous is not None else []
+    )
 
     recipe = Recipe(
         menu_item_id=menu_item.id,
@@ -215,6 +335,17 @@ def create_version(
     ]
     session.add_all(new_lines)
     _flush_version(session)
+    new_outputs = [
+        RecipeOutputLine(
+            recipe_id=recipe.id,
+            menu_item_id=line.menu_item_id,
+            inventory_item_id=line.inventory_item_id,
+            quantity=quantity(line.quantity),
+        )
+        for line in data.outputs
+    ]
+    session.add_all(new_outputs)
+    _flush_version(session)
     audit.record(
         session,
         actor=actor,
@@ -227,6 +358,10 @@ def create_version(
             "kind": kind.value,
             "effective_from": data.effective_from,
             "lines": {"old": _line_snapshot(old_lines), "new": _line_snapshot(new_lines)},
+            "outputs": {
+                "old": _output_snapshot(old_outputs),
+                "new": _output_snapshot(new_outputs),
+            },
         },
     )
     session.commit()
@@ -499,8 +634,16 @@ def _returned_quantity(session: Session, order_line_id: uuid.UUID) -> Decimal:
 
 def _return_public(session: Session, document: StockReturn) -> StockReturnPublic:
     rows = session.exec(
-        select(StockReturnLine, OrderLine)
+        select(StockReturnLine, OrderLine, FinishedGoodLot, ProductionBatch)
         .join(OrderLine, col(OrderLine.id) == col(StockReturnLine.order_line_id))
+        .outerjoin(
+            FinishedGoodLot,
+            col(FinishedGoodLot.id) == col(StockReturnLine.finished_good_lot_id),
+        )
+        .outerjoin(
+            ProductionBatch,
+            col(ProductionBatch.id) == col(FinishedGoodLot.batch_id),
+        )
         .where(StockReturnLine.stock_return_id == document.id)
         .order_by(col(StockReturnLine.id))
     ).all()
@@ -519,8 +662,14 @@ def _return_public(session: Session, document: StockReturn) -> StockReturnPublic
                 sellable=row.sellable,
                 unit_cost=row.unit_cost,
                 movement_id=row.movement_id,
+                finished_good_lot_id=row.finished_good_lot_id,
+                finished_good_lot_allocation_id=row.finished_good_lot_allocation_id,
+                lot_number=lot.lot_number if lot else None,
+                batch_id=lot.batch_id if lot else None,
+                batch_number=batch.number if batch else None,
+                finished_at=lot.finished_at if lot else None,
             )
-            for row, line in rows
+            for row, line, lot, batch in rows
         ],
     )
 
@@ -548,11 +697,7 @@ def return_to_stock(
     actor: User,
     idempotency_key: str,
 ) -> StoredResponse:
-    """Return direct-sale units to stock, once per idempotency key.
-
-    Only sellable lines post a return movement, valued at the line's original
-    unit cost. The quantity cap is the amount sold minus earlier returns.
-    """
+    """Return sold stock to its source lot, once per idempotency key."""
     from app.modules.ordering.service import _lines, _load
 
     def operation() -> tuple[int, StockReturnPublic]:
@@ -560,11 +705,92 @@ def return_to_stock(
         if order.status not in RETURNABLE:
             raise ReturnNotAllowed()
         order_lines = {line.id: line for line in _lines(session, order.id)}
-        planned: list[tuple[Any, OrderLine, uuid.UUID, Decimal]] = []
+        planned: list[
+            tuple[
+                Any,
+                OrderLine,
+                uuid.UUID,
+                Decimal | None,
+                FinishedGoodLot | None,
+                FinishedGoodLotAllocation | None,
+                Decimal,
+            ]
+        ] = []
         for incoming in data.lines:
             line = order_lines.get(incoming.order_line_id)
             if line is None:
                 raise OrderLineNotFound()
+            returning = quantity(incoming.quantity)
+            if _returned_quantity(session, line.id) + returning > line.quantity:
+                raise ReturnExceedsSold()
+            lot_allocations = session.exec(
+                select(FinishedGoodLotAllocation, FinishedGoodLot)
+                .join(
+                    FinishedGoodLotMovement,
+                    col(FinishedGoodLotMovement.id)
+                    == col(FinishedGoodLotAllocation.lot_movement_id),
+                )
+                .join(
+                    FinishedGoodLot,
+                    col(FinishedGoodLot.id) == col(FinishedGoodLotMovement.lot_id),
+                )
+                .where(FinishedGoodLotAllocation.order_line_id == line.id)
+                .order_by(
+                    col(FinishedGoodLotAllocation.created_at),
+                    col(FinishedGoodLotAllocation.id),
+                )
+            ).all()
+            if lot_allocations:
+                allocation_ids = [row[0].id for row in lot_allocations]
+                prior_returns = {
+                    allocation_id: returned
+                    for allocation_id, returned in session.exec(
+                        select(
+                            StockReturnLine.finished_good_lot_allocation_id,
+                            func.sum(StockReturnLine.quantity),
+                        )
+                        .where(
+                            col(
+                                StockReturnLine.finished_good_lot_allocation_id
+                            ).in_(allocation_ids)
+                        )
+                        .group_by(
+                            col(StockReturnLine.finished_good_lot_allocation_id)
+                        )
+                    ).all()
+                }
+                unallocated_return = returning
+                for allocation, lot in lot_allocations:
+                    already_returned = Decimal(
+                        prior_returns.get(allocation.id, Decimal("0"))
+                    )
+                    can_return = max(
+                        Decimal("0"),
+                        quantity(allocation.quantity - already_returned),
+                    )
+                    allocated_return = min(can_return, unallocated_return)
+                    if allocated_return <= 0:
+                        continue
+                    planned.append(
+                        (
+                            incoming,
+                            line,
+                            lot.inventory_item_id,
+                            None,
+                            lot,
+                            allocation,
+                            allocated_return,
+                        )
+                    )
+                    unallocated_return = quantity(
+                        unallocated_return - allocated_return
+                    )
+                    if unallocated_return <= 0:
+                        break
+                if unallocated_return > 0:
+                    raise ReturnExceedsSold()
+                continue
+
             if line.product_type != ProductType.DIRECT_SALE:
                 raise PreparedReturnRejected()
             if line.recipe_version_id is None:
@@ -572,15 +798,45 @@ def return_to_stock(
             link_lines = _recipe_lines(session, line.recipe_version_id)
             if len(link_lines) != 1:
                 raise ReturnNotAllowed("Stock link must reference one inventory item")
-            returning = quantity(incoming.quantity)
-            if _returned_quantity(session, line.id) + returning > line.quantity:
-                raise ReturnExceedsSold()
             per_unit = (
                 unit_cost(line.cogs_amount / line.quantity)
                 if line.cogs_amount is not None
                 else Decimal("0")
             )
-            planned.append((incoming, line, link_lines[0].inventory_item_id, per_unit))
+            planned.append(
+                (
+                    incoming,
+                    line,
+                    link_lines[0].inventory_item_id,
+                    per_unit,
+                    None,
+                    None,
+                    returning,
+                )
+            )
+
+        sellable = [entry for entry in planned if entry[0].sellable]
+        if sellable:
+            lock_balances(session, {entry[2] for entry in sellable})
+            lots_by_id = {
+                lot.id: lot
+                for lot in session.exec(
+                    select(FinishedGoodLot)
+                    .where(
+                        col(FinishedGoodLot.id).in_(
+                            {
+                                entry[4].id
+                                for entry in sellable
+                                if entry[4] is not None
+                            }
+                        )
+                    )
+                    .with_for_update()
+                    .execution_options(populate_existing=True)
+                ).all()
+            }
+        else:
+            lots_by_id = {}
 
         document = StockReturn(
             order_id=order.id, reason=data.reason, created_by_id=actor.id
@@ -591,12 +847,12 @@ def return_to_stock(
             session,
             lines=[
                 MovementLine(
-                    item_id=item_id,
-                    quantity=quantity(incoming.quantity),
-                    unit_cost=per_unit,
+                    item_id=entry[2],
+                    quantity=entry[6],
+                    unit_cost=entry[3],
+                    preserve_cost_uncertainty=entry[4] is not None,
                 )
-                for incoming, _line, item_id, per_unit in planned
-                if incoming.sellable
+                for entry in sellable
             ],
             movement_type=MovementType.RETURN,
             source_type=ORDER_SOURCE,
@@ -606,16 +862,43 @@ def return_to_stock(
             allow_negative=True,
         )
         posted = iter(movements)
-        for incoming, line, _item_id, per_unit in planned:
+        for (
+            incoming,
+            line,
+            _,
+            per_unit,
+            lot,
+            allocation,
+            return_quantity,
+        ) in planned:
             movement = next(posted) if incoming.sellable else None
+            if movement is not None and lot is not None:
+                locked_lot = lots_by_id[lot.id]
+                locked_lot.quantity_on_hand = quantity(
+                    locked_lot.quantity_on_hand + return_quantity
+                )
+                locked_lot.updated_at = movement.occurred_at
+                session.add(locked_lot)
+                session.add(
+                    FinishedGoodLotMovement(
+                        lot_id=locked_lot.id,
+                        movement_id=movement.id,
+                        quantity=return_quantity,
+                        created_at=movement.occurred_at,
+                    )
+                )
             session.add(
                 StockReturnLine(
                     stock_return_id=document.id,
                     order_line_id=line.id,
-                    quantity=quantity(incoming.quantity),
+                    quantity=return_quantity,
                     sellable=incoming.sellable,
                     unit_cost=per_unit,
                     movement_id=movement.id if movement else None,
+                    finished_good_lot_id=lot.id if lot else None,
+                    finished_good_lot_allocation_id=(
+                        allocation.id if allocation else None
+                    ),
                 )
             )
         session.flush()
@@ -631,10 +914,22 @@ def return_to_stock(
                 "lines": [
                     {
                         "order_line_id": line.id,
-                        "quantity": quantity(incoming.quantity),
+                        "quantity": return_quantity,
                         "sellable": incoming.sellable,
+                        "finished_good_lot_id": lot.id if lot else None,
+                        "finished_good_lot_allocation_id": (
+                            allocation.id if allocation else None
+                        ),
                     }
-                    for incoming, line, _item_id, _per_unit in planned
+                    for (
+                        incoming,
+                        line,
+                        _,
+                        _,
+                        lot,
+                        allocation,
+                        return_quantity,
+                    ) in planned
                 ],
             },
         )

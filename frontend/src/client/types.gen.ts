@@ -31,6 +31,56 @@ export type AuditLogsPublic = {
     count: number;
 };
 
+export type BatchIngredientActual = {
+    line_id: string;
+    actual_quantity: (number | string);
+};
+
+export type BatchIngredientCreate = {
+    inventory_item_id: string;
+    planned_quantity: (number | string);
+};
+
+export type BatchIngredientPublic = {
+    id: string;
+    line_no: number;
+    inventory_item_id: string;
+    item_sku: string;
+    item_name: string;
+    unit: Unit;
+    planned_quantity: string;
+    actual_quantity: (string | null);
+};
+
+export type BatchOutputActual = {
+    line_id: string;
+    actual_good_quantity: (number | string);
+    waste_quantity?: (number | string);
+};
+
+export type BatchOutputCreate = {
+    menu_item_id: string;
+    inventory_item_id: string;
+    planned_quantity: (number | string);
+};
+
+export type BatchOutputPublic = {
+    id: string;
+    line_no: number;
+    menu_item_id: string;
+    menu_item_name: string;
+    menu_item_code: string;
+    inventory_item_id: string;
+    item_sku: string;
+    item_name: string;
+    unit: Unit;
+    planned_quantity: string;
+    actual_good_quantity: (string | null);
+    waste_quantity: string;
+    unit_cost: (string | null);
+    cost_uncertain: boolean;
+};
+
 export type Body_catalog_upload_item_image = {
     file: (Blob | File);
 };
@@ -171,7 +221,7 @@ export type ExpenseBreakdownPublic = {
 };
 
 export type ExpenseBreakdownRow = {
-    category_id: string;
+    category_id: (string | null);
     category_name: string;
     amount: string;
     share: string;
@@ -237,6 +287,50 @@ export type FinancialSummaryPublic = {
     missing_cost_lines: number;
 };
 
+export type FinishedGoodAvailabilityPublic = {
+    menu_item_id: string;
+    menu_item_name: string;
+    inventory_item_id: string;
+    inventory_item_sku: string;
+    inventory_item_name: string;
+    available_quantity: string;
+    unit: Unit;
+};
+
+export type FinishedGoodLotPublic = {
+    id: string;
+    lot_number: string;
+    origin: string;
+    batch_id: (string | null);
+    batch_number: (number | null);
+    inventory_item_id: string;
+    produced_quantity: string;
+    quantity_on_hand: string;
+    reserved_quantity: string;
+    available_quantity: string;
+    unit_cost: (string | null);
+    finished_at: string;
+    expiry_date: (string | null);
+};
+
+export type FinishedGoodLotsPublic = {
+    data: Array<FinishedGoodLotPublic>;
+    count: number;
+};
+
+export type FinishedGoodOrderAllocationPublic = {
+    finished_good_lot_id: string;
+    lot_number: string;
+    batch_id: (string | null);
+    batch_number: (number | null);
+    finished_at: string;
+    quantity: string;
+};
+
+export type FinishedGoodsAvailabilityPublic = {
+    data: Array<FinishedGoodAvailabilityPublic>;
+};
+
 export type GroupBy = 'day' | 'week' | 'month';
 
 export type HTTPValidationError = {
@@ -280,6 +374,7 @@ export type InventoryItemCreate = {
     description?: (string | null);
     category_id: string;
     item_type: ItemType;
+    role?: (InventoryRole | null);
     base_unit: Unit;
     purchase_unit: Unit;
     conversion_factor: (number | string);
@@ -295,6 +390,7 @@ export type InventoryItemPublic = {
     description: (string | null);
     category_id: string;
     item_type: ItemType;
+    role: InventoryRole;
     base_unit: Unit;
     purchase_unit: Unit;
     conversion_factor: string;
@@ -324,6 +420,7 @@ export type InventoryItemUpdate = {
     description?: (string | null);
     category_id?: (string | null);
     item_type?: (ItemType | null);
+    role?: (InventoryRole | null);
     base_unit?: (Unit | null);
     purchase_unit?: (Unit | null);
     conversion_factor?: (number | string | null);
@@ -355,12 +452,24 @@ export type InventoryMovementsPublic = {
     count: number;
 };
 
+export type InventoryRole = 'raw_material' | 'finished_good' | 'general';
+
 export type ItemType = 'ingredient' | 'merchandise' | 'packaging' | 'consumable';
 
 export type Language = 'en' | 'vi';
 
 export type LanguageUpdate = {
     language: Language;
+};
+
+export type LotMovementRow = {
+    id: string;
+    lot_id: string;
+    lot_number: string;
+    batch_number: (number | null);
+    movement_type: MovementType;
+    quantity: string;
+    occurred_at: string;
 };
 
 export type MenuCategoriesPublic = {
@@ -476,7 +585,9 @@ export type MovementRow = {
     base_unit: string;
     opening: string;
     received: string;
+    production_received: string;
     consumed: string;
+    production_consumed: string;
     adjustments: string;
     spoilage: string;
     expired: string;
@@ -488,9 +599,10 @@ export type MovementRow = {
     reversals: string;
     closing: string;
     closing_value: string;
+    lot_movements?: Array<LotMovementRow>;
 };
 
-export type MovementType = 'receipt' | 'sale_consumption' | 'adjustment' | 'return' | 'reversal';
+export type MovementType = 'receipt' | 'sale_consumption' | 'production_consumption' | 'production_receipt' | 'adjustment' | 'return' | 'reversal';
 
 export type NewPassword = {
     token: string;
@@ -541,6 +653,7 @@ export type OrderLinePublic = {
     recipe_version_id?: (string | null);
     cogs_amount?: (string | null);
     cost_uncertain?: boolean;
+    finished_good_allocations?: Array<FinishedGoodOrderAllocationPublic>;
 };
 
 export type OrderLinesReplace = {
@@ -688,7 +801,7 @@ export type PaymentVoid = {
 
 export type PeriodPreset = 'today' | 'yesterday' | 'last_7_days' | 'this_month' | 'last_month';
 
-export type Permission = 'users:manage' | 'settings:manage' | 'audit:read' | 'catalog:view' | 'catalog:manage' | 'inventory:view' | 'inventory:manage' | 'inventory:adjust' | 'inventory:reverse' | 'inventory:return' | 'purchasing:read' | 'purchasing:manage' | 'purchasing:post' | 'purchasing:reverse' | 'recipes:read' | 'recipes:manage' | 'ordering:create' | 'ordering:view_own' | 'ordering:view_all' | 'ordering:discount' | 'ordering:cancel' | 'payments:read' | 'payments:record' | 'payments:void' | 'payments:refund' | 'payments:configure' | 'expenses:read' | 'expenses:manage' | 'supplier_payments:read' | 'supplier_payments:record' | 'cash:view' | 'cash:adjust' | 'finance:view' | 'reports:sales' | 'reports:inventory' | 'reports:financial';
+export type Permission = 'users:manage' | 'settings:manage' | 'audit:read' | 'catalog:view' | 'catalog:manage' | 'inventory:view' | 'inventory:manage' | 'inventory:adjust' | 'inventory:reverse' | 'inventory:return' | 'purchasing:read' | 'purchasing:manage' | 'purchasing:post' | 'purchasing:reverse' | 'recipes:read' | 'recipes:manage' | 'production:view' | 'production:manage' | 'production:complete' | 'production:backdate' | 'production:reverse' | 'production:traceability' | 'ordering:create' | 'ordering:view_own' | 'ordering:view_all' | 'ordering:discount' | 'ordering:cancel' | 'payments:read' | 'payments:record' | 'payments:void' | 'payments:refund' | 'payments:configure' | 'expenses:read' | 'expenses:manage' | 'supplier_payments:read' | 'supplier_payments:record' | 'cash:view' | 'cash:adjust' | 'finance:view' | 'reports:sales' | 'reports:inventory' | 'reports:financial';
 
 export type PrivateUserCreate = {
     email: string;
@@ -696,6 +809,135 @@ export type PrivateUserCreate = {
     full_name: string;
     is_verified?: boolean;
     role?: Role;
+};
+
+export type ProductionBatchComplete = {
+    finished_at?: (string | null);
+    ingredients: Array<BatchIngredientActual>;
+    outputs: Array<BatchOutputActual>;
+};
+
+export type ProductionBatchCreate = {
+    planned_for: string;
+    notes?: (string | null);
+    recipe_id?: (string | null);
+    formula_runs?: (number | string | null);
+    ingredients?: (Array<BatchIngredientCreate> | null);
+    outputs?: (Array<BatchOutputCreate> | null);
+};
+
+export type ProductionBatchesPublic = {
+    data: Array<ProductionBatchSummary>;
+    count: number;
+};
+
+export type ProductionBatchLotTracePublic = {
+    lot_id: string;
+    lot_number: string;
+    inventory_item_id: string;
+    item_name: string;
+    produced_quantity: string;
+    quantity_on_hand: string;
+    available_quantity: string;
+    finished_at: string;
+    expiry_date: (string | null);
+    orders: Array<ProductionLotOrderTracePublic>;
+};
+
+export type ProductionBatchPublic = {
+    id: string;
+    number: number;
+    status: ProductionBatchStatus;
+    recipe_id: (string | null);
+    formula_runs: (string | null);
+    total_material_cost: (string | null);
+    cost_uncertain: boolean;
+    planned_for: string;
+    finished_at: (string | null);
+    notes: (string | null);
+    created_by_id: string;
+    completed_by_id: (string | null);
+    reversed_by_id: (string | null);
+    reversed_at: (string | null);
+    reversal_reason: (string | null);
+    created_at: string;
+    updated_at: string;
+    ingredients: Array<BatchIngredientPublic>;
+    outputs: Array<BatchOutputPublic>;
+};
+
+export type ProductionBatchReverse = {
+    reason: string;
+};
+
+export type ProductionBatchStatus = 'draft' | 'completed' | 'cancelled' | 'reversed';
+
+export type ProductionBatchSummary = {
+    id: string;
+    number: number;
+    status: ProductionBatchStatus;
+    recipe_id: (string | null);
+    formula_runs: (string | null);
+    total_material_cost: (string | null);
+    cost_uncertain: boolean;
+    planned_for: string;
+    finished_at: (string | null);
+    created_at: string;
+};
+
+export type ProductionBatchTraceabilityPublic = {
+    batch: ProductionBatchPublic;
+    lots: Array<ProductionBatchLotTracePublic>;
+};
+
+export type ProductionBatchUpdate = {
+    planned_for?: (string | null);
+    notes?: (string | null);
+    recipe_id?: (string | null);
+    formula_runs?: (number | string | null);
+    ingredients?: (Array<BatchIngredientCreate> | null);
+    outputs?: (Array<BatchOutputCreate> | null);
+};
+
+export type ProductionLotOrderTracePublic = {
+    order_id: string;
+    order_number: string;
+    order_status: string;
+    completed_at: (string | null);
+    order_line_id: string;
+    item_name: string;
+    allocated_quantity: string;
+    returned_quantity: string;
+    returns: Array<ProductionLotReturnTracePublic>;
+};
+
+export type ProductionLotReturnTracePublic = {
+    stock_return_line_id: string;
+    stock_return_id: string;
+    order_line_id: string;
+    quantity: string;
+    sellable: boolean;
+    reason: string;
+    returned_at: string;
+};
+
+export type ProductionReportPublic = {
+    date_from: string;
+    date_to: string;
+    data: Array<ProductionReportRow>;
+    count: number;
+};
+
+export type ProductionReportRow = {
+    batch_id: string;
+    batch_number: number;
+    status: ProductionBatchStatus;
+    report_date: string;
+    menu_item_id: string;
+    menu_item_name: string;
+    planned_quantity: string;
+    actual_good_quantity: (string | null);
+    waste_quantity: string;
 };
 
 export type ProductPerformanceFinancial = {
@@ -858,6 +1100,24 @@ export type RecipeLinePublic = {
     quantity: string;
 };
 
+export type RecipeOutputLineCreate = {
+    menu_item_id: string;
+    inventory_item_id: string;
+    quantity: (number | string);
+};
+
+export type RecipeOutputLinePublic = {
+    id: string;
+    menu_item_id: string;
+    menu_item_name: string;
+    menu_item_code: string;
+    inventory_item_id: string;
+    item_sku: string;
+    item_name: string;
+    base_unit: Unit;
+    quantity: string;
+};
+
 export type RecipePublic = {
     id: string;
     menu_item_id: string;
@@ -869,6 +1129,7 @@ export type RecipePublic = {
     effective_from: string;
     created_at: string;
     lines: Array<RecipeLinePublic>;
+    outputs: Array<RecipeOutputLinePublic>;
 };
 
 export type RecipesPublic = {
@@ -880,6 +1141,7 @@ export type RecipeVersionCreate = {
     menu_item_id: string;
     effective_from: string;
     lines: Array<RecipeLineCreate>;
+    outputs?: Array<RecipeOutputLineCreate>;
 };
 
 export type RecordStatus = 'recorded' | 'reversed';
@@ -1080,8 +1342,14 @@ export type StockReturnLinePublic = {
     item_name: string;
     quantity: string;
     sellable: boolean;
-    unit_cost: string;
+    unit_cost: (string | null);
     movement_id: (string | null);
+    finished_good_lot_id: (string | null);
+    finished_good_lot_allocation_id: (string | null);
+    lot_number: (string | null);
+    batch_id: (string | null);
+    batch_number: (number | null);
+    finished_at: (string | null);
 };
 
 export type StockReturnPublic = {
@@ -1102,12 +1370,15 @@ export type StockStatusItem = {
     item_id: string;
     sku: string;
     name: string;
+    item_type: ItemType;
     quantity: string;
     base_unit: string;
+    value: string;
 };
 
 export type StockStatusPublic = {
     total_value: string;
+    items: Array<StockStatusItem>;
     low_stock: Array<StockStatusItem>;
     negative_stock: Array<StockStatusItem>;
 };
@@ -1509,6 +1780,12 @@ export type InventoryDeleteItemData = {
 
 export type InventoryDeleteItemResponse = (Message);
 
+export type InventoryReadItemLotsData = {
+    itemId: string;
+};
+
+export type InventoryReadItemLotsResponse = (FinishedGoodLotsPublic);
+
 export type InventoryReadItemMovementsData = {
     itemId: string;
     limit?: number;
@@ -1760,6 +2037,61 @@ export type PrivateCreateUserData = {
 
 export type PrivateCreateUserResponse = (UserPublic);
 
+export type ProductionReadBatchesData = {
+    limit?: number;
+    menuItemId?: (string | null);
+    plannedFrom?: (string | null);
+    plannedTo?: (string | null);
+    recipeId?: (string | null);
+    skip?: number;
+    status?: (ProductionBatchStatus | null);
+};
+
+export type ProductionReadBatchesResponse = (ProductionBatchesPublic);
+
+export type ProductionCreateBatchData = {
+    requestBody: ProductionBatchCreate;
+};
+
+export type ProductionCreateBatchResponse = (ProductionBatchPublic);
+
+export type ProductionReadFinishedGoodAvailabilityResponse = (FinishedGoodsAvailabilityPublic);
+
+export type ProductionReadBatchData = {
+    batchId: string;
+};
+
+export type ProductionReadBatchResponse = (ProductionBatchPublic);
+
+export type ProductionUpdateBatchData = {
+    batchId: string;
+    requestBody: ProductionBatchUpdate;
+};
+
+export type ProductionUpdateBatchResponse = (ProductionBatchPublic);
+
+export type ProductionReadBatchTraceabilityData = {
+    batchId: string;
+};
+
+export type ProductionReadBatchTraceabilityResponse = (ProductionBatchTraceabilityPublic);
+
+export type ProductionCompleteBatchData = {
+    batchId: string;
+    idempotencyKey?: (string | null);
+    requestBody: ProductionBatchComplete;
+};
+
+export type ProductionCompleteBatchResponse = (ProductionBatchPublic);
+
+export type ProductionReverseBatchData = {
+    batchId: string;
+    idempotencyKey?: (string | null);
+    requestBody: ProductionBatchReverse;
+};
+
+export type ProductionReverseBatchResponse = (ProductionBatchPublic);
+
 export type PurchasingReadSuppliersData = {
     isActive?: (boolean | null);
     limit?: number;
@@ -1975,6 +2307,24 @@ export type ReportsReadStockStatusData = {
 };
 
 export type ReportsReadStockStatusResponse = (StockStatusPublic);
+
+export type ReportsReadProductionReportData = {
+    dateFrom: string;
+    dateTo: string;
+    menuItemId?: (string | null);
+    status?: (ProductionBatchStatus | null);
+};
+
+export type ReportsReadProductionReportResponse = (ProductionReportPublic);
+
+export type ReportsExportProductionReportData = {
+    dateFrom: string;
+    dateTo: string;
+    menuItemId?: (string | null);
+    status?: (ProductionBatchStatus | null);
+};
+
+export type ReportsExportProductionReportResponse = (unknown);
 
 export type ReportsReadExpensesData = {
     dateFrom: string;

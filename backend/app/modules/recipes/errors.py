@@ -17,6 +17,21 @@ class DuplicateRecipeLine(Conflict):
     default_detail = "Each inventory item can appear only once in a version"
 
 
+class InvalidRecipeOutput(Conflict):
+    default_detail = (
+        "Each output must be an active menu item mapped to an active "
+        "finished-good inventory item"
+    )
+
+
+class InvalidRecipeInput(Conflict):
+    default_detail = "Production formula inputs must be raw-material inventory items"
+
+
+class RecipeOutputMappingConflict(Conflict):
+    default_detail = "A menu item must keep the same finished-good inventory mapping"
+
+
 class VersionConflict(Conflict):
     default_detail = "A recipe version with this number or effective time exists"
 
@@ -61,7 +76,7 @@ class ReturnNotAllowed(Conflict):
 
 
 class PreparedReturnRejected(Conflict):
-    default_detail = "Only direct-sale items can be returned to stock"
+    default_detail = "Only stock-linked or finished-good items can be returned to stock"
 
 
 class ReturnExceedsSold(Conflict):

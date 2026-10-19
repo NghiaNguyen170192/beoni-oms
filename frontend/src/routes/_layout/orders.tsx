@@ -142,6 +142,19 @@ function OrderDetail({
                     <TableRow key={line.id}>
                       <TableCell>
                         {line.item_name}
+                        {(line.finished_good_allocations ?? []).map((allocation) => (
+                          <div
+                            key={allocation.finished_good_lot_id}
+                            className="text-xs text-muted-foreground"
+                          >
+                            {allocation.lot_number}
+                            {allocation.batch_number !== null &&
+                              ` · ${t("recipes.return.batch", {
+                                number: allocation.batch_number,
+                              })}`}
+                            {` · ${formatDateTime(allocation.finished_at)}`}
+                          </div>
+                        ))}
                         {Number(line.discount_amount) > 0 && (
                           <div className="text-xs text-muted-foreground">
                             {t("ordering.orders.lineDiscount", {
@@ -176,7 +189,10 @@ function OrderDetail({
                 order.status === "refunded") &&
                 canReturn &&
                 order.lines.some(
-                  (line) => line.product_type === "direct_sale",
+                  (line) =>
+                    (line.product_type === "direct_sale" &&
+                      Boolean(line.recipe_version_id)) ||
+                    (line.finished_good_allocations ?? []).length > 0,
                 ) && (
                   <Button
                     variant="outline"

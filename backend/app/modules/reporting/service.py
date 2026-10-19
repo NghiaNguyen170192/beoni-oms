@@ -4,13 +4,17 @@ from datetime import date
 from decimal import ROUND_HALF_UP, Decimal
 from zoneinfo import ZoneInfo
 
-from sqlalchemy import Date, cast, exists, func
-from sqlmodel import Session, col, select
+from sqlalchemy import Date, and_, cast, exists, func
+from sqlmodel import Session, col, or_, select
 
 from app.core.money import money, quantity
 from app.modules.accounting.models import Expense, ExpenseCategory, RecordStatus
 from app.modules.accounting.periods import period_bounds
-from app.modules.accounting.service import SALE_STATUSES, financial_summary
+from app.modules.accounting.service import (
+    SALE_STATUSES,
+    financial_summary,
+    production_expense,
+)
 from app.modules.catalog.models import MenuItem
 from app.modules.inventory.models import (
     AdjustmentReason,
@@ -29,7 +33,19 @@ from app.modules.payments.models import (
     Refund,
     RefundLine,
 )
+from app.modules.production.models import (
+    FinishedGoodLot,
+    FinishedGoodLotMovement,
+    ProductionBatch,
+    ProductionBatchOutputLine,
+    ProductionBatchStatus,
+)
 from app.modules.reporting.periods import GroupBy, check_range
+from app.modules.reporting.schemas import (
+    LotMovementRow,
+    ProductionReportPublic,
+    ProductionReportRow,
+)
 from app.modules.settings.service import get_settings
 
 D = Decimal
@@ -679,8 +695,16 @@ def movement_summary(
     data = []
     for item, balance in items:
         received = by_type.get((item.id, MovementType.RECEIPT.value), quantity(ZERO))
+        production_received = by_type.get(
+            (item.id, MovementType.PRODUCTION_RECEIPT.value), quantity(ZERO)
+        )
         consumed = quantity(
             -by_type.get((item.id, MovementType.SALE_CONSUMPTION.value), quantity(ZERO))
+        )
+        production_consumed = quantity(
+            -by_type.get(
+                (item.id, MovementType.PRODUCTION_CONSUMPTION.value), quantity(ZERO)
+            )
         )
         adjustments = by_type.get(
             (item.id, MovementType.ADJUSTMENT.value), quantity(ZERO)
@@ -689,7 +713,14 @@ def movement_summary(
         reversals = by_type.get((item.id, MovementType.REVERSAL.value), quantity(ZERO))
         opened = quantity(opening.get(item.id, ZERO))
         closing = quantity(
-            opened + received - consumed + adjustments + returns + reversals
+            opened
+            + received
+            + production_received
+            - consumed
+            - production_consumed
+            + adjustments
+            + returns
+            + reversals
         )
         data.append(
             {
@@ -699,7 +730,9 @@ def movement_summary(
                 "base_unit": item.base_unit.value,
                 "opening": opened,
                 "received": received,
+                "production_received": production_received,
                 "consumed": consumed,
+                "production_consumed": production_consumed,
                 "adjustments": adjustments,
                 "spoilage": by_reason.get(
                     (item.id, AdjustmentReason.SPOILAGE.value), quantity(ZERO)
@@ -723,14 +756,142 @@ def movement_summary(
                 "reversals": reversals,
                 "closing": closing,
                 "closing_value": money(closing * balance.avg_unit_cost),
+                "lot_movements": [],
             }
         )
+    item_ids = {item.id for item, _ in items}
+    lot_movements_by_item: dict[uuid.UUID, list[LotMovementRow]] = {}
+    if item_ids:
+        lot_movements = session.exec(
+            select(
+                FinishedGoodLotMovement,
+                FinishedGoodLot,
+                InventoryMovement,
+                ProductionBatch.number,
+            )
+            .join(
+                FinishedGoodLot,
+                col(FinishedGoodLot.id) == col(FinishedGoodLotMovement.lot_id),
+            )
+            .join(
+                InventoryMovement,
+                col(InventoryMovement.id) == col(FinishedGoodLotMovement.movement_id),
+            )
+            .outerjoin(
+                ProductionBatch,
+                col(ProductionBatch.id) == col(FinishedGoodLot.batch_id),
+            )
+            .where(
+                col(FinishedGoodLot.inventory_item_id).in_(item_ids),
+                InventoryMovement.occurred_at >= start,
+                InventoryMovement.occurred_at < end,
+            )
+            .order_by(
+                col(InventoryMovement.occurred_at),
+                col(FinishedGoodLot.lot_number),
+                col(FinishedGoodLotMovement.id),
+            )
+        ).all()
+        for lot_movement, lot, movement, batch_number in lot_movements:
+            lot_movements_by_item.setdefault(lot.inventory_item_id, []).append(
+                LotMovementRow(
+                    id=lot_movement.id,
+                    lot_id=lot.id,
+                    lot_number=lot.lot_number,
+                    batch_number=batch_number,
+                    movement_type=movement.movement_type.value,
+                    quantity=lot_movement.quantity,
+                    occurred_at=movement.occurred_at,
+                )
+            )
+    for row in data:
+        row["lot_movements"] = lot_movements_by_item.get(row["item_id"], [])
     return {
         "date_from": date_from,
         "date_to": date_to,
         "data": data,
         "count": len(data),
     }
+
+
+def production_report(
+    session: Session,
+    *,
+    date_from: date,
+    date_to: date,
+    status: ProductionBatchStatus | None = None,
+    menu_item_id: uuid.UUID | None = None,
+) -> ProductionReportPublic:
+    start, end = _bounds(session, date_from, date_to)
+    completed_states = (ProductionBatchStatus.COMPLETED, ProductionBatchStatus.REVERSED)
+    planned_states = (ProductionBatchStatus.DRAFT, ProductionBatchStatus.CANCELLED)
+    conditions = [
+        or_(
+            and_(
+                col(ProductionBatch.status).in_(completed_states),
+                ProductionBatch.finished_at >= start,
+                ProductionBatch.finished_at < end,
+            ),
+            and_(
+                col(ProductionBatch.status).in_(planned_states),
+                ProductionBatch.planned_for >= date_from,
+                ProductionBatch.planned_for <= date_to,
+            ),
+        )
+    ]
+    if status is not None:
+        conditions.append(ProductionBatch.status == status)
+    if menu_item_id is not None:
+        conditions.append(ProductionBatchOutputLine.menu_item_id == menu_item_id)
+    rows = session.exec(
+        select(ProductionBatch, ProductionBatchOutputLine, MenuItem)
+        .join(
+            ProductionBatchOutputLine,
+            col(ProductionBatchOutputLine.batch_id) == col(ProductionBatch.id),
+        )
+        .join(
+            MenuItem,
+            col(MenuItem.id) == col(ProductionBatchOutputLine.menu_item_id),
+        )
+        .where(*conditions)
+        .order_by(
+            col(ProductionBatch.planned_for).desc(),
+            col(ProductionBatch.number).desc(),
+            col(ProductionBatchOutputLine.line_no),
+        )
+    ).all()
+    timezone = ZoneInfo(_zone(session))
+    data = []
+    for batch, output, menu_item in rows:
+        if batch.number is None:
+            raise RuntimeError(f"Production batch {batch.id} has no number")
+        data.append(
+            ProductionReportRow(
+                batch_id=batch.id,
+                batch_number=batch.number,
+                status=batch.status,
+                report_date=(
+                    batch.finished_at.astimezone(timezone).date()
+                    if batch.finished_at is not None
+                    else batch.planned_for
+                ),
+                menu_item_id=output.menu_item_id,
+                menu_item_name=menu_item.name,
+                planned_quantity=output.planned_quantity,
+                actual_good_quantity=output.actual_good_quantity,
+                waste_quantity=output.waste_quantity,
+            )
+        )
+    data.sort(
+        key=lambda row: (row.report_date, row.batch_number, row.menu_item_name),
+        reverse=True,
+    )
+    return ProductionReportPublic(
+        date_from=date_from,
+        date_to=date_to,
+        data=data,
+        count=len(data),
+    )
 
 
 def stock_status(
@@ -754,6 +915,7 @@ def stock_status(
         .order_by(InventoryItem.name)
     ).all()
     total = ZERO
+    all_items: list[dict[str, object]] = []
     low: list[dict[str, object]] = []
     negative: list[dict[str, object]] = []
     for item, balance in rows:
@@ -763,16 +925,24 @@ def stock_status(
             "item_id": item.id,
             "sku": item.sku,
             "name": item.name,
+            "item_type": item.item_type.value,
             "quantity": quantity(balance.quantity),
             "base_unit": item.base_unit.value,
+            "value": money(max(balance.quantity, ZERO) * balance.avg_unit_cost),
         }
+        all_items.append(entry)
         if balance.quantity < 0:
             negative.append(entry)
         elif (
             item.is_active and item.min_stock > 0 and balance.quantity <= item.min_stock
         ):
             low.append(entry)
-    return {"total_value": money(total), "low_stock": low, "negative_stock": negative}
+    return {
+        "total_value": money(total),
+        "items": all_items,
+        "low_stock": low,
+        "negative_stock": negative,
+    }
 
 
 def expense_breakdown(
@@ -794,20 +964,31 @@ def expense_breakdown(
         .group_by(ExpenseCategory.id, ExpenseCategory.name)
         .order_by(ExpenseCategory.name)
     ).all()
-    total = money(sum((money(amount) for _, _, amount in rows), ZERO))
+    production_cost = production_expense(session, date_from=date_from, date_to=date_to)
+    data = [
+        {
+            "category_id": category_id,
+            "category_name": name,
+            "amount": money(amount),
+        }
+        for category_id, name, amount in rows
+    ]
+    if production_cost != 0:
+        data.append(
+            {
+                "category_id": None,
+                "category_name": "Production batch material cost",
+                "amount": production_cost,
+            }
+        )
+    total = money(sum((row["amount"] for row in data), ZERO))  # type: ignore[arg-type]
+    for row in data:
+        row["share"] = _percent(row["amount"], total)  # type: ignore[arg-type]
     return {
         "date_from": date_from,
         "date_to": date_to,
         "total": total,
-        "data": [
-            {
-                "category_id": category_id,
-                "category_name": name,
-                "amount": money(amount),
-                "share": _percent(money(amount), total),
-            }
-            for category_id, name, amount in rows
-        ],
+        "data": data,
     }
 
 

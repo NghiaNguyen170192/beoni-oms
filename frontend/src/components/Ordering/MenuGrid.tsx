@@ -7,18 +7,22 @@ import {
   menuCategoriesQueryOptions,
   menuItemsQueryOptions,
 } from "@/components/Catalog/queries"
+import type { FinishedGoodAvailability } from "@/components/Production/api"
+import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useFormatters } from "@/hooks/useBusinessSettings"
 import { useI18n } from "@/i18n"
+import { formatNumber } from "@/lib/format"
 import { mediaUrl } from "@/lib/media"
 
 interface MenuGridProps {
   onAdd: (item: MenuItemPublic) => void
   disabled: boolean
+  availability: Record<string, FinishedGoodAvailability>
 }
 
-export function MenuGrid({ onAdd, disabled }: MenuGridProps) {
+export function MenuGrid({ onAdd, disabled, availability }: MenuGridProps) {
   const { t } = useI18n()
   const { formatMoney } = useFormatters()
   const [categoryId, setCategoryId] = useState<string>()
@@ -87,6 +91,24 @@ export function MenuGrid({ onAdd, disabled }: MenuGridProps) {
                   />
                 )}
                 <span className="font-medium leading-tight">{item.name}</span>
+                {availability[item.id] && (
+                  <Badge
+                    variant={
+                      Number(availability[item.id].available_quantity) > 0
+                        ? "secondary"
+                        : "destructive"
+                    }
+                  >
+                    {Number(availability[item.id].available_quantity) > 0
+                      ? t("ordering.stock.available", {
+                          quantity: formatNumber(
+                            availability[item.id].available_quantity,
+                          ),
+                          unit: t(`unit.${availability[item.id].unit}`),
+                        })
+                      : t("ordering.stock.outOfStock")}
+                  </Badge>
+                )}
                 <span className="text-sm tabular-nums text-muted-foreground">
                   {formatMoney(item.price)}
                 </span>

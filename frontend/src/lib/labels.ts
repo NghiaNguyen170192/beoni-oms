@@ -1,6 +1,7 @@
 import type {
   AdjustmentReason,
   DiscountType,
+  InventoryRole,
   ItemType,
   MovementType,
   OrderStatus,
@@ -38,6 +39,18 @@ export const ITEM_TYPE_LABELS = {
   consumable: "itemType.consumable",
 } as const satisfies Record<ItemType, MessageKey>
 
+export const INVENTORY_ROLES = [
+  "raw_material",
+  "finished_good",
+  "general",
+] as const satisfies readonly InventoryRole[]
+
+export const INVENTORY_ROLE_LABELS = {
+  raw_material: "inventory.role.rawMaterial",
+  finished_good: "inventory.role.finishedGood",
+  general: "inventory.role.general",
+} as const satisfies Record<InventoryRole, MessageKey>
+
 export const UNITS = [
   "g",
   "kg",
@@ -65,6 +78,8 @@ export const UNIT_LABELS = {
 export const MOVEMENT_TYPE_LABELS = {
   receipt: "movementType.receipt",
   sale_consumption: "movementType.sale_consumption",
+  production_consumption: "movementType.production_consumption",
+  production_receipt: "movementType.production_receipt",
   adjustment: "movementType.adjustment",
   return: "movementType.return",
   reversal: "movementType.reversal",

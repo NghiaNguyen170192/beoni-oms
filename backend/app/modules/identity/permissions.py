@@ -26,6 +26,13 @@ class Permission(str, Enum):
     RECIPES_READ = "recipes:read"
     RECIPES_MANAGE = "recipes:manage"
 
+    PRODUCTION_VIEW = "production:view"
+    PRODUCTION_MANAGE = "production:manage"
+    PRODUCTION_COMPLETE = "production:complete"
+    PRODUCTION_BACKDATE = "production:backdate"
+    PRODUCTION_REVERSE = "production:reverse"
+    PRODUCTION_TRACEABILITY = "production:traceability"
+
     ORDERING_CREATE = "ordering:create"
     ORDERING_VIEW_OWN = "ordering:view_own"
     ORDERING_VIEW_ALL = "ordering:view_all"
@@ -72,6 +79,12 @@ PERMISSIONS: dict[Role, frozenset[Permission]] = {
             P.PURCHASING_REVERSE,
             P.RECIPES_READ,
             P.RECIPES_MANAGE,
+            P.PRODUCTION_VIEW,
+            P.PRODUCTION_MANAGE,
+            P.PRODUCTION_COMPLETE,
+            P.PRODUCTION_BACKDATE,
+            P.PRODUCTION_REVERSE,
+            P.PRODUCTION_TRACEABILITY,
             P.ORDERING_CREATE,
             P.ORDERING_VIEW_OWN,
             P.ORDERING_VIEW_ALL,
@@ -103,6 +116,10 @@ PERMISSIONS: dict[Role, frozenset[Permission]] = {
             P.INVENTORY_VIEW,
             P.INVENTORY_MANAGE,
             P.INVENTORY_ADJUST,
+            P.PRODUCTION_VIEW,
+            P.PRODUCTION_MANAGE,
+            P.PRODUCTION_COMPLETE,
+            P.PRODUCTION_TRACEABILITY,
             P.PURCHASING_READ,
             P.PURCHASING_MANAGE,
             P.PURCHASING_POST,

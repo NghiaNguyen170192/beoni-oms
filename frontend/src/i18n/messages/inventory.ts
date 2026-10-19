@@ -25,6 +25,12 @@ export const en = {
   "inventory.field.category": "Category",
   "inventory.field.categoryPlaceholder": "Choose a category",
   "inventory.field.itemType": "Item type",
+  "inventory.field.inventoryRole": "Inventory role",
+  "inventory.field.inventoryRoleHelp":
+    "Choose Finished good for items produced in batches and sold at POS.",
+  "inventory.role.rawMaterial": "Raw material",
+  "inventory.role.finishedGood": "Finished good",
+  "inventory.role.general": "General stock",
   "inventory.field.quantity": "Quantity",
   "inventory.field.unit": "Unit",
   "inventory.field.baseUnit": "Base unit",
@@ -57,6 +63,21 @@ export const en = {
   "inventory.movements.by": "By",
   "inventory.movements.costUncertain": "Cost uncertain",
   "inventory.movements.empty": "No movements yet.",
+
+  "inventory.lots.title": "Finished-good lots",
+  "inventory.lots.description":
+    "Current inventory quantity: {quantity} {unit}. Lot balances are tracked separately.",
+  "inventory.lots.forItem": "View lots for {name}",
+  "inventory.lots.number": "Lot",
+  "inventory.lots.source": "Source",
+  "inventory.lots.batch": "Batch #{number}",
+  "inventory.lots.openingStock": "Opening stock",
+  "inventory.lots.finishedAt": "Finished",
+  "inventory.lots.expiry": "Expiry",
+  "inventory.lots.produced": "Produced",
+  "inventory.lots.available": "Available",
+  "inventory.lots.unitCost": "Unit cost",
+  "inventory.lots.empty": "No finished-good lots yet.",
 
   "inventory.adjustments.title": "Stock Adjustments",
   "inventory.adjustments.description":
@@ -142,6 +163,12 @@ export const vi: Record<keyof typeof en, string> = {
   "inventory.field.category": "Nhóm hàng",
   "inventory.field.categoryPlaceholder": "Chọn nhóm hàng",
   "inventory.field.itemType": "Loại hàng",
+  "inventory.field.inventoryRole": "Vai trò tồn kho",
+  "inventory.field.inventoryRoleHelp":
+    "Chọn Thành phẩm cho hàng được sản xuất theo mẻ và bán tại quầy.",
+  "inventory.role.rawMaterial": "Nguyên liệu",
+  "inventory.role.finishedGood": "Thành phẩm",
+  "inventory.role.general": "Hàng tồn kho thông thường",
   "inventory.field.quantity": "Tồn kho",
   "inventory.field.unit": "Đơn vị tính",
   "inventory.field.baseUnit": "Đơn vị tính",
@@ -174,6 +201,21 @@ export const vi: Record<keyof typeof en, string> = {
   "inventory.movements.by": "Người thực hiện",
   "inventory.movements.costUncertain": "Giá vốn chưa chính xác",
   "inventory.movements.empty": "Chưa có phát sinh xuất nhập.",
+
+  "inventory.lots.title": "Lô thành phẩm",
+  "inventory.lots.description":
+    "Số lượng tồn kho hiện tại: {quantity} {unit}. Số lượng được theo dõi riêng theo từng lô.",
+  "inventory.lots.forItem": "Xem lô của {name}",
+  "inventory.lots.number": "Mã lô",
+  "inventory.lots.source": "Nguồn",
+  "inventory.lots.batch": "Mẻ #{number}",
+  "inventory.lots.openingStock": "Tồn đầu kỳ",
+  "inventory.lots.finishedAt": "Ngày hoàn thành",
+  "inventory.lots.expiry": "Hạn sử dụng",
+  "inventory.lots.produced": "Đã sản xuất",
+  "inventory.lots.available": "Khả dụng",
+  "inventory.lots.unitCost": "Giá vốn đơn vị",
+  "inventory.lots.empty": "Chưa có lô thành phẩm.",
 
   "inventory.adjustments.title": "Phiếu điều chỉnh kho",
   "inventory.adjustments.description":

@@ -1,10 +1,12 @@
 import uuid
-from datetime import date
+from datetime import date, datetime
 from decimal import Decimal
 
 from pydantic import Field
 from sqlmodel import SQLModel
 
+from app.modules.inventory.models import ItemType, MovementType
+from app.modules.production.models import ProductionBatchStatus
 from app.modules.reporting.periods import GroupBy
 
 
@@ -93,6 +95,16 @@ class ProductPerformanceFinancial(SQLModel):
     data: list[ProductRowFinancial]
 
 
+class LotMovementRow(SQLModel):
+    id: uuid.UUID
+    lot_id: uuid.UUID
+    lot_number: str
+    batch_number: int | None
+    movement_type: MovementType
+    quantity: Decimal
+    occurred_at: datetime
+
+
 class MovementRow(SQLModel):
     item_id: uuid.UUID
     sku: str
@@ -100,7 +112,9 @@ class MovementRow(SQLModel):
     base_unit: str
     opening: Decimal
     received: Decimal
+    production_received: Decimal
     consumed: Decimal
+    production_consumed: Decimal
     adjustments: Decimal
     spoilage: Decimal
     expired: Decimal
@@ -112,6 +126,7 @@ class MovementRow(SQLModel):
     reversals: Decimal
     closing: Decimal
     closing_value: Decimal
+    lot_movements: list[LotMovementRow] = Field(default_factory=list)
 
 
 class MovementReportPublic(SQLModel):
@@ -125,18 +140,21 @@ class StockStatusItem(SQLModel):
     item_id: uuid.UUID
     sku: str
     name: str
+    item_type: ItemType
     quantity: Decimal
     base_unit: str
+    value: Decimal
 
 
 class StockStatusPublic(SQLModel):
     total_value: Decimal
+    items: list[StockStatusItem]
     low_stock: list[StockStatusItem]
     negative_stock: list[StockStatusItem]
 
 
 class ExpenseBreakdownRow(SQLModel):
-    category_id: uuid.UUID
+    category_id: uuid.UUID | None
     category_name: str
     amount: Decimal
     share: Decimal
@@ -147,6 +165,25 @@ class ExpenseBreakdownPublic(SQLModel):
     date_to: date
     total: Decimal
     data: list[ExpenseBreakdownRow]
+
+
+class ProductionReportRow(SQLModel):
+    batch_id: uuid.UUID
+    batch_number: int
+    status: ProductionBatchStatus
+    report_date: date
+    menu_item_id: uuid.UUID
+    menu_item_name: str
+    planned_quantity: Decimal
+    actual_good_quantity: Decimal | None
+    waste_quantity: Decimal
+
+
+class ProductionReportPublic(SQLModel):
+    date_from: date
+    date_to: date
+    data: list[ProductionReportRow]
+    count: int
 
 
 class ProfitStatementPublic(SQLModel):

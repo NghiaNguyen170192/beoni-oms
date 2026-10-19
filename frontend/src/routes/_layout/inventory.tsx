@@ -1,11 +1,12 @@
 import { useQuery } from "@tanstack/react-query"
 import { createFileRoute } from "@tanstack/react-router"
 import type { ColumnDef } from "@tanstack/react-table"
-import { History, Pencil, Plus } from "lucide-react"
+import { Boxes, History, Pencil, Plus } from "lucide-react"
 import { useMemo, useState } from "react"
 
 import type { InventoryItemPublic } from "@/client"
 import { DataTable } from "@/components/Common/DataTable"
+import { FinishedGoodLots } from "@/components/Inventory/FinishedGoodLots"
 import { InventoryItemDialog } from "@/components/Inventory/InventoryItemDialog"
 import { MovementHistory } from "@/components/Inventory/MovementHistory"
 import {
@@ -57,6 +58,7 @@ function Inventory() {
   const [creating, setCreating] = useState(false)
   const [editingId, setEditingId] = useState<string>()
   const [historyId, setHistoryId] = useState<string>()
+  const [lotsId, setLotsId] = useState<string>()
 
   const filters: InventoryItemFilters = {
     q: search.trim(),
@@ -76,6 +78,7 @@ function Inventory() {
   const items = data?.data ?? []
   const editing = items.find((item) => item.id === editingId)
   const history = items.find((item) => item.id === historyId)
+  const lotsItem = items.find((item) => item.id === lotsId)
 
   const columns = useMemo<ColumnDef<InventoryItemPublic>[]>(
     () => [
@@ -170,6 +173,18 @@ function Inventory() {
         ),
         cell: ({ row }) => (
           <div className="flex justify-end gap-1">
+            {row.original.role === "finished_good" && (
+              <Button
+                variant="ghost"
+                size="icon"
+                aria-label={translate("inventory.lots.forItem", {
+                  name: row.original.name,
+                })}
+                onClick={() => setLotsId(row.original.id)}
+              >
+                <Boxes />
+              </Button>
+            )}
             <Button
               variant="ghost"
               size="icon"
@@ -311,6 +326,7 @@ function Inventory() {
         </>
       )}
       <MovementHistory item={history} onClose={() => setHistoryId(undefined)} />
+      <FinishedGoodLots item={lotsItem} onClose={() => setLotsId(undefined)} />
     </div>
   )
 }

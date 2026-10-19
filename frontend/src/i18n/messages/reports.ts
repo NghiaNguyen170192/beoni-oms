@@ -68,6 +68,22 @@ export const en = {
   "reports.tax": "Tax",
   "reports.uncertainCosts": "Lines with uncertain cost",
   "reports.missingCosts": "Lines with missing cost",
+  "reports.productionReceived": "Produced",
+  "reports.productionConsumed": "Used in production",
+  "reports.lotMovements": "Lot movements",
+  "reports.lotMovementCount": "{count} movements",
+  "reports.productionCost": "Production batch material cost",
+  "reports.productionReportTitle": "Production report",
+  "reports.productionReportDescription":
+    "Planned and actual finished quantities and waste by production batch.",
+  "reports.status": "Batch status",
+  "reports.allStatuses": "All statuses",
+  "reports.product": "Product",
+  "reports.allProducts": "All products",
+  "reports.plannedYield": "Planned yield",
+  "reports.actualYield": "Actual good yield",
+  "reports.waste": "Waste",
+  "reports.loadFailed": "Unable to load the report.",
 }
 
 export const vi = {
@@ -141,4 +157,20 @@ export const vi = {
   "reports.tax": "Thuế",
   "reports.uncertainCosts": "Dòng có giá vốn chưa chắc",
   "reports.missingCosts": "Dòng thiếu giá vốn",
+  "reports.productionReceived": "Sản xuất",
+  "reports.productionConsumed": "Dùng trong sản xuất",
+  "reports.lotMovements": "Biến động theo lô",
+  "reports.lotMovementCount": "{count} biến động",
+  "reports.productionCost": "Chi phí nguyên liệu mẻ sản xuất",
+  "reports.productionReportTitle": "Báo cáo sản xuất",
+  "reports.productionReportDescription":
+    "Sản lượng thành phẩm dự kiến, thực tế và hao hụt theo từng mẻ.",
+  "reports.status": "Trạng thái mẻ",
+  "reports.allStatuses": "Tất cả trạng thái",
+  "reports.product": "Sản phẩm",
+  "reports.allProducts": "Tất cả sản phẩm",
+  "reports.plannedYield": "Sản lượng dự kiến",
+  "reports.actualYield": "Sản lượng đạt thực tế",
+  "reports.waste": "Hao hụt",
+  "reports.loadFailed": "Không thể tải báo cáo.",
 }

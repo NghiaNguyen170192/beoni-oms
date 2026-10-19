@@ -17,6 +17,7 @@ import {
 import { useFormatters } from "@/hooks/useBusinessSettings"
 import { t as translate, useI18n } from "@/i18n"
 import { formatNumber } from "@/lib/format"
+import { ITEM_TYPE_LABELS, MOVEMENT_TYPE_LABELS } from "@/lib/labels"
 import { requirePermission } from "@/lib/permissions"
 
 export const Route = createFileRoute("/_layout/reports/inventory")({
@@ -29,7 +30,7 @@ export const Route = createFileRoute("/_layout/reports/inventory")({
 
 function InventoryReports() {
   const { t } = useI18n()
-  const { formatMoney } = useFormatters()
+  const { formatDateTime, formatMoney } = useFormatters()
   const range = useReportRange()
   const movements = useQuery({
     queryKey: ["inventory-movements", range.dateFrom, range.dateTo],
@@ -80,36 +81,70 @@ function InventoryReports() {
         onChange={range.setRange}
       />
       {status.data ? (
-        <div className="flex flex-wrap gap-3">
-          <div className="rounded-md border px-3 py-2">
-            <div className="text-xs text-muted-foreground">
-              {t("reports.stockValue")}
+        <>
+          <div className="flex flex-wrap gap-3">
+            <div className="rounded-md border px-3 py-2">
+              <div className="text-xs text-muted-foreground">
+                {t("reports.stockValue")}
+              </div>
+              <div
+                className="text-lg font-semibold tabular-nums"
+                data-testid="stock-value"
+                data-value={status.data.total_value}
+              >
+                {formatMoney(status.data.total_value)}
+              </div>
             </div>
-            <div
-              className="text-lg font-semibold tabular-nums"
-              data-testid="stock-value"
-              data-value={status.data.total_value}
-            >
-              {formatMoney(status.data.total_value)}
+            <div className="rounded-md border px-3 py-2">
+              <div className="text-xs text-muted-foreground">
+                {t("reports.lowStock")}
+              </div>
+              <div className="text-lg font-semibold tabular-nums">
+                {status.data.low_stock.length}
+              </div>
+            </div>
+            <div className="rounded-md border px-3 py-2">
+              <div className="text-xs text-muted-foreground">
+                {t("reports.negativeStock")}
+              </div>
+              <div className="text-lg font-semibold tabular-nums">
+                {status.data.negative_stock.length}
+              </div>
             </div>
           </div>
-          <div className="rounded-md border px-3 py-2">
-            <div className="text-xs text-muted-foreground">
-              {t("reports.lowStock")}
-            </div>
-            <div className="text-lg font-semibold tabular-nums">
-              {status.data.low_stock.length}
-            </div>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>{t("reports.sku")}</TableHead>
+                  <TableHead>{t("common.name")}</TableHead>
+                  <TableHead>{t("inventory.field.itemType")}</TableHead>
+                  <TableHead className="text-right">
+                    {t("reports.closing")}
+                  </TableHead>
+                  <TableHead className="text-right">
+                    {t("reports.stockValue")}
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {status.data.items.map((item) => (
+                  <TableRow key={item.item_id}>
+                    <TableCell>{item.sku}</TableCell>
+                    <TableCell>{item.name}</TableCell>
+                    <TableCell>{t(ITEM_TYPE_LABELS[item.item_type])}</TableCell>
+                    <TableCell className="text-right tabular-nums">
+                      {formatNumber(item.quantity)} {item.base_unit}
+                    </TableCell>
+                    <TableCell className="text-right tabular-nums">
+                      {formatMoney(item.value)}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           </div>
-          <div className="rounded-md border px-3 py-2">
-            <div className="text-xs text-muted-foreground">
-              {t("reports.negativeStock")}
-            </div>
-            <div className="text-lg font-semibold tabular-nums">
-              {status.data.negative_stock.length}
-            </div>
-          </div>
-        </div>
+        </>
       ) : null}
       {movements.data ? (
         <div className="overflow-x-auto">
@@ -130,7 +165,13 @@ function InventoryReports() {
                   {t("reports.received")}
                 </TableHead>
                 <TableHead className="text-right">
+                  {t("reports.productionReceived")}
+                </TableHead>
+                <TableHead className="text-right">
                   {t("reports.consumed")}
+                </TableHead>
+                <TableHead className="text-right">
+                  {t("reports.productionConsumed")}
                 </TableHead>
                 <TableHead className="text-right">
                   {t("reports.adjustments")}
@@ -150,6 +191,7 @@ function InventoryReports() {
                 <TableHead className="text-right">
                   {t("reports.closingValue")}
                 </TableHead>
+                <TableHead>{t("reports.lotMovements")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -168,7 +210,13 @@ function InventoryReports() {
                     {formatNumber(row.received)}
                   </TableCell>
                   <TableCell className="text-right tabular-nums">
+                    {formatNumber(row.production_received)}
+                  </TableCell>
+                  <TableCell className="text-right tabular-nums">
                     {formatNumber(row.consumed)}
+                  </TableCell>
+                  <TableCell className="text-right tabular-nums">
+                    {formatNumber(row.production_consumed)}
                   </TableCell>
                   <TableCell className="text-right tabular-nums">
                     {formatNumber(row.adjustments)}
@@ -187,6 +235,37 @@ function InventoryReports() {
                   </TableCell>
                   <TableCell className="text-right tabular-nums">
                     {formatMoney(row.closing_value)}
+                  </TableCell>
+                  <TableCell>
+                    {(row.lot_movements ?? []).length > 0 ? (
+                      <details>
+                        <summary className="cursor-pointer">
+                          {t("reports.lotMovementCount", {
+                            count: (row.lot_movements ?? []).length,
+                          })}
+                        </summary>
+                        <ul className="min-w-64 space-y-1 py-2 text-xs">
+                          {(row.lot_movements ?? []).map((movement) => (
+                            <li key={movement.id}>
+                              {movement.lot_number}
+                              {movement.batch_number != null
+                                ? ` · ${t("production.batch.number", {
+                                    number: movement.batch_number,
+                                  })}`
+                                : ""}
+                              {" · "}
+                              {t(MOVEMENT_TYPE_LABELS[movement.movement_type])}
+                              {" · "}
+                              {formatNumber(movement.quantity)}
+                              {" · "}
+                              {formatDateTime(movement.occurred_at)}
+                            </li>
+                          ))}
+                        </ul>
+                      </details>
+                    ) : (
+                      "—"
+                    )}
                   </TableCell>
                 </TableRow>
               ))}

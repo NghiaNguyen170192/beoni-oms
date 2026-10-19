@@ -34,20 +34,20 @@ export function ShortageDialog({
     >
       <DialogContent data-testid="shortage-dialog">
         <DialogHeader>
-          <DialogTitle>{t("recipes.shortage.title")}</DialogTitle>
+          <DialogTitle>{t("ordering.stockShortage.title")}</DialogTitle>
           <DialogDescription>
-            {t("recipes.shortage.description")}
+            {t("ordering.stockShortage.description")}
           </DialogDescription>
         </DialogHeader>
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>{t("recipes.shortage.item")}</TableHead>
+              <TableHead>{t("ordering.stockShortage.item")}</TableHead>
               <TableHead className="text-right">
-                {t("recipes.shortage.required")}
+                {t("ordering.stockShortage.required")}
               </TableHead>
               <TableHead className="text-right">
-                {t("recipes.shortage.available")}
+                {t("ordering.stockShortage.available")}
               </TableHead>
             </TableRow>
           </TableHeader>

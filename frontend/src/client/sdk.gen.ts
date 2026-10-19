@@ -3,7 +3,7 @@
 import type { CancelablePromise } from './core/CancelablePromise';
 import { OpenAPI } from './core/OpenAPI';
 import { request as __request } from './core/request';
-import type { AccountingReadAccountsResponse, AccountingReadMovementsData, AccountingReadMovementsResponse, AccountingCreateAdjustmentData, AccountingCreateAdjustmentResponse, AccountingReverseAdjustmentData, AccountingReverseAdjustmentResponse, AccountingReadCategoriesData, AccountingReadCategoriesResponse, AccountingCreateCategoryData, AccountingCreateCategoryResponse, AccountingDeactivateCategoryData, AccountingDeactivateCategoryResponse, AccountingReadExpensesData, AccountingReadExpensesResponse, AccountingCreateExpenseData, AccountingCreateExpenseResponse, AccountingPayExpenseData, AccountingPayExpenseResponse, AccountingReverseExpenseData, AccountingReverseExpenseResponse, AccountingCreateSupplierPaymentData, AccountingCreateSupplierPaymentResponse, AccountingReverseSupplierPaymentData, AccountingReverseSupplierPaymentResponse, AccountingReadStatementData, AccountingReadStatementResponse, AccountingReadSummaryData, AccountingReadSummaryResponse, AccountingReadIncomeData, AccountingReadIncomeResponse, AuditReadAuditLogData, AuditReadAuditLogResponse, CatalogReadCategoriesData, CatalogReadCategoriesResponse, CatalogCreateCategoryData, CatalogCreateCategoryResponse, CatalogReorderCategoriesData, CatalogReorderCategoriesResponse, CatalogUpdateCategoryData, CatalogUpdateCategoryResponse, CatalogReadItemsData, CatalogReadItemsResponse, CatalogCreateItemData, CatalogCreateItemResponse, CatalogReadItemData, CatalogReadItemResponse, CatalogUpdateItemData, CatalogUpdateItemResponse, CatalogDeleteItemData, CatalogDeleteItemResponse, CatalogUploadItemImageData, CatalogUploadItemImageResponse, InventoryReadCategoriesResponse, InventoryReadItemsData, InventoryReadItemsResponse, InventoryCreateItemData, InventoryCreateItemResponse, InventoryReadLowStockData, InventoryReadLowStockResponse, InventoryReadNegativeStockData, InventoryReadNegativeStockResponse, InventoryReadItemData, InventoryReadItemResponse, InventoryUpdateItemData, InventoryUpdateItemResponse, InventoryDeleteItemData, InventoryDeleteItemResponse, InventoryReadItemMovementsData, InventoryReadItemMovementsResponse, InventoryReadAdjustmentsData, InventoryReadAdjustmentsResponse, InventoryPostAdjustmentData, InventoryPostAdjustmentResponse, InventoryReadAdjustmentData, InventoryReadAdjustmentResponse, InventoryReverseAdjustmentData, InventoryReverseAdjustmentResponse, LoginLoginAccessTokenData, LoginLoginAccessTokenResponse, LoginTestTokenResponse, LoginRecoverPasswordData, LoginRecoverPasswordResponse, LoginResetPasswordData, LoginResetPasswordResponse, LoginRecoverPasswordHtmlContentData, LoginRecoverPasswordHtmlContentResponse, OrdersReadOrdersData, OrdersReadOrdersResponse, OrdersCreateOrderData, OrdersCreateOrderResponse, OrdersReadOrderData, OrdersReadOrderResponse, OrdersUpdateOrderData, OrdersUpdateOrderResponse, OrdersReplaceOrderLinesData, OrdersReplaceOrderLinesResponse, OrdersSetOrderDiscountData, OrdersSetOrderDiscountResponse, OrdersSetLineDiscountData, OrdersSetLineDiscountResponse, OrdersConfirmOrderData, OrdersConfirmOrderResponse, OrdersCancelOrderData, OrdersCancelOrderResponse, OrdersCompleteOrderData, OrdersCompleteOrderResponse, OrdersReadStockReturnsData, OrdersReadStockReturnsResponse, OrdersCreateStockReturnData, OrdersCreateStockReturnResponse, OrdersReadReceiptData, OrdersReadReceiptResponse, PaymentsReadPaymentMethodsData, PaymentsReadPaymentMethodsResponse, PaymentsCreatePaymentMethodData, PaymentsCreatePaymentMethodResponse, PaymentsUpdatePaymentMethodData, PaymentsUpdatePaymentMethodResponse, PaymentsReadOrderPaymentsData, PaymentsReadOrderPaymentsResponse, PaymentsCreateOrderPaymentData, PaymentsCreateOrderPaymentResponse, PaymentsPayAndCompleteOrderData, PaymentsPayAndCompleteOrderResponse, PaymentsVoidPaymentData, PaymentsVoidPaymentResponse, PaymentsReadPaymentsData, PaymentsReadPaymentsResponse, PaymentsCreateOrderRefundData, PaymentsCreateOrderRefundResponse, PaymentsReadRefundsData, PaymentsReadRefundsResponse, PrivateCreateUserData, PrivateCreateUserResponse, PurchasingReadSuppliersData, PurchasingReadSuppliersResponse, PurchasingCreateSupplierData, PurchasingCreateSupplierResponse, PurchasingReadSupplierData, PurchasingReadSupplierResponse, PurchasingUpdateSupplierData, PurchasingUpdateSupplierResponse, PurchasingDeleteSupplierData, PurchasingDeleteSupplierResponse, PurchasingReadSupplierBalanceData, PurchasingReadSupplierBalanceResponse, PurchasingReadSupplierReceiptsData, PurchasingReadSupplierReceiptsResponse, PurchasingReadReceiptsData, PurchasingReadReceiptsResponse, PurchasingCreateReceiptData, PurchasingCreateReceiptResponse, PurchasingReadReceiptData, PurchasingReadReceiptResponse, PurchasingUpdateReceiptData, PurchasingUpdateReceiptResponse, PurchasingDeleteReceiptData, PurchasingDeleteReceiptResponse, PurchasingPostReceiptData, PurchasingPostReceiptResponse, PurchasingReverseReceiptData, PurchasingReverseReceiptResponse, RecipesReadRecipesData, RecipesReadRecipesResponse, RecipesCreateRecipeVersionData, RecipesCreateRecipeVersionResponse, RecipesReadRecipeData, RecipesReadRecipeResponse, RecipesReadCostPreviewData, RecipesReadCostPreviewResponse, ReportsReadPresetData, ReportsReadPresetResponse, ReportsReadDashboardData, ReportsReadDashboardResponse, ReportsReadSalesSummaryData, ReportsReadSalesSummaryResponse, ReportsExportSalesSummaryData, ReportsExportSalesSummaryResponse, ReportsReadProductsData, ReportsReadProductsResponse, ReportsExportProductsData, ReportsExportProductsResponse, ReportsReadMovementsData, ReportsReadMovementsResponse, ReportsExportMovementsData, ReportsExportMovementsResponse, ReportsReadStockStatusData, ReportsReadStockStatusResponse, ReportsReadExpensesData, ReportsReadExpensesResponse, ReportsExportExpensesData, ReportsExportExpensesResponse, ReportsReadStatementData, ReportsReadStatementResponse, ReportsExportStatementData, ReportsExportStatementResponse, ReportsReadComparisonData, ReportsReadComparisonResponse, ReportsExportPaymentsData, ReportsExportPaymentsResponse, ReportsExportIncomeData, ReportsExportIncomeResponse, SettingsReadBusinessSettingsResponse, SettingsUpdateBusinessSettingsData, SettingsUpdateBusinessSettingsResponse, SettingsUpdateLanguageData, SettingsUpdateLanguageResponse, UsersReadUsersData, UsersReadUsersResponse, UsersCreateUserData, UsersCreateUserResponse, UsersReadUserMeResponse, UsersDeleteUserMeResponse, UsersUpdateUserMeData, UsersUpdateUserMeResponse, UsersUpdatePasswordMeData, UsersUpdatePasswordMeResponse, UsersRegisterUserData, UsersRegisterUserResponse, UsersReadUserByIdData, UsersReadUserByIdResponse, UsersUpdateUserData, UsersUpdateUserResponse, UsersDeleteUserData, UsersDeleteUserResponse, UtilsTestEmailData, UtilsTestEmailResponse, UtilsHealthCheckResponse, UtilsReadinessCheckResponse } from './types.gen';
+import type { AccountingReadAccountsResponse, AccountingReadMovementsData, AccountingReadMovementsResponse, AccountingCreateAdjustmentData, AccountingCreateAdjustmentResponse, AccountingReverseAdjustmentData, AccountingReverseAdjustmentResponse, AccountingReadCategoriesData, AccountingReadCategoriesResponse, AccountingCreateCategoryData, AccountingCreateCategoryResponse, AccountingDeactivateCategoryData, AccountingDeactivateCategoryResponse, AccountingReadExpensesData, AccountingReadExpensesResponse, AccountingCreateExpenseData, AccountingCreateExpenseResponse, AccountingPayExpenseData, AccountingPayExpenseResponse, AccountingReverseExpenseData, AccountingReverseExpenseResponse, AccountingCreateSupplierPaymentData, AccountingCreateSupplierPaymentResponse, AccountingReverseSupplierPaymentData, AccountingReverseSupplierPaymentResponse, AccountingReadStatementData, AccountingReadStatementResponse, AccountingReadSummaryData, AccountingReadSummaryResponse, AccountingReadIncomeData, AccountingReadIncomeResponse, AuditReadAuditLogData, AuditReadAuditLogResponse, CatalogReadCategoriesData, CatalogReadCategoriesResponse, CatalogCreateCategoryData, CatalogCreateCategoryResponse, CatalogReorderCategoriesData, CatalogReorderCategoriesResponse, CatalogUpdateCategoryData, CatalogUpdateCategoryResponse, CatalogReadItemsData, CatalogReadItemsResponse, CatalogCreateItemData, CatalogCreateItemResponse, CatalogReadItemData, CatalogReadItemResponse, CatalogUpdateItemData, CatalogUpdateItemResponse, CatalogDeleteItemData, CatalogDeleteItemResponse, CatalogUploadItemImageData, CatalogUploadItemImageResponse, InventoryReadCategoriesResponse, InventoryReadItemsData, InventoryReadItemsResponse, InventoryCreateItemData, InventoryCreateItemResponse, InventoryReadLowStockData, InventoryReadLowStockResponse, InventoryReadNegativeStockData, InventoryReadNegativeStockResponse, InventoryReadItemData, InventoryReadItemResponse, InventoryUpdateItemData, InventoryUpdateItemResponse, InventoryDeleteItemData, InventoryDeleteItemResponse, InventoryReadItemLotsData, InventoryReadItemLotsResponse, InventoryReadItemMovementsData, InventoryReadItemMovementsResponse, InventoryReadAdjustmentsData, InventoryReadAdjustmentsResponse, InventoryPostAdjustmentData, InventoryPostAdjustmentResponse, InventoryReadAdjustmentData, InventoryReadAdjustmentResponse, InventoryReverseAdjustmentData, InventoryReverseAdjustmentResponse, LoginLoginAccessTokenData, LoginLoginAccessTokenResponse, LoginTestTokenResponse, LoginRecoverPasswordData, LoginRecoverPasswordResponse, LoginResetPasswordData, LoginResetPasswordResponse, LoginRecoverPasswordHtmlContentData, LoginRecoverPasswordHtmlContentResponse, OrdersReadOrdersData, OrdersReadOrdersResponse, OrdersCreateOrderData, OrdersCreateOrderResponse, OrdersReadOrderData, OrdersReadOrderResponse, OrdersUpdateOrderData, OrdersUpdateOrderResponse, OrdersReplaceOrderLinesData, OrdersReplaceOrderLinesResponse, OrdersSetOrderDiscountData, OrdersSetOrderDiscountResponse, OrdersSetLineDiscountData, OrdersSetLineDiscountResponse, OrdersConfirmOrderData, OrdersConfirmOrderResponse, OrdersCancelOrderData, OrdersCancelOrderResponse, OrdersCompleteOrderData, OrdersCompleteOrderResponse, OrdersReadStockReturnsData, OrdersReadStockReturnsResponse, OrdersCreateStockReturnData, OrdersCreateStockReturnResponse, OrdersReadReceiptData, OrdersReadReceiptResponse, PaymentsReadPaymentMethodsData, PaymentsReadPaymentMethodsResponse, PaymentsCreatePaymentMethodData, PaymentsCreatePaymentMethodResponse, PaymentsUpdatePaymentMethodData, PaymentsUpdatePaymentMethodResponse, PaymentsReadOrderPaymentsData, PaymentsReadOrderPaymentsResponse, PaymentsCreateOrderPaymentData, PaymentsCreateOrderPaymentResponse, PaymentsPayAndCompleteOrderData, PaymentsPayAndCompleteOrderResponse, PaymentsVoidPaymentData, PaymentsVoidPaymentResponse, PaymentsReadPaymentsData, PaymentsReadPaymentsResponse, PaymentsCreateOrderRefundData, PaymentsCreateOrderRefundResponse, PaymentsReadRefundsData, PaymentsReadRefundsResponse, PrivateCreateUserData, PrivateCreateUserResponse, ProductionReadBatchesData, ProductionReadBatchesResponse, ProductionCreateBatchData, ProductionCreateBatchResponse, ProductionReadFinishedGoodAvailabilityResponse, ProductionReadBatchData, ProductionReadBatchResponse, ProductionUpdateBatchData, ProductionUpdateBatchResponse, ProductionReadBatchTraceabilityData, ProductionReadBatchTraceabilityResponse, ProductionCompleteBatchData, ProductionCompleteBatchResponse, ProductionReverseBatchData, ProductionReverseBatchResponse, PurchasingReadSuppliersData, PurchasingReadSuppliersResponse, PurchasingCreateSupplierData, PurchasingCreateSupplierResponse, PurchasingReadSupplierData, PurchasingReadSupplierResponse, PurchasingUpdateSupplierData, PurchasingUpdateSupplierResponse, PurchasingDeleteSupplierData, PurchasingDeleteSupplierResponse, PurchasingReadSupplierBalanceData, PurchasingReadSupplierBalanceResponse, PurchasingReadSupplierReceiptsData, PurchasingReadSupplierReceiptsResponse, PurchasingReadReceiptsData, PurchasingReadReceiptsResponse, PurchasingCreateReceiptData, PurchasingCreateReceiptResponse, PurchasingReadReceiptData, PurchasingReadReceiptResponse, PurchasingUpdateReceiptData, PurchasingUpdateReceiptResponse, PurchasingDeleteReceiptData, PurchasingDeleteReceiptResponse, PurchasingPostReceiptData, PurchasingPostReceiptResponse, PurchasingReverseReceiptData, PurchasingReverseReceiptResponse, RecipesReadRecipesData, RecipesReadRecipesResponse, RecipesCreateRecipeVersionData, RecipesCreateRecipeVersionResponse, RecipesReadRecipeData, RecipesReadRecipeResponse, RecipesReadCostPreviewData, RecipesReadCostPreviewResponse, ReportsReadPresetData, ReportsReadPresetResponse, ReportsReadDashboardData, ReportsReadDashboardResponse, ReportsReadSalesSummaryData, ReportsReadSalesSummaryResponse, ReportsExportSalesSummaryData, ReportsExportSalesSummaryResponse, ReportsReadProductsData, ReportsReadProductsResponse, ReportsExportProductsData, ReportsExportProductsResponse, ReportsReadMovementsData, ReportsReadMovementsResponse, ReportsExportMovementsData, ReportsExportMovementsResponse, ReportsReadStockStatusData, ReportsReadStockStatusResponse, ReportsReadProductionReportData, ReportsReadProductionReportResponse, ReportsExportProductionReportData, ReportsExportProductionReportResponse, ReportsReadExpensesData, ReportsReadExpensesResponse, ReportsExportExpensesData, ReportsExportExpensesResponse, ReportsReadStatementData, ReportsReadStatementResponse, ReportsExportStatementData, ReportsExportStatementResponse, ReportsReadComparisonData, ReportsReadComparisonResponse, ReportsExportPaymentsData, ReportsExportPaymentsResponse, ReportsExportIncomeData, ReportsExportIncomeResponse, SettingsReadBusinessSettingsResponse, SettingsUpdateBusinessSettingsData, SettingsUpdateBusinessSettingsResponse, SettingsUpdateLanguageData, SettingsUpdateLanguageResponse, UsersReadUsersData, UsersReadUsersResponse, UsersCreateUserData, UsersCreateUserResponse, UsersReadUserMeResponse, UsersDeleteUserMeResponse, UsersUpdateUserMeData, UsersUpdateUserMeResponse, UsersUpdatePasswordMeData, UsersUpdatePasswordMeResponse, UsersRegisterUserData, UsersRegisterUserResponse, UsersReadUserByIdData, UsersReadUserByIdResponse, UsersUpdateUserData, UsersUpdateUserResponse, UsersDeleteUserData, UsersDeleteUserResponse, UtilsTestEmailData, UtilsTestEmailResponse, UtilsHealthCheckResponse, UtilsReadinessCheckResponse } from './types.gen';
 
 export class AccountingService {
     /**
@@ -806,6 +806,26 @@ export class InventoryService {
         return __request(OpenAPI, {
             method: 'DELETE',
             url: '/api/v1/inventory/items/{item_id}',
+            path: {
+                item_id: data.itemId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Read Item Lots
+     * @param data The data for the request.
+     * @param data.itemId
+     * @returns FinishedGoodLotsPublic Successful Response
+     * @throws ApiError
+     */
+    public static readItemLots(data: InventoryReadItemLotsData): CancelablePromise<InventoryReadItemLotsResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/inventory/items/{item_id}/lots',
             path: {
                 item_id: data.itemId
             },
@@ -1648,6 +1668,188 @@ export class PrivateService {
     }
 }
 
+export class ProductionService {
+    /**
+     * Read Batches
+     * @param data The data for the request.
+     * @param data.status
+     * @param data.plannedFrom
+     * @param data.plannedTo
+     * @param data.recipeId
+     * @param data.menuItemId
+     * @param data.skip
+     * @param data.limit
+     * @returns ProductionBatchesPublic Successful Response
+     * @throws ApiError
+     */
+    public static readBatches(data: ProductionReadBatchesData = {}): CancelablePromise<ProductionReadBatchesResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/production/batches',
+            query: {
+                status: data.status,
+                planned_from: data.plannedFrom,
+                planned_to: data.plannedTo,
+                recipe_id: data.recipeId,
+                menu_item_id: data.menuItemId,
+                skip: data.skip,
+                limit: data.limit
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Create Batch
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns ProductionBatchPublic Successful Response
+     * @throws ApiError
+     */
+    public static createBatch(data: ProductionCreateBatchData): CancelablePromise<ProductionCreateBatchResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/production/batches',
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Read Finished Good Availability
+     * @returns FinishedGoodsAvailabilityPublic Successful Response
+     * @throws ApiError
+     */
+    public static readFinishedGoodAvailability(): CancelablePromise<ProductionReadFinishedGoodAvailabilityResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/production/batches/availability'
+        });
+    }
+    
+    /**
+     * Read Batch
+     * @param data The data for the request.
+     * @param data.batchId
+     * @returns ProductionBatchPublic Successful Response
+     * @throws ApiError
+     */
+    public static readBatch(data: ProductionReadBatchData): CancelablePromise<ProductionReadBatchResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/production/batches/{batch_id}',
+            path: {
+                batch_id: data.batchId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Update Batch
+     * @param data The data for the request.
+     * @param data.batchId
+     * @param data.requestBody
+     * @returns ProductionBatchPublic Successful Response
+     * @throws ApiError
+     */
+    public static updateBatch(data: ProductionUpdateBatchData): CancelablePromise<ProductionUpdateBatchResponse> {
+        return __request(OpenAPI, {
+            method: 'PATCH',
+            url: '/api/v1/production/batches/{batch_id}',
+            path: {
+                batch_id: data.batchId
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Read Batch Traceability
+     * @param data The data for the request.
+     * @param data.batchId
+     * @returns ProductionBatchTraceabilityPublic Successful Response
+     * @throws ApiError
+     */
+    public static readBatchTraceability(data: ProductionReadBatchTraceabilityData): CancelablePromise<ProductionReadBatchTraceabilityResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/production/batches/{batch_id}/traceability',
+            path: {
+                batch_id: data.batchId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Complete Batch
+     * @param data The data for the request.
+     * @param data.batchId
+     * @param data.requestBody
+     * @param data.idempotencyKey
+     * @returns ProductionBatchPublic Successful Response
+     * @throws ApiError
+     */
+    public static completeBatch(data: ProductionCompleteBatchData): CancelablePromise<ProductionCompleteBatchResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/production/batches/{batch_id}/complete',
+            path: {
+                batch_id: data.batchId
+            },
+            headers: {
+                'Idempotency-Key': data.idempotencyKey
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Reverse Batch
+     * @param data The data for the request.
+     * @param data.batchId
+     * @param data.requestBody
+     * @param data.idempotencyKey
+     * @returns ProductionBatchPublic Successful Response
+     * @throws ApiError
+     */
+    public static reverseBatch(data: ProductionReverseBatchData): CancelablePromise<ProductionReverseBatchResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/production/batches/{batch_id}/reverse',
+            path: {
+                batch_id: data.batchId
+            },
+            headers: {
+                'Idempotency-Key': data.idempotencyKey
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+}
+
 export class PurchasingService {
     /**
      * Read Suppliers
@@ -2310,6 +2512,58 @@ export class ReportsService {
                 category_id: data.categoryId,
                 item_type: data.itemType,
                 is_active: data.isActive
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Read Production Report
+     * @param data The data for the request.
+     * @param data.dateFrom
+     * @param data.dateTo
+     * @param data.status
+     * @param data.menuItemId
+     * @returns ProductionReportPublic Successful Response
+     * @throws ApiError
+     */
+    public static readProductionReport(data: ReportsReadProductionReportData): CancelablePromise<ReportsReadProductionReportResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/reports/production',
+            query: {
+                date_from: data.dateFrom,
+                date_to: data.dateTo,
+                status: data.status,
+                menu_item_id: data.menuItemId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Export Production Report
+     * @param data The data for the request.
+     * @param data.dateFrom
+     * @param data.dateTo
+     * @param data.status
+     * @param data.menuItemId
+     * @returns unknown Successful Response
+     * @throws ApiError
+     */
+    public static exportProductionReport(data: ReportsExportProductionReportData): CancelablePromise<ReportsExportProductionReportResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/reports/production.csv',
+            query: {
+                date_from: data.dateFrom,
+                date_to: data.dateTo,
+                status: data.status,
+                menu_item_id: data.menuItemId
             },
             errors: {
                 422: 'Validation Error'

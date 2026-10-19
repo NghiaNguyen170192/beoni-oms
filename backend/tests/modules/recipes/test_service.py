@@ -13,6 +13,8 @@ from app.modules.inventory.errors import ItemInactive
 from app.modules.inventory.models import (
     InventoryItem,
     InventoryMovement,
+    InventoryRole,
+    ItemType,
     MovementType,
     Unit,
 )
@@ -34,6 +36,7 @@ from app.modules.recipes.errors import (
 from app.modules.recipes.models import MovementAllocation, RecipeKind
 from app.modules.recipes.schemas import (
     RecipeLineCreate,
+    RecipeOutputLineCreate,
     RecipePublic,
     RecipeVersionCreate,
     StockReturnCreate,
@@ -246,6 +249,46 @@ def test_direct_sale_stock_link_is_one_item(db: Session, manager: User) -> None:
     other = _ingredient(db, "Cup", Unit.CUP)
     with pytest.raises(RecipeNotAllowed):
         _version(db, manager, water.id, [(bottle.id, "1"), (other.id, "1")])
+
+
+def test_direct_sale_menu_item_can_anchor_a_production_formula(
+    db: Session, manager: User
+) -> None:
+    custard = _ingredient(db, "Custard mix", Unit.G)
+    flan_stock = make_inventory_item(
+        db,
+        name="Flan stock",
+        item_type=ItemType.MERCHANDISE,
+        role=InventoryRole.FINISHED_GOOD,
+        base_unit=Unit.PIECE,
+        purchase_unit=Unit.PIECE,
+        conversion_factor=D("1"),
+    )
+    flan = make_menu_item(
+        db, name="Flan", product_type=ProductType.DIRECT_SALE
+    )
+
+    formula = service.create_version(
+        db,
+        data=RecipeVersionCreate(
+            menu_item_id=flan.id,
+            effective_from=_at(-1),
+            lines=[RecipeLineCreate(inventory_item_id=custard.id, quantity=D("175"))],
+            outputs=[
+                RecipeOutputLineCreate(
+                    menu_item_id=flan.id,
+                    inventory_item_id=flan_stock.id,
+                    quantity=D("5"),
+                )
+            ],
+        ),
+        actor=manager,
+    )
+
+    assert formula.kind == RecipeKind.RECIPE
+    assert len(formula.outputs) == 1
+    assert formula.outputs[0].menu_item_id == flan.id
+    assert formula.outputs[0].quantity == D("5.0000")
 
 
 def test_version_creation_audits_old_and_new_lines(db: Session, manager: User) -> None:

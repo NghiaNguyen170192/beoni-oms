@@ -11,6 +11,7 @@ import * as common from "./messages/common"
 import * as inventory from "./messages/inventory"
 import * as ordering from "./messages/ordering"
 import * as payments from "./messages/payments"
+import * as production from "./messages/production"
 import * as purchasing from "./messages/purchasing"
 import * as recipes from "./messages/recipes"
 import * as reports from "./messages/reports"
@@ -28,6 +29,7 @@ const en = {
   ...ordering.en,
   ...purchasing.en,
   ...payments.en,
+  ...production.en,
   ...recipes.en,
   ...accounting.en,
   ...reports.en,
@@ -47,6 +49,7 @@ const vi: Record<MessageKey, string> = {
   ...ordering.vi,
   ...purchasing.vi,
   ...payments.vi,
+  ...production.vi,
   ...recipes.vi,
   ...accounting.vi,
   ...reports.vi,

@@ -28,6 +28,17 @@ export const en = {
   "ordering.menu.searchPlaceholder": "Search by code or name",
   "ordering.menu.empty": "No sellable items match.",
   "ordering.menu.add": "Add {name}",
+  "ordering.stock.available": "{quantity} {unit} available",
+  "ordering.stock.onHand": "Finished stock: {quantity} {unit}",
+  "ordering.stock.outOfStock": "Out of finished stock",
+  "ordering.stock.availabilityError":
+    "Finished-good availability could not be loaded. Stock is still checked when completing the sale.",
+  "ordering.stockShortage.title": "Not enough finished stock",
+  "ordering.stockShortage.description":
+    "This sale cannot be completed. Add finished-good stock through production or an adjustment, then retry.",
+  "ordering.stockShortage.item": "Finished-good inventory",
+  "ordering.stockShortage.required": "Required",
+  "ordering.stockShortage.available": "Available",
 
   "ordering.discount.description":
     "The discounted total is calculated by the server.",
@@ -110,6 +121,17 @@ export const vi: Record<keyof typeof en, string> = {
   "ordering.menu.searchPlaceholder": "Tìm theo mã hoặc tên",
   "ordering.menu.empty": "Không có món nào phù hợp.",
   "ordering.menu.add": "Thêm {name}",
+  "ordering.stock.available": "Còn {quantity} {unit}",
+  "ordering.stock.onHand": "Tồn thành phẩm: {quantity} {unit}",
+  "ordering.stock.outOfStock": "Hết thành phẩm",
+  "ordering.stock.availabilityError":
+    "Không thể tải tồn thành phẩm. Hệ thống vẫn kiểm tra tồn khi hoàn tất đơn.",
+  "ordering.stockShortage.title": "Không đủ thành phẩm",
+  "ordering.stockShortage.description":
+    "Không thể hoàn tất đơn này. Hãy sản xuất hoặc điều chỉnh tăng tồn thành phẩm rồi thử lại.",
+  "ordering.stockShortage.item": "Hàng thành phẩm trong kho",
+  "ordering.stockShortage.required": "Cần",
+  "ordering.stockShortage.available": "Có thể bán",
 
   "ordering.discount.description": "Tổng tiền sau giảm giá do hệ thống tính.",
   "ordering.discount.type": "Loại giảm giá",

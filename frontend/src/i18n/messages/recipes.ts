@@ -36,7 +36,8 @@ export const en = {
   "recipes.return.reason": "Reason",
   "recipes.return.remaining": "Remaining {quantity}",
   "recipes.return.recorded": "Stock return recorded",
-  "recipes.return.none": "No bottled items left to return.",
+  "recipes.return.none": "No returnable stock items left in this order.",
+  "recipes.return.batch": "Batch #{number}",
 }
 
 export const vi = {
@@ -77,5 +78,6 @@ export const vi = {
   "recipes.return.reason": "Lý do",
   "recipes.return.remaining": "Còn lại {quantity}",
   "recipes.return.recorded": "Đã ghi nhận trả hàng",
-  "recipes.return.none": "Không còn sản phẩm đóng chai để trả.",
+  "recipes.return.none": "Không còn hàng có thể trả trong đơn này.",
+  "recipes.return.batch": "Mẻ #{number}",
 }

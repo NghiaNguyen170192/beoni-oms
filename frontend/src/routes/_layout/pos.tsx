@@ -18,6 +18,7 @@ import { Cart } from "@/components/Ordering/Cart"
 import { DiscountDialog } from "@/components/Ordering/DiscountDialog"
 import { MenuGrid } from "@/components/Ordering/MenuGrid"
 import { PaymentDialog } from "@/components/Payments/PaymentDialog"
+import { finishedGoodAvailabilityQueryOptions } from "@/components/Production/queries"
 import { ShortageDialog } from "@/components/Recipes/ShortageDialog"
 import { type Shortage, shortagesFrom } from "@/components/Recipes/shortages"
 import { Button } from "@/components/ui/button"
@@ -66,6 +67,13 @@ function Pos() {
   const { formatMoney } = useFormatters()
   const { showSuccessToast, showErrorToast } = useCustomToast()
   const completeKey = useIdempotencyKey()
+  const availabilityQuery = useQuery(finishedGoodAvailabilityQueryOptions())
+  const availability = Object.fromEntries(
+    (availabilityQuery.data?.data ?? []).map((item) => [
+      item.menu_item_id,
+      item,
+    ]),
+  )
 
   const [order, setOrder] = useState<OrderPublic | null>(null)
   const [orderType, setOrderType] = useState<OrderType>("takeaway")
@@ -200,7 +208,10 @@ function Pos() {
       setCompleted(done)
     },
     onError,
-    onSettled: () => queryClient.invalidateQueries({ queryKey: ["orders"] }),
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["orders"] })
+      queryClient.invalidateQueries({ queryKey: ["productionAvailability"] })
+    },
   })
 
   const busy =
@@ -277,7 +288,15 @@ function Pos() {
         <h1 className="text-2xl font-bold tracking-tight">
           {t("ordering.pos.title")}
         </h1>
-        <MenuGrid onAdd={addItem} disabled={busy} />
+        <MenuGrid onAdd={addItem} disabled={busy} availability={availability} />
+        {availabilityQuery.error && (
+          <p role="alert" className="text-sm text-destructive">
+            {t("ordering.stock.availabilityError")}
+            <span className="block text-xs">
+              {availabilityQuery.error.message}
+            </span>
+          </p>
+        )}
       </div>
 
       <Card className="h-fit md:sticky md:top-20">
@@ -332,6 +351,7 @@ function Pos() {
             onQuantityChange={changeQuantity}
             onRemove={removeLine}
             onLineDiscount={(line) => setDiscountTarget({ kind: "line", line })}
+            availability={availability}
           />
 
           <div className="flex gap-2">
@@ -391,6 +411,9 @@ function Pos() {
           onCompleted={(done) => {
             resetCart()
             setCompleted(done)
+            queryClient.invalidateQueries({
+              queryKey: ["productionAvailability"],
+            })
           }}
           onShortage={setShortages}
         />

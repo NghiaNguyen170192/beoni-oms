@@ -8,6 +8,7 @@ from app.modules.catalog import routes as catalog_routes
 from app.modules.inventory import routes as inventory_routes
 from app.modules.ordering import routes as ordering_routes
 from app.modules.payments import routes as payments_routes
+from app.modules.production import routes as production_routes
 from app.modules.purchasing import routes as purchasing_routes
 from app.modules.recipes import routes as recipes_routes
 from app.modules.reporting import routes as reporting_routes
@@ -25,6 +26,7 @@ api_router.include_router(ordering_routes.router)
 api_router.include_router(purchasing_routes.router)
 api_router.include_router(payments_routes.router)
 api_router.include_router(recipes_routes.router)
+api_router.include_router(production_routes.router)
 api_router.include_router(accounting_routes.router)
 api_router.include_router(reporting_routes.router)
 

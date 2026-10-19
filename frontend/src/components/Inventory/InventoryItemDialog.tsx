@@ -7,7 +7,9 @@ import { z } from "zod"
 import {
   type InventoryCategoryPublic,
   type InventoryItemPublic,
+  type InventoryRole,
   InventoryService,
+  type ItemType,
 } from "@/client"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -40,7 +42,14 @@ import {
 } from "@/components/ui/select"
 import useCustomToast from "@/hooks/useCustomToast"
 import { t as translate, useI18n } from "@/i18n"
-import { ITEM_TYPE_LABELS, ITEM_TYPES, UNIT_LABELS, UNITS } from "@/lib/labels"
+import {
+  INVENTORY_ROLE_LABELS,
+  INVENTORY_ROLES,
+  ITEM_TYPE_LABELS,
+  ITEM_TYPES,
+  UNIT_LABELS,
+  UNITS,
+} from "@/lib/labels"
 import { handleError } from "@/utils"
 import { editableQuantity } from "./queries"
 
@@ -63,6 +72,7 @@ const formSchema = z
       error: () => translate("inventory.validation.categoryRequired"),
     }),
     item_type: z.enum(ITEM_TYPES),
+    role: z.enum(INVENTORY_ROLES),
     base_unit: z.enum(UNITS),
     purchase_unit: z.enum(UNITS),
     conversion_factor: z
@@ -95,11 +105,21 @@ const formSchema = z
 
 type FormData = z.infer<typeof formSchema>
 
+function defaultRole(itemType: ItemType): InventoryRole {
+  return itemType === "ingredient" ||
+    itemType === "packaging" ||
+    itemType === "consumable"
+    ? "raw_material"
+    : "general"
+}
+
 function toFormValues(item: InventoryItemPublic | undefined): FormData {
+  const itemType = item?.item_type ?? "ingredient"
   return {
     name: item?.name ?? "",
     category_id: item?.category_id ?? "",
-    item_type: item?.item_type ?? "ingredient",
+    item_type: itemType,
+    role: item?.role ?? defaultRole(itemType),
     base_unit: item?.base_unit ?? "g",
     purchase_unit: item?.purchase_unit ?? "g",
     conversion_factor: item ? editableQuantity(item.conversion_factor) : "1",
@@ -280,6 +300,33 @@ export function InventoryItemDialog({
                         ))}
                       </SelectContent>
                     </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="role"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t("inventory.field.inventoryRole")}</FormLabel>
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <FormControl>
+                        <SelectTrigger className="w-full">
+                          <SelectValue />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {INVENTORY_ROLES.map((role) => (
+                          <SelectItem key={role} value={role}>
+                            {t(INVENTORY_ROLE_LABELS[role])}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground">
+                      {t("inventory.field.inventoryRoleHelp")}
+                    </p>
                     <FormMessage />
                   </FormItem>
                 )}

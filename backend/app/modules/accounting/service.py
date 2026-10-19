@@ -41,6 +41,7 @@ from app.modules.inventory.models import InventoryMovement, MovementType
 from app.modules.ordering.models import Order, OrderLine
 from app.modules.ordering.states import OrderStatus
 from app.modules.payments.models import Payment, PaymentStatus, Refund
+from app.modules.production.models import ProductionBatch, ProductionBatchStatus
 from app.modules.purchasing.models import (
     PayableStatus,
     ReceiptStatus,
@@ -74,13 +75,12 @@ def list_accounts(session: Session) -> list[tuple[MoneyAccount, Decimal]]:
     rows = session.exec(select(MoneyAccount).order_by(col(MoneyAccount.name))).all()
     totals = dict(
         session.exec(
-            select(CashMovement.account_id, func.coalesce(func.sum(CashMovement.amount), 0))
-            .group_by(CashMovement.account_id)
+            select(
+                CashMovement.account_id, func.coalesce(func.sum(CashMovement.amount), 0)
+            ).group_by(CashMovement.account_id)
         ).all()
     )
-    return [
-        (account, money(totals.get(account.id, Decimal("0")))) for account in rows
-    ]
+    return [(account, money(totals.get(account.id, Decimal("0")))) for account in rows]
 
 
 def list_movements(
@@ -164,7 +164,11 @@ def record_adjustment(
         session,
         scope="cash.adjust",
         key=idempotency_key,
-        payload={"account_id": str(account_id), "amount": str(signed), "reason": reason},
+        payload={
+            "account_id": str(account_id),
+            "amount": str(signed),
+            "reason": reason,
+        },
         operation=operation,
     )
 
@@ -181,7 +185,10 @@ def reverse_adjustment(
         original = session.get(CashAdjustment, adjustment_id)
         if original is None:
             raise AdjustmentNotFound()
-        if original.status != RecordStatus.RECORDED or original.reversal_of_id is not None:
+        if (
+            original.status != RecordStatus.RECORDED
+            or original.reversal_of_id is not None
+        ):
             raise AdjustmentAlreadyReversed()
         original.status = RecordStatus.REVERSED
         reversal = CashAdjustment(
@@ -214,7 +221,9 @@ def reverse_adjustment(
     )
 
 
-def list_categories(session: Session, *, active_only: bool = False) -> list[ExpenseCategory]:
+def list_categories(
+    session: Session, *, active_only: bool = False
+) -> list[ExpenseCategory]:
     query = select(ExpenseCategory).order_by(col(ExpenseCategory.name))
     if active_only:
         query = query.where(ExpenseCategory.is_active == True)  # noqa: E712
@@ -443,14 +452,18 @@ def list_expenses(
     for row in rows:
         if row.status != RecordStatus.RECORDED:
             continue
-        totals[row.category_id] = money(totals.get(row.category_id, Decimal("0")) + row.amount)
+        totals[row.category_id] = money(
+            totals.get(row.category_id, Decimal("0")) + row.amount
+        )
     names = {
         category.id: category.name
         for category in session.exec(select(ExpenseCategory)).all()
     }
     by_category = [
         (category_id, names.get(category_id, ""), total)
-        for category_id, total in sorted(totals.items(), key=lambda item: names.get(item[0], ""))
+        for category_id, total in sorted(
+            totals.items(), key=lambda item: names.get(item[0], "")
+        )
     ]
     return rows, by_category
 
@@ -500,7 +513,9 @@ def apply_supplier_payment(
             ).all()
         )
         by_id = {payable.id: payable for payable in locked}
-        planned = [(by_id[payable_id], money(share)) for payable_id, share in allocations]
+        planned = [
+            (by_id[payable_id], money(share)) for payable_id, share in allocations
+        ]
     else:
         planned_rows = _open_payables(session, supplier_id, for_update=True)
         remaining = value
@@ -518,7 +533,10 @@ def apply_supplier_payment(
     if sum((share for _, share in planned), Decimal("0")) != value:
         raise AllocationMismatch()
     for payable, share in planned:
-        if payable.supplier_id != supplier_id or payable.status == PayableStatus.CANCELLED:
+        if (
+            payable.supplier_id != supplier_id
+            or payable.status == PayableStatus.CANCELLED
+        ):
             raise OverAllocation()
         outstanding = money(payable.amount - payable.paid_amount)
         if share <= 0 or share > outstanding:
@@ -668,7 +686,9 @@ def reverse_supplier_payment(
     )
 
 
-def supplier_statement(session: Session, supplier_id: uuid.UUID) -> list[dict[str, object]]:
+def supplier_statement(
+    session: Session, supplier_id: uuid.UUID
+) -> list[dict[str, object]]:
     receipts = session.exec(
         select(StockReceipt)
         .where(
@@ -768,6 +788,7 @@ def financial_summary(
             Expense.expense_date <= date_to,
         )
     ).one()
+    production_cost = production_expense(session, date_from=date_from, date_to=date_to)
     uncertain = session.exec(
         select(func.count())
         .select_from(OrderLine)
@@ -795,7 +816,7 @@ def financial_summary(
     tax = money(sales[2])
     refunded = money(refunds)
     cogs = money(-Decimal(sale_value) - Decimal(return_value))
-    expense_total = money(expenses)
+    expense_total = money(Decimal(expenses or 0) + production_cost)
     net = money(gross - discounts - refunded)
     gross_profit = money(net - cogs)
     return {
@@ -811,6 +832,27 @@ def financial_summary(
         "uncertain_cost_lines": int(uncertain or 0),
         "missing_cost_lines": int(missing or 0),
     }
+
+
+def production_expense(session: Session, *, date_from: date, date_to: date) -> Decimal:
+    start, end = period_bounds(date_from, date_to, _zone(session))
+    completed_cost = session.exec(
+        select(func.coalesce(func.sum(ProductionBatch.total_material_cost), 0)).where(
+            ProductionBatch.status.in_(
+                (ProductionBatchStatus.COMPLETED, ProductionBatchStatus.REVERSED)
+            ),
+            ProductionBatch.finished_at >= start,
+            ProductionBatch.finished_at < end,
+        )
+    ).one()
+    reversed_cost = session.exec(
+        select(func.coalesce(func.sum(ProductionBatch.total_material_cost), 0)).where(
+            ProductionBatch.status == ProductionBatchStatus.REVERSED,
+            ProductionBatch.reversed_at >= start,
+            ProductionBatch.reversed_at < end,
+        )
+    ).one()
+    return money(Decimal(completed_cost or 0) - Decimal(reversed_cost or 0))
 
 
 def income_listing(

@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime
+from datetime import date, datetime
 from decimal import Decimal
 
 from pydantic import field_validator, model_validator
@@ -9,6 +9,7 @@ from typing_extensions import Self
 from app.modules.inventory.models import (
     AdjustmentReason,
     AdjustmentStatus,
+    InventoryRole,
     ItemType,
     MovementType,
     Unit,
@@ -65,6 +66,7 @@ class InventoryItemCreate(SQLModel):
     description: str | None = Field(default=None, max_length=1000)
     category_id: uuid.UUID
     item_type: ItemType
+    role: InventoryRole | None = None
     base_unit: Unit
     purchase_unit: Unit
     conversion_factor: Decimal = Field(gt=0, max_digits=18, decimal_places=4)
@@ -90,6 +92,13 @@ class InventoryItemCreate(SQLModel):
             raise ValueError(
                 "Conversion factor must be 1 when purchase and base units are equal"
             )
+        if self.role is None:
+            self.role = (
+                InventoryRole.RAW_MATERIAL
+                if self.item_type
+                in {ItemType.INGREDIENT, ItemType.PACKAGING, ItemType.CONSUMABLE}
+                else InventoryRole.GENERAL
+            )
         return self
 
 
@@ -101,6 +110,7 @@ class InventoryItemUpdate(SQLModel):
     description: str | None = Field(default=None, max_length=1000)
     category_id: uuid.UUID | None = None
     item_type: ItemType | None = None
+    role: InventoryRole | None = None
     base_unit: Unit | None = None
     purchase_unit: Unit | None = None
     conversion_factor: Decimal | None = Field(
@@ -130,6 +140,7 @@ class InventoryItemPublic(SQLModel):
     description: str | None
     category_id: uuid.UUID
     item_type: ItemType
+    role: InventoryRole
     base_unit: Unit
     purchase_unit: Unit
     conversion_factor: Decimal
@@ -147,6 +158,27 @@ class InventoryItemPublic(SQLModel):
 
 class InventoryItemsPublic(SQLModel):
     data: list[InventoryItemPublic]
+    count: int
+
+
+class FinishedGoodLotPublic(SQLModel):
+    id: uuid.UUID
+    lot_number: str
+    origin: str
+    batch_id: uuid.UUID | None
+    batch_number: int | None
+    inventory_item_id: uuid.UUID
+    produced_quantity: Decimal
+    quantity_on_hand: Decimal
+    reserved_quantity: Decimal
+    available_quantity: Decimal
+    unit_cost: Decimal | None
+    finished_at: datetime
+    expiry_date: date | None
+
+
+class FinishedGoodLotsPublic(SQLModel):
+    data: list[FinishedGoodLotPublic]
     count: int
 
 

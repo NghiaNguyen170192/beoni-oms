@@ -31,6 +31,12 @@ class ItemType(str, Enum):
     CONSUMABLE = "consumable"
 
 
+class InventoryRole(str, Enum):
+    RAW_MATERIAL = "raw_material"
+    FINISHED_GOOD = "finished_good"
+    GENERAL = "general"
+
+
 class Unit(str, Enum):
     G = "g"
     KG = "kg"
@@ -46,6 +52,8 @@ class Unit(str, Enum):
 class MovementType(str, Enum):
     RECEIPT = "receipt"
     SALE_CONSUMPTION = "sale_consumption"
+    PRODUCTION_CONSUMPTION = "production_consumption"
+    PRODUCTION_RECEIPT = "production_receipt"
     ADJUSTMENT = "adjustment"
     RETURN = "return"
     REVERSAL = "reversal"
@@ -105,6 +113,10 @@ class InventoryItem(SQLModel, table=True):
             f"item_type IN ({_sql_values(ItemType)})", name="ck_inventory_items_type"
         ),
         CheckConstraint(
+            f"role IN ({_sql_values(InventoryRole)})",
+            name="ck_inventory_items_role",
+        ),
+        CheckConstraint(
             f"base_unit IN ({_sql_values(Unit)})", name="ck_inventory_items_base_unit"
         ),
         CheckConstraint(
@@ -129,6 +141,11 @@ class InventoryItem(SQLModel, table=True):
         foreign_key="inventory_categories.id", ondelete="RESTRICT", index=True
     )
     item_type: ItemType = Field(sa_type=EnumString(ItemType), nullable=False)  # type: ignore
+    role: InventoryRole = Field(
+        default=InventoryRole.GENERAL,
+        sa_type=EnumString(InventoryRole, length=32),  # type: ignore
+        nullable=False,
+    )
     base_unit: Unit = Field(sa_type=EnumString(Unit, length=16), nullable=False)  # type: ignore
     purchase_unit: Unit = Field(sa_type=EnumString(Unit, length=16), nullable=False)  # type: ignore
     conversion_factor: Decimal = Field(sa_type=Numeric(18, 4))  # type: ignore

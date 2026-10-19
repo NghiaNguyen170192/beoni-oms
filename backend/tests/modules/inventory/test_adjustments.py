@@ -10,17 +10,25 @@ from app.modules.identity.roles import Role
 from app.modules.inventory import service
 from app.modules.inventory.errors import (
     AdjustmentAlreadyReversed,
+    AdjustmentLotHasActivity,
     ItemInactive,
     NegativeStockNotAllowed,
 )
 from app.modules.inventory.models import (
     AdjustmentReason,
     InventoryMovement,
+    InventoryRole,
+    ItemType,
     MovementType,
     StockAdjustment,
     Unit,
 )
 from app.modules.inventory.schemas import StockAdjustmentCreate, StockAdjustmentReverse
+from app.modules.production.models import (
+    FinishedGoodLot,
+    FinishedGoodLotMovement,
+    FinishedGoodLotOrigin,
+)
 from app.modules.settings import service as settings_service
 from tests.utils.inventory import (
     assert_reconciled,
@@ -124,6 +132,195 @@ def test_physical_count_posts_the_difference(db: Session) -> None:
     assert D(line["resulting_quantity"]) == D("1850")
     assert D(line["counted_quantity"]) == D("1850")
     assert balance_of(db, beans.id).quantity == D("1850")
+
+
+def test_finished_good_opening_count_creates_audited_lot_without_batch(
+    db: Session,
+) -> None:
+    staff = make_user_with_role(db, Role.INVENTORY_STAFF)
+    flan_stock = make_inventory_item(
+        db,
+        name="Flan stock",
+        item_type=ItemType.MERCHANDISE,
+        role=InventoryRole.FINISHED_GOOD,
+        base_unit=Unit.PIECE,
+        purchase_unit=Unit.PIECE,
+        conversion_factor=D("1"),
+    )
+
+    data = StockAdjustmentCreate.model_validate(
+        {
+            "lines": [
+                {
+                    "item_id": flan_stock.id,
+                    "reason": "physical_count",
+                    "counted_quantity": "5",
+                }
+            ]
+        }
+    )
+    response = service.post_adjustment(
+        db, data=data, actor=staff, idempotency_key="opening-stock-count"
+    )
+    repeated = service.post_adjustment(
+        db, data=data, actor=staff, idempotency_key="opening-stock-count"
+    )
+    assert repeated.body == response.body
+    body = response.body
+
+    [line] = body["lines"]
+    lot = db.exec(
+        select(FinishedGoodLot).where(
+            FinishedGoodLot.opening_stock_line_id == uuid.UUID(line["id"])
+        )
+    ).one()
+    assert lot.origin == FinishedGoodLotOrigin.OPENING_STOCK
+    assert lot.batch_id is None and lot.output_line_id is None
+    assert lot.produced_quantity == lot.quantity_on_hand == D("5")
+    [lot_movement] = db.exec(
+        select(FinishedGoodLotMovement).where(
+            FinishedGoodLotMovement.lot_id == lot.id
+        )
+    ).all()
+    assert lot_movement.quantity == D("5")
+    audit_entry = db.exec(
+        select(AuditLog).where(
+            AuditLog.entity_type == "finished_good_lot",
+            AuditLog.entity_id == str(lot.id),
+            AuditLog.action == "opening_stock_created",
+        )
+    ).one()
+    assert audit_entry.actor_id == staff.id
+    assert_reconciled(db, flan_stock.id)
+
+
+def test_opening_stock_adjustment_reversal_reverses_the_lot(db: Session) -> None:
+    staff = make_user_with_role(db, Role.INVENTORY_STAFF)
+    manager = make_user_with_role(db, Role.MANAGER)
+    flan_stock = make_inventory_item(
+        db,
+        item_type=ItemType.MERCHANDISE,
+        role=InventoryRole.FINISHED_GOOD,
+        base_unit=Unit.PIECE,
+        purchase_unit=Unit.PIECE,
+        conversion_factor=D("1"),
+    )
+    body = _adjust(
+        db,
+        staff,
+        {
+            "item_id": flan_stock.id,
+            "reason": "physical_count",
+            "counted_quantity": "5",
+        },
+    )
+    lot = db.exec(
+        select(FinishedGoodLot).where(
+            FinishedGoodLot.opening_stock_line_id
+            == uuid.UUID(body["lines"][0]["id"])
+        )
+    ).one()
+
+    result = service.reverse_adjustment(
+        db,
+        adjustment_id=uuid.UUID(body["id"]),
+        data=StockAdjustmentReverse(note="Opening count was incorrect"),
+        actor=manager,
+        idempotency_key="reverse-opening-count",
+    )
+
+    assert result.body["status"] == "reversed"
+    assert lot.quantity_on_hand == D("0")
+    lot_movements = db.exec(
+        select(FinishedGoodLotMovement)
+        .where(FinishedGoodLotMovement.lot_id == lot.id)
+        .order_by(FinishedGoodLotMovement.created_at)
+    ).all()
+    assert [row.quantity for row in lot_movements] == [D("5"), D("-5")]
+    assert_reconciled(db, flan_stock.id)
+
+
+def test_existing_finished_good_balance_is_not_fabricated_as_a_lot(
+    db: Session,
+) -> None:
+    staff = make_user_with_role(db, Role.INVENTORY_STAFF)
+    flan_stock = make_inventory_item(
+        db,
+        item_type=ItemType.MERCHANDISE,
+        role=InventoryRole.FINISHED_GOOD,
+    )
+    seed_stock(db, flan_stock, "5", "1")
+
+    _adjust(
+        db,
+        staff,
+        {
+            "item_id": flan_stock.id,
+            "reason": "physical_count",
+            "counted_quantity": "5",
+        },
+    )
+
+    assert db.exec(
+        select(FinishedGoodLot).where(
+            FinishedGoodLot.inventory_item_id == flan_stock.id
+        )
+    ).first() is None
+
+
+def test_used_opening_stock_lot_prevents_adjustment_reversal(db: Session) -> None:
+    staff = make_user_with_role(db, Role.INVENTORY_STAFF)
+    manager = make_user_with_role(db, Role.MANAGER)
+    flan_stock = make_inventory_item(
+        db,
+        item_type=ItemType.MERCHANDISE,
+        role=InventoryRole.FINISHED_GOOD,
+        base_unit=Unit.PIECE,
+        purchase_unit=Unit.PIECE,
+        conversion_factor=D("1"),
+    )
+    body = _adjust(
+        db,
+        staff,
+        {
+            "item_id": flan_stock.id,
+            "reason": "physical_count",
+            "counted_quantity": "5",
+        },
+    )
+    lot = db.exec(
+        select(FinishedGoodLot).where(
+            FinishedGoodLot.opening_stock_line_id
+            == uuid.UUID(body["lines"][0]["id"])
+        )
+    ).one()
+    [sale_movement] = service.post_movements(
+        db,
+        lines=[service.MovementLine(item_id=flan_stock.id, quantity=D("-1"))],
+        movement_type=MovementType.SALE_CONSUMPTION,
+        source_type="test_sale",
+        source_id=uuid.uuid4(),
+        actor=staff,
+    )
+    db.add(
+        FinishedGoodLotMovement(
+            lot_id=lot.id,
+            movement_id=sale_movement.id,
+            quantity=D("-1"),
+        )
+    )
+    lot.quantity_on_hand = D("4")
+    db.add(lot)
+    db.commit()
+
+    with pytest.raises(AdjustmentLotHasActivity):
+        service.reverse_adjustment(
+            db,
+            adjustment_id=uuid.UUID(body["id"]),
+            data=StockAdjustmentReverse(note="Opening count was incorrect"),
+            actor=manager,
+            idempotency_key="reverse-used-opening-count",
+        )
 
 
 def test_physical_count_matching_stock_posts_no_movement(db: Session) -> None:

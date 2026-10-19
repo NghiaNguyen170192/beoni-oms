@@ -114,6 +114,15 @@ class OrderCancel(SQLModel):
         return value
 
 
+class FinishedGoodOrderAllocationPublic(SQLModel):
+    finished_good_lot_id: uuid.UUID
+    lot_number: str
+    batch_id: uuid.UUID | None
+    batch_number: int | None
+    finished_at: datetime
+    quantity: Decimal
+
+
 class OrderLinePublic(SQLModel):
     id: uuid.UUID
     line_no: int
@@ -136,6 +145,9 @@ class OrderLinePublic(SQLModel):
     recipe_version_id: uuid.UUID | None = None
     cogs_amount: Decimal | None = None
     cost_uncertain: bool = False
+    finished_good_allocations: list[FinishedGoodOrderAllocationPublic] = Field(
+        default_factory=list
+    )
 
 
 class OrderPublic(SQLModel):

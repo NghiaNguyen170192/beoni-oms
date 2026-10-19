@@ -247,8 +247,12 @@ function ProfitReports() {
             </TableHeader>
             <TableBody>
               {expenses.data.data.map((row) => (
-                <TableRow key={row.category_id}>
-                  <TableCell>{row.category_name}</TableCell>
+                <TableRow key={row.category_id ?? row.category_name}>
+                  <TableCell>
+                    {row.category_id
+                      ? row.category_name
+                      : t("reports.productionCost")}
+                  </TableCell>
                   <TableCell className="text-right tabular-nums">
                     {formatMoney(row.amount)}
                   </TableCell>

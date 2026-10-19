@@ -8,7 +8,7 @@ export type Shortage = {
   unit: string
 }
 
-/** 409 bodies from order completion carry the short ingredients. */
+/** 409 bodies from order completion carry insufficient finished-good lots. */
 export function shortagesFrom(err: ApiError): Shortage[] | null {
   if (err.status !== 409 || !err.body || typeof err.body !== "object") {
     return null

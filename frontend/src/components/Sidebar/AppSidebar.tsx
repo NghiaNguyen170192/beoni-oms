@@ -3,6 +3,7 @@ import {
   BarChart3,
   ChefHat,
   Coffee,
+  Factory,
   History,
   Home,
   Landmark,
@@ -97,6 +98,12 @@ const navItems: NavItem[] = [
     permissions: ["recipes:read"],
   },
   {
+    icon: Factory,
+    title: "nav.production",
+    path: "/production",
+    permissions: ["production:view"],
+  },
+  {
     icon: Wallet,
     title: "nav.expenses",
     path: "/expenses",
@@ -123,6 +130,12 @@ const navItems: NavItem[] = [
         icon: Package,
         title: "nav.inventoryReports",
         path: "/reports/inventory",
+        permissions: ["reports:inventory"],
+      },
+      {
+        icon: Factory,
+        title: "nav.productionReports",
+        path: "/reports/production",
         permissions: ["reports:inventory"],
       },
       {

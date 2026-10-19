@@ -19,6 +19,7 @@ from app.modules.inventory.schemas import (
     InventoryItemPublic,
     InventoryItemsPublic,
     InventoryItemUpdate,
+    FinishedGoodLotsPublic,
     InventoryMovementsPublic,
     StockAdjustmentCreate,
     StockAdjustmentPublic,
@@ -115,6 +116,13 @@ def create_item(
 @router.get("/items/{item_id}", response_model=InventoryItemPublic)
 def read_item(session: SessionDep, _current_user: Viewer, item_id: uuid.UUID) -> Any:
     return service.get_item_public(session, item_id)
+
+
+@router.get("/items/{item_id}/lots", response_model=FinishedGoodLotsPublic)
+def read_item_lots(
+    session: SessionDep, _current_user: Viewer, item_id: uuid.UUID
+) -> Any:
+    return service.list_finished_good_lots(session, item_id)
 
 
 @router.patch("/items/{item_id}", response_model=InventoryItemPublic)

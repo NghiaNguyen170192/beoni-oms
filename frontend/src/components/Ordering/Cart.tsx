@@ -1,6 +1,7 @@
 import { Minus, Percent, Plus, Trash2 } from "lucide-react"
 
 import type { OrderLinePublic, OrderPublic, OrderType } from "@/client"
+import type { FinishedGoodAvailability } from "@/components/Production/api"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useFormatters } from "@/hooks/useBusinessSettings"
@@ -15,6 +16,7 @@ interface CartProps {
   tableLabel: string
   busy: boolean
   canDiscount: boolean
+  availability: Record<string, FinishedGoodAvailability>
   onOrderTypeChange: (type: OrderType) => void
   onTableLabelChange: (label: string) => void
   onTableLabelCommit: () => void
@@ -29,6 +31,7 @@ export function Cart({
   tableLabel,
   busy,
   canDiscount,
+  availability,
   onOrderTypeChange,
   onTableLabelChange,
   onTableLabelCommit,
@@ -100,6 +103,18 @@ export function Cart({
                       {Number(line.discount_amount) > 0 &&
                         ` · −${formatMoney(line.discount_amount)}`}
                     </div>
+                    {availability[line.menu_item_id] && (
+                      <div className="text-xs text-muted-foreground">
+                        {t("ordering.stock.onHand", {
+                          quantity: formatNumber(
+                            availability[line.menu_item_id].available_quantity,
+                          ),
+                          unit: t(
+                            `unit.${availability[line.menu_item_id].unit}`,
+                          ),
+                        })}
+                      </div>
+                    )}
                   </div>
                   <span className="tabular-nums font-medium">
                     {formatMoney(line.line_total)}

@@ -15,6 +15,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { LoadingButton } from "@/components/ui/loading-button"
+import { useFormatters } from "@/hooks/useBusinessSettings"
 import useCustomToast from "@/hooks/useCustomToast"
 import { useI18n } from "@/i18n"
 import { formatNumber } from "@/lib/format"
@@ -33,6 +34,7 @@ export function ReturnToStockDialog({
   onOpenChange: (open: boolean) => void
 }) {
   const { t } = useI18n()
+  const { formatDateTime } = useFormatters()
   const { showSuccessToast, showErrorToast } = useCustomToast()
   const queryClient = useQueryClient()
   const idempotencyKey = useIdempotencyKey()
@@ -55,8 +57,11 @@ export function ReturnToStockDialog({
     }
   }
 
-  const bottles = order.lines.filter(
-    (line) => line.product_type === "direct_sale",
+  const returnableLines = order.lines.filter(
+    (line) =>
+      (line.product_type === "direct_sale" &&
+        Boolean(line.recipe_version_id)) ||
+      (line.finished_good_allocations ?? []).length > 0,
   )
 
   const record = useMutation({
@@ -82,7 +87,7 @@ export function ReturnToStockDialog({
 
   const submit = (event: FormEvent) => {
     event.preventDefault()
-    const lines = bottles.flatMap((line) => {
+    const lines = returnableLines.flatMap((line) => {
       const draft = drafts[line.id]
       if (!draft || Number(draft.quantity) <= 0) return []
       return [
@@ -106,12 +111,12 @@ export function ReturnToStockDialog({
           </DialogDescription>
         </DialogHeader>
         <form className="flex flex-col gap-4" onSubmit={submit}>
-          {bottles.length === 0 && (
+          {returnableLines.length === 0 && (
             <p className="text-sm text-muted-foreground">
               {t("recipes.return.none")}
             </p>
           )}
-          {bottles.map((line) => {
+          {returnableLines.map((line) => {
             const remaining =
               Number(line.quantity) - (returned.get(line.id) ?? 0)
             const draft = drafts[line.id] ?? { quantity: "", sellable: true }
@@ -126,6 +131,19 @@ export function ReturnToStockDialog({
                       quantity: formatNumber(String(remaining)),
                     })}
                   </div>
+                  {(line.finished_good_allocations ?? []).map((allocation) => (
+                    <div
+                      key={allocation.finished_good_lot_id}
+                      className="text-xs text-muted-foreground"
+                    >
+                      {allocation.lot_number}
+                      {allocation.batch_number !== null &&
+                        ` · ${t("recipes.return.batch", {
+                          number: allocation.batch_number,
+                        })}`}
+                      {` · ${formatDateTime(allocation.finished_at)}`}
+                    </div>
+                  ))}
                 </div>
                 <Input
                   aria-label={t("recipes.quantity")}

@@ -39,6 +39,17 @@ import { useIdempotencyKey } from "@/lib/idempotency"
 import { hasPermission, requirePermission } from "@/lib/permissions"
 import { handleError } from "@/utils"
 
+const EXPENSE_CATEGORY_LABELS = {
+  Rent: "accounting.expenseCategory.rent",
+  Utilities: "accounting.expenseCategory.utilities",
+  Salaries: "accounting.expenseCategory.salaries",
+  Equipment: "accounting.expenseCategory.equipment",
+  Maintenance: "accounting.expenseCategory.maintenance",
+  Marketing: "accounting.expenseCategory.marketing",
+  Delivery: "accounting.expenseCategory.delivery",
+  Other: "accounting.expenseCategory.other",
+} as const
+
 export const Route = createFileRoute("/_layout/expenses")({
   component: Expenses,
   beforeLoad: requirePermission("expenses:read"),
@@ -179,8 +190,13 @@ function Expenses() {
   })
 
   const categoryName = useCallback(
-    (id: string) => categories.data?.find((row) => row.id === id)?.name ?? id,
-    [categories.data],
+    (id: string) => {
+      const name = categories.data?.find((row) => row.id === id)?.name ?? id
+      const labelKey =
+        EXPENSE_CATEGORY_LABELS[name as keyof typeof EXPENSE_CATEGORY_LABELS]
+      return labelKey ? t(labelKey) : name
+    },
+    [categories.data, t],
   )
 
   const columns = useMemo<ColumnDef<ExpensePublic>[]>(
@@ -314,7 +330,7 @@ function Expenses() {
               <SelectItem value="all">{t("common.all")}</SelectItem>
               {categories.data?.map((category) => (
                 <SelectItem key={category.id} value={category.id}>
-                  {category.name}
+                  {categoryName(category.id)}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -359,7 +375,7 @@ function Expenses() {
                 key={total.category_id}
                 className="rounded-md border px-3 py-2"
               >
-                {total.category_name}
+                {categoryName(total.category_id)}
                 <span className="ml-2 tabular-nums">
                   {formatMoney(total.total)}
                 </span>
@@ -396,7 +412,7 @@ function Expenses() {
                 <SelectContent>
                   {categories.data?.map((category) => (
                     <SelectItem key={category.id} value={category.id}>
-                      {category.name}
+                      {categoryName(category.id)}
                     </SelectItem>
                   ))}
                 </SelectContent>

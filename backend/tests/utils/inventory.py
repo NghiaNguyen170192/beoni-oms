@@ -11,6 +11,7 @@ from app.modules.inventory.models import (
     InventoryCategory,
     InventoryItem,
     InventoryMovement,
+    InventoryRole,
     ItemType,
     MovementType,
     Unit,
@@ -27,11 +28,19 @@ def any_inventory_category(db: Session) -> InventoryCategory:
 
 
 def make_inventory_item(db: Session, **overrides: Any) -> InventoryItem:
+    item_type = overrides.get("item_type", ItemType.INGREDIENT)
+    default_role = (
+        InventoryRole.RAW_MATERIAL
+        if item_type
+        in {ItemType.INGREDIENT, ItemType.PACKAGING, ItemType.CONSUMABLE}
+        else InventoryRole.GENERAL
+    )
     values: dict[str, Any] = {
         "sku": random_code("SP-"),
         "name": f"Item {random_lower_string()[:10]}",
         "category_id": any_inventory_category(db).id,
-        "item_type": ItemType.INGREDIENT,
+        "item_type": item_type,
+        "role": default_role,
         "base_unit": Unit.G,
         "purchase_unit": Unit.KG,
         "conversion_factor": Decimal("1000"),

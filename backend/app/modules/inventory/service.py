@@ -17,6 +17,7 @@ from app.modules.idempotency import service as idempotency
 from app.modules.idempotency.service import StoredResponse
 from app.modules.inventory.errors import (
     AdjustmentAlreadyReversed,
+    AdjustmentLotHasActivity,
     AdjustmentNotFound,
     BarcodeTaken,
     InvalidUnitConversion,
@@ -38,12 +39,15 @@ from app.modules.inventory.models import (
     InventoryCategory,
     InventoryItem,
     InventoryMovement,
+    InventoryRole,
     ItemType,
     MovementType,
     StockAdjustment,
     StockAdjustmentLine,
 )
 from app.modules.inventory.schemas import (
+    FinishedGoodLotPublic,
+    FinishedGoodLotsPublic,
     InventoryItemCreate,
     InventoryItemPublic,
     InventoryItemUpdate,
@@ -54,6 +58,7 @@ from app.modules.inventory.schemas import (
     StockAdjustmentReverse,
     StockAdjustmentSummary,
 )
+from app.modules.production.models import FinishedGoodLot, ProductionBatch
 from app.modules.inventory.valuation import apply_movement
 from app.modules.settings.service import get_settings
 
@@ -67,6 +72,7 @@ _ITEM_FIELDS = (
     "description",
     "category_id",
     "item_type",
+    "role",
     "base_unit",
     "purchase_unit",
     "conversion_factor",
@@ -93,6 +99,8 @@ class MovementLine:
     """Cost per base unit for incoming stock; None uses the current average."""
     remove_at_cost: Decimal | None = None
     """Cost per base unit removed by a reversal; recomputes the average."""
+    preserve_cost_uncertainty: bool = False
+    """Propagate uncertainty from the movement being compensated."""
 
 
 def lock_balances(
@@ -183,7 +191,7 @@ def post_movements(
             unit_cost=effect.unit_cost,
             value=effect.value,
             quantity_after=effect.quantity_after,
-            cost_uncertain=effect.cost_uncertain,
+            cost_uncertain=effect.cost_uncertain or line.preserve_cost_uncertainty,
             source_type=source_type,
             source_id=source_id,
             actor_id=actor.id if actor else None,
@@ -247,6 +255,49 @@ def get_item_public(session: Session, item_id: uuid.UUID) -> InventoryItemPublic
     balance = session.get(InventoryBalance, item_id, populate_existing=True)
     assert balance is not None
     return to_public(item, balance)
+
+
+def list_finished_good_lots(
+    session: Session, item_id: uuid.UUID
+) -> FinishedGoodLotsPublic:
+    get_item(session, item_id)
+    rows = session.exec(
+        select(FinishedGoodLot)
+        .where(FinishedGoodLot.inventory_item_id == item_id)
+        .order_by(
+            col(FinishedGoodLot.expiry_date).asc().nulls_last(),
+            col(FinishedGoodLot.finished_at),
+            col(FinishedGoodLot.id),
+        )
+    ).all()
+    batch_ids = {lot.batch_id for lot in rows if lot.batch_id is not None}
+    batch_numbers = {
+        batch.id: batch.number
+        for batch in session.exec(
+            select(ProductionBatch).where(col(ProductionBatch.id).in_(batch_ids))
+        ).all()
+    }
+    lots = [
+        FinishedGoodLotPublic(
+            id=lot.id,
+            lot_number=lot.lot_number,
+            origin=lot.origin.value,
+            batch_id=lot.batch_id,
+            batch_number=batch_numbers.get(lot.batch_id),
+            inventory_item_id=lot.inventory_item_id,
+            produced_quantity=lot.produced_quantity,
+            quantity_on_hand=lot.quantity_on_hand,
+            reserved_quantity=lot.reserved_quantity,
+            available_quantity=round_quantity(
+                lot.quantity_on_hand - lot.reserved_quantity
+            ),
+            unit_cost=lot.unit_cost,
+            finished_at=lot.finished_at,
+            expiry_date=lot.expiry_date,
+        )
+        for lot in rows
+    ]
+    return FinishedGoodLotsPublic(data=lots, count=len(lots))
 
 
 def next_sku(session: Session) -> str:
@@ -593,24 +644,75 @@ def post_adjustment(
         )
         for line_no, line, previous, change in planned:
             movement = next(movements) if change != 0 else None
-            session.add(
-                StockAdjustmentLine(
-                    adjustment_id=adjustment.id,
-                    line_no=line_no,
-                    item_id=line.item_id,
-                    reason=line.reason,
-                    counted_quantity=line.counted_quantity,
-                    previous_quantity=previous,
-                    quantity_change=change,
-                    resulting_quantity=round_quantity(previous + change),
-                    unit_cost=(
-                        movement.unit_cost
-                        if movement
-                        else balances[line.item_id].avg_unit_cost
-                    ),
-                    movement_id=movement.id if movement else None,
-                )
+            adjustment_line = StockAdjustmentLine(
+                adjustment_id=adjustment.id,
+                line_no=line_no,
+                item_id=line.item_id,
+                reason=line.reason,
+                counted_quantity=line.counted_quantity,
+                previous_quantity=previous,
+                quantity_change=change,
+                resulting_quantity=round_quantity(previous + change),
+                unit_cost=(
+                    movement.unit_cost
+                    if movement
+                    else balances[line.item_id].avg_unit_cost
+                ),
+                movement_id=movement.id if movement else None,
             )
+            session.add(adjustment_line)
+            if (
+                movement is not None
+                and line.reason == AdjustmentReason.PHYSICAL_COUNT
+                and previous == 0
+                and line.counted_quantity is not None
+                and line.counted_quantity > 0
+                and items[line.item_id].role == InventoryRole.FINISHED_GOOD
+            ):
+                from app.modules.production.models import (
+                    FinishedGoodLot,
+                    FinishedGoodLotMovement,
+                    FinishedGoodLotOrigin,
+                )
+
+                session.flush()
+                lot = FinishedGoodLot(
+                    lot_number=f"OPEN-{adjustment.id.hex}-{line_no}",
+                    origin=FinishedGoodLotOrigin.OPENING_STOCK,
+                    opening_stock_line_id=adjustment_line.id,
+                    inventory_item_id=line.item_id,
+                    produced_quantity=line.counted_quantity,
+                    quantity_on_hand=line.counted_quantity,
+                    unit_cost=adjustment_line.unit_cost,
+                    finished_at=movement.occurred_at,
+                    created_at=movement.occurred_at,
+                    updated_at=movement.occurred_at,
+                )
+                session.add(lot)
+                session.flush()
+                session.add(
+                    FinishedGoodLotMovement(
+                        lot_id=lot.id,
+                        movement_id=movement.id,
+                        quantity=movement.quantity,
+                        created_at=movement.occurred_at,
+                    )
+                )
+                audit.record(
+                    session,
+                    actor=actor,
+                    entity_type="finished_good_lot",
+                    entity_id=lot.id,
+                    action="opening_stock_created",
+                    changes={
+                        "origin": FinishedGoodLotOrigin.OPENING_STOCK.value,
+                        "inventory_item_id": line.item_id,
+                        "quantity": line.counted_quantity,
+                        "unit_cost": adjustment_line.unit_cost,
+                        "opening_stock_line_id": adjustment_line.id,
+                        "movement_id": movement.id,
+                    },
+                )
         session.flush()
         audit.record(
             session,
@@ -673,7 +775,44 @@ def reverse_adjustment(
             .where(StockAdjustmentLine.adjustment_id == adjustment.id)
             .order_by(col(StockAdjustmentLine.line_no))
         ).all()
-        post_movements(
+        from app.modules.production.models import (
+            FinishedGoodLot,
+            FinishedGoodLotMovement,
+            FinishedGoodLotOrigin,
+        )
+
+        opening_lot_movements = session.exec(
+            select(FinishedGoodLotMovement, FinishedGoodLot)
+            .join(FinishedGoodLot, FinishedGoodLot.id == FinishedGoodLotMovement.lot_id)
+            .where(
+                col(FinishedGoodLotMovement.movement_id).in_(
+                    [movement.id for movement in originals]
+                ),
+                FinishedGoodLot.origin == FinishedGoodLotOrigin.OPENING_STOCK,
+            )
+            .order_by(col(FinishedGoodLot.id))
+            .with_for_update()
+        ).all()
+        opening_lot_movements_by_inventory_movement = {
+            lot_movement.movement_id: (lot_movement, lot)
+            for lot_movement, lot in opening_lot_movements
+        }
+        for lot_movement, lot in opening_lot_movements:
+            has_later_movement = session.exec(
+                select(FinishedGoodLotMovement.id)
+                .where(
+                    FinishedGoodLotMovement.lot_id == lot.id,
+                    FinishedGoodLotMovement.id != lot_movement.id,
+                )
+                .limit(1)
+            ).first()
+            if (
+                has_later_movement is not None
+                or lot.reserved_quantity != 0
+                or lot.quantity_on_hand != lot_movement.quantity
+            ):
+                raise AdjustmentLotHasActivity()
+        reversal_movements = post_movements(
             session,
             lines=[
                 MovementLine(
@@ -689,6 +828,35 @@ def reverse_adjustment(
             actor=actor,
             require_active=False,
         )
+        for original, reversal in zip(originals, reversal_movements, strict=True):
+            lot_entry = opening_lot_movements_by_inventory_movement.get(original.id)
+            if lot_entry is None:
+                continue
+            lot_movement, lot = lot_entry
+            quantity = -lot_movement.quantity
+            lot.quantity_on_hand = round_quantity(lot.quantity_on_hand + quantity)
+            lot.updated_at = reversal.occurred_at
+            session.add(lot)
+            session.add(
+                FinishedGoodLotMovement(
+                    lot_id=lot.id,
+                    movement_id=reversal.id,
+                    quantity=quantity,
+                    created_at=reversal.occurred_at,
+                )
+            )
+            audit.record(
+                session,
+                actor=actor,
+                entity_type="finished_good_lot",
+                entity_id=lot.id,
+                action="opening_stock_reversed",
+                changes={
+                    "quantity": quantity,
+                    "adjustment_id": adjustment.id,
+                    "movement_id": reversal.id,
+                },
+            )
         adjustment.status = AdjustmentStatus.REVERSED
         adjustment.reversed_at = get_datetime_utc()
         adjustment.reversed_by_id = actor.id

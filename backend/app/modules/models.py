@@ -11,6 +11,7 @@ from app.modules.idempotency import models as idempotency_models  # noqa: F401
 from app.modules.inventory import models as inventory_models  # noqa: F401
 from app.modules.ordering import models as ordering_models  # noqa: F401
 from app.modules.payments import models as payments_models  # noqa: F401
+from app.modules.production import models as production_models  # noqa: F401
 from app.modules.purchasing import models as purchasing_models  # noqa: F401
 from app.modules.recipes import models as recipes_models  # noqa: F401
 from app.modules.settings import models as settings_models  # noqa: F401

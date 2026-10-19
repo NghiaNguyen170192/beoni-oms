@@ -149,6 +149,263 @@ export const AuditLogsPublicSchema = {
     title: 'AuditLogsPublic'
 } as const;
 
+export const BatchIngredientActualSchema = {
+    properties: {
+        line_id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Line Id'
+        },
+        actual_quantity: {
+            anyOf: [
+                {
+                    type: 'number',
+                    minimum: 0
+                },
+                {
+                    type: 'string',
+                    pattern: '^(?!^[-+.]*$)[+-]?0*(?:\\d{0,14}|(?=[\\d.]{1,19}0*$)\\d{0,14}\\.\\d{0,4}0*$)'
+                }
+            ],
+            title: 'Actual Quantity'
+        }
+    },
+    type: 'object',
+    required: ['line_id', 'actual_quantity'],
+    title: 'BatchIngredientActual'
+} as const;
+
+export const BatchIngredientCreateSchema = {
+    properties: {
+        inventory_item_id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Inventory Item Id'
+        },
+        planned_quantity: {
+            anyOf: [
+                {
+                    type: 'number',
+                    exclusiveMinimum: 0
+                },
+                {
+                    type: 'string',
+                    pattern: '^(?!^[-+.]*$)[+-]?0*(?:\\d{0,14}|(?=[\\d.]{1,19}0*$)\\d{0,14}\\.\\d{0,4}0*$)'
+                }
+            ],
+            title: 'Planned Quantity'
+        }
+    },
+    type: 'object',
+    required: ['inventory_item_id', 'planned_quantity'],
+    title: 'BatchIngredientCreate'
+} as const;
+
+export const BatchIngredientPublicSchema = {
+    properties: {
+        id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Id'
+        },
+        line_no: {
+            type: 'integer',
+            title: 'Line No'
+        },
+        inventory_item_id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Inventory Item Id'
+        },
+        item_sku: {
+            type: 'string',
+            title: 'Item Sku'
+        },
+        item_name: {
+            type: 'string',
+            title: 'Item Name'
+        },
+        unit: {
+            '$ref': '#/components/schemas/Unit'
+        },
+        planned_quantity: {
+            type: 'string',
+            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
+            title: 'Planned Quantity'
+        },
+        actual_quantity: {
+            anyOf: [
+                {
+                    type: 'string',
+                    pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Actual Quantity'
+        }
+    },
+    type: 'object',
+    required: ['id', 'line_no', 'inventory_item_id', 'item_sku', 'item_name', 'unit', 'planned_quantity', 'actual_quantity'],
+    title: 'BatchIngredientPublic'
+} as const;
+
+export const BatchOutputActualSchema = {
+    properties: {
+        line_id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Line Id'
+        },
+        actual_good_quantity: {
+            anyOf: [
+                {
+                    type: 'number',
+                    minimum: 0
+                },
+                {
+                    type: 'string',
+                    pattern: '^(?!^[-+.]*$)[+-]?0*(?:\\d{0,14}|(?=[\\d.]{1,19}0*$)\\d{0,14}\\.\\d{0,4}0*$)'
+                }
+            ],
+            title: 'Actual Good Quantity'
+        },
+        waste_quantity: {
+            anyOf: [
+                {
+                    type: 'number',
+                    minimum: 0
+                },
+                {
+                    type: 'string',
+                    pattern: '^(?!^[-+.]*$)[+-]?0*(?:\\d{0,14}|(?=[\\d.]{1,19}0*$)\\d{0,14}\\.\\d{0,4}0*$)'
+                }
+            ],
+            title: 'Waste Quantity',
+            default: '0'
+        }
+    },
+    type: 'object',
+    required: ['line_id', 'actual_good_quantity'],
+    title: 'BatchOutputActual'
+} as const;
+
+export const BatchOutputCreateSchema = {
+    properties: {
+        menu_item_id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Menu Item Id'
+        },
+        inventory_item_id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Inventory Item Id'
+        },
+        planned_quantity: {
+            anyOf: [
+                {
+                    type: 'number',
+                    exclusiveMinimum: 0
+                },
+                {
+                    type: 'string',
+                    pattern: '^(?!^[-+.]*$)[+-]?0*(?:\\d{0,14}|(?=[\\d.]{1,19}0*$)\\d{0,14}\\.\\d{0,4}0*$)'
+                }
+            ],
+            title: 'Planned Quantity'
+        }
+    },
+    type: 'object',
+    required: ['menu_item_id', 'inventory_item_id', 'planned_quantity'],
+    title: 'BatchOutputCreate'
+} as const;
+
+export const BatchOutputPublicSchema = {
+    properties: {
+        id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Id'
+        },
+        line_no: {
+            type: 'integer',
+            title: 'Line No'
+        },
+        menu_item_id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Menu Item Id'
+        },
+        menu_item_name: {
+            type: 'string',
+            title: 'Menu Item Name'
+        },
+        menu_item_code: {
+            type: 'string',
+            title: 'Menu Item Code'
+        },
+        inventory_item_id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Inventory Item Id'
+        },
+        item_sku: {
+            type: 'string',
+            title: 'Item Sku'
+        },
+        item_name: {
+            type: 'string',
+            title: 'Item Name'
+        },
+        unit: {
+            '$ref': '#/components/schemas/Unit'
+        },
+        planned_quantity: {
+            type: 'string',
+            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
+            title: 'Planned Quantity'
+        },
+        actual_good_quantity: {
+            anyOf: [
+                {
+                    type: 'string',
+                    pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Actual Good Quantity'
+        },
+        waste_quantity: {
+            type: 'string',
+            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
+            title: 'Waste Quantity'
+        },
+        unit_cost: {
+            anyOf: [
+                {
+                    type: 'string',
+                    pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Unit Cost'
+        },
+        cost_uncertain: {
+            type: 'boolean',
+            title: 'Cost Uncertain'
+        }
+    },
+    type: 'object',
+    required: ['id', 'line_no', 'menu_item_id', 'menu_item_name', 'menu_item_code', 'inventory_item_id', 'item_sku', 'item_name', 'unit', 'planned_quantity', 'actual_good_quantity', 'waste_quantity', 'unit_cost', 'cost_uncertain'],
+    title: 'BatchOutputPublic'
+} as const;
+
 export const Body_catalog_upload_item_imageSchema = {
     properties: {
         file: {
@@ -775,8 +1032,15 @@ export const ExpenseBreakdownPublicSchema = {
 export const ExpenseBreakdownRowSchema = {
     properties: {
         category_id: {
-            type: 'string',
-            format: 'uuid',
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'uuid'
+                },
+                {
+                    type: 'null'
+                }
+            ],
             title: 'Category Id'
         },
         category_name: {
@@ -1074,6 +1338,226 @@ export const FinancialSummaryPublicSchema = {
     title: 'FinancialSummaryPublic'
 } as const;
 
+export const FinishedGoodAvailabilityPublicSchema = {
+    properties: {
+        menu_item_id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Menu Item Id'
+        },
+        menu_item_name: {
+            type: 'string',
+            title: 'Menu Item Name'
+        },
+        inventory_item_id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Inventory Item Id'
+        },
+        inventory_item_sku: {
+            type: 'string',
+            title: 'Inventory Item Sku'
+        },
+        inventory_item_name: {
+            type: 'string',
+            title: 'Inventory Item Name'
+        },
+        available_quantity: {
+            type: 'string',
+            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
+            title: 'Available Quantity'
+        },
+        unit: {
+            '$ref': '#/components/schemas/Unit'
+        }
+    },
+    type: 'object',
+    required: ['menu_item_id', 'menu_item_name', 'inventory_item_id', 'inventory_item_sku', 'inventory_item_name', 'available_quantity', 'unit'],
+    title: 'FinishedGoodAvailabilityPublic'
+} as const;
+
+export const FinishedGoodLotPublicSchema = {
+    properties: {
+        id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Id'
+        },
+        lot_number: {
+            type: 'string',
+            title: 'Lot Number'
+        },
+        origin: {
+            type: 'string',
+            title: 'Origin'
+        },
+        batch_id: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'uuid'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Batch Id'
+        },
+        batch_number: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Batch Number'
+        },
+        inventory_item_id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Inventory Item Id'
+        },
+        produced_quantity: {
+            type: 'string',
+            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
+            title: 'Produced Quantity'
+        },
+        quantity_on_hand: {
+            type: 'string',
+            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
+            title: 'Quantity On Hand'
+        },
+        reserved_quantity: {
+            type: 'string',
+            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
+            title: 'Reserved Quantity'
+        },
+        available_quantity: {
+            type: 'string',
+            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
+            title: 'Available Quantity'
+        },
+        unit_cost: {
+            anyOf: [
+                {
+                    type: 'string',
+                    pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Unit Cost'
+        },
+        finished_at: {
+            type: 'string',
+            format: 'date-time',
+            title: 'Finished At'
+        },
+        expiry_date: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'date'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Expiry Date'
+        }
+    },
+    type: 'object',
+    required: ['id', 'lot_number', 'origin', 'batch_id', 'batch_number', 'inventory_item_id', 'produced_quantity', 'quantity_on_hand', 'reserved_quantity', 'available_quantity', 'unit_cost', 'finished_at', 'expiry_date'],
+    title: 'FinishedGoodLotPublic'
+} as const;
+
+export const FinishedGoodLotsPublicSchema = {
+    properties: {
+        data: {
+            items: {
+                '$ref': '#/components/schemas/FinishedGoodLotPublic'
+            },
+            type: 'array',
+            title: 'Data'
+        },
+        count: {
+            type: 'integer',
+            title: 'Count'
+        }
+    },
+    type: 'object',
+    required: ['data', 'count'],
+    title: 'FinishedGoodLotsPublic'
+} as const;
+
+export const FinishedGoodOrderAllocationPublicSchema = {
+    properties: {
+        finished_good_lot_id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Finished Good Lot Id'
+        },
+        lot_number: {
+            type: 'string',
+            title: 'Lot Number'
+        },
+        batch_id: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'uuid'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Batch Id'
+        },
+        batch_number: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Batch Number'
+        },
+        finished_at: {
+            type: 'string',
+            format: 'date-time',
+            title: 'Finished At'
+        },
+        quantity: {
+            type: 'string',
+            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
+            title: 'Quantity'
+        }
+    },
+    type: 'object',
+    required: ['finished_good_lot_id', 'lot_number', 'batch_id', 'batch_number', 'finished_at', 'quantity'],
+    title: 'FinishedGoodOrderAllocationPublic'
+} as const;
+
+export const FinishedGoodsAvailabilityPublicSchema = {
+    properties: {
+        data: {
+            items: {
+                '$ref': '#/components/schemas/FinishedGoodAvailabilityPublic'
+            },
+            type: 'array',
+            title: 'Data'
+        }
+    },
+    type: 'object',
+    required: ['data'],
+    title: 'FinishedGoodsAvailabilityPublic'
+} as const;
+
 export const GroupBySchema = {
     type: 'string',
     enum: ['day', 'week', 'month'],
@@ -1236,6 +1720,16 @@ export const InventoryItemCreateSchema = {
         item_type: {
             '$ref': '#/components/schemas/ItemType'
         },
+        role: {
+            anyOf: [
+                {
+                    '$ref': '#/components/schemas/InventoryRole'
+                },
+                {
+                    type: 'null'
+                }
+            ]
+        },
         base_unit: {
             '$ref': '#/components/schemas/Unit'
         },
@@ -1327,6 +1821,9 @@ export const InventoryItemPublicSchema = {
         item_type: {
             '$ref': '#/components/schemas/ItemType'
         },
+        role: {
+            '$ref': '#/components/schemas/InventoryRole'
+        },
         base_unit: {
             '$ref': '#/components/schemas/Unit'
         },
@@ -1393,7 +1890,7 @@ export const InventoryItemPublicSchema = {
         }
     },
     type: 'object',
-    required: ['id', 'sku', 'name', 'description', 'category_id', 'item_type', 'base_unit', 'purchase_unit', 'conversion_factor', 'min_stock', 'is_active', 'barcode', 'created_at', 'updated_at', 'quantity', 'avg_unit_cost', 'value', 'is_low_stock', 'is_negative_stock'],
+    required: ['id', 'sku', 'name', 'description', 'category_id', 'item_type', 'role', 'base_unit', 'purchase_unit', 'conversion_factor', 'min_stock', 'is_active', 'barcode', 'created_at', 'updated_at', 'quantity', 'avg_unit_cost', 'value', 'is_low_stock', 'is_negative_stock'],
     title: 'InventoryItemPublic'
 } as const;
 
@@ -1440,6 +1937,16 @@ export const InventoryItemUpdateSchema = {
             anyOf: [
                 {
                     '$ref': '#/components/schemas/ItemType'
+                },
+                {
+                    type: 'null'
+                }
+            ]
+        },
+        role: {
+            anyOf: [
+                {
+                    '$ref': '#/components/schemas/InventoryRole'
                 },
                 {
                     type: 'null'
@@ -1663,6 +2170,12 @@ export const InventoryMovementsPublicSchema = {
     title: 'InventoryMovementsPublic'
 } as const;
 
+export const InventoryRoleSchema = {
+    type: 'string',
+    enum: ['raw_material', 'finished_good', 'general'],
+    title: 'InventoryRole'
+} as const;
+
 export const ItemTypeSchema = {
     type: 'string',
     enum: ['ingredient', 'merchandise', 'packaging', 'consumable'],
@@ -1684,6 +2197,52 @@ export const LanguageUpdateSchema = {
     type: 'object',
     required: ['language'],
     title: 'LanguageUpdate'
+} as const;
+
+export const LotMovementRowSchema = {
+    properties: {
+        id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Id'
+        },
+        lot_id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Lot Id'
+        },
+        lot_number: {
+            type: 'string',
+            title: 'Lot Number'
+        },
+        batch_number: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Batch Number'
+        },
+        movement_type: {
+            '$ref': '#/components/schemas/MovementType'
+        },
+        quantity: {
+            type: 'string',
+            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
+            title: 'Quantity'
+        },
+        occurred_at: {
+            type: 'string',
+            format: 'date-time',
+            title: 'Occurred At'
+        }
+    },
+    type: 'object',
+    required: ['id', 'lot_id', 'lot_number', 'batch_number', 'movement_type', 'quantity', 'occurred_at'],
+    title: 'LotMovementRow'
 } as const;
 
 export const MenuCategoriesPublicSchema = {
@@ -2208,10 +2767,20 @@ export const MovementRowSchema = {
             pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Received'
         },
+        production_received: {
+            type: 'string',
+            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
+            title: 'Production Received'
+        },
         consumed: {
             type: 'string',
             pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Consumed'
+        },
+        production_consumed: {
+            type: 'string',
+            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
+            title: 'Production Consumed'
         },
         adjustments: {
             type: 'string',
@@ -2267,16 +2836,23 @@ export const MovementRowSchema = {
             type: 'string',
             pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Closing Value'
+        },
+        lot_movements: {
+            items: {
+                '$ref': '#/components/schemas/LotMovementRow'
+            },
+            type: 'array',
+            title: 'Lot Movements'
         }
     },
     type: 'object',
-    required: ['item_id', 'sku', 'name', 'base_unit', 'opening', 'received', 'consumed', 'adjustments', 'spoilage', 'expired', 'damaged', 'missing', 'physical_count', 'correction', 'returns', 'reversals', 'closing', 'closing_value'],
+    required: ['item_id', 'sku', 'name', 'base_unit', 'opening', 'received', 'production_received', 'consumed', 'production_consumed', 'adjustments', 'spoilage', 'expired', 'damaged', 'missing', 'physical_count', 'correction', 'returns', 'reversals', 'closing', 'closing_value'],
     title: 'MovementRow'
 } as const;
 
 export const MovementTypeSchema = {
     type: 'string',
-    enum: ['receipt', 'sale_consumption', 'adjustment', 'return', 'reversal'],
+    enum: ['receipt', 'sale_consumption', 'production_consumption', 'production_receipt', 'adjustment', 'return', 'reversal'],
     title: 'MovementType'
 } as const;
 
@@ -2547,6 +3123,13 @@ export const OrderLinePublicSchema = {
             type: 'boolean',
             title: 'Cost Uncertain',
             default: false
+        },
+        finished_good_allocations: {
+            items: {
+                '$ref': '#/components/schemas/FinishedGoodOrderAllocationPublic'
+            },
+            type: 'array',
+            title: 'Finished Good Allocations'
         }
     },
     type: 'object',
@@ -3348,7 +3931,7 @@ export const PeriodPresetSchema = {
 
 export const PermissionSchema = {
     type: 'string',
-    enum: ['users:manage', 'settings:manage', 'audit:read', 'catalog:view', 'catalog:manage', 'inventory:view', 'inventory:manage', 'inventory:adjust', 'inventory:reverse', 'inventory:return', 'purchasing:read', 'purchasing:manage', 'purchasing:post', 'purchasing:reverse', 'recipes:read', 'recipes:manage', 'ordering:create', 'ordering:view_own', 'ordering:view_all', 'ordering:discount', 'ordering:cancel', 'payments:read', 'payments:record', 'payments:void', 'payments:refund', 'payments:configure', 'expenses:read', 'expenses:manage', 'supplier_payments:read', 'supplier_payments:record', 'cash:view', 'cash:adjust', 'finance:view', 'reports:sales', 'reports:inventory', 'reports:financial'],
+    enum: ['users:manage', 'settings:manage', 'audit:read', 'catalog:view', 'catalog:manage', 'inventory:view', 'inventory:manage', 'inventory:adjust', 'inventory:reverse', 'inventory:return', 'purchasing:read', 'purchasing:manage', 'purchasing:post', 'purchasing:reverse', 'recipes:read', 'recipes:manage', 'production:view', 'production:manage', 'production:complete', 'production:backdate', 'production:reverse', 'production:traceability', 'ordering:create', 'ordering:view_own', 'ordering:view_all', 'ordering:discount', 'ordering:cancel', 'payments:read', 'payments:record', 'payments:void', 'payments:refund', 'payments:configure', 'expenses:read', 'expenses:manage', 'supplier_payments:read', 'supplier_payments:record', 'cash:view', 'cash:adjust', 'finance:view', 'reports:sales', 'reports:inventory', 'reports:financial'],
     title: 'Permission'
 } as const;
 
@@ -3559,6 +4142,773 @@ export const ProductTypeSchema = {
     type: 'string',
     enum: ['prepared', 'direct_sale', 'non_stock'],
     title: 'ProductType'
+} as const;
+
+export const ProductionBatchCompleteSchema = {
+    properties: {
+        finished_at: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'date-time'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Finished At'
+        },
+        ingredients: {
+            items: {
+                '$ref': '#/components/schemas/BatchIngredientActual'
+            },
+            type: 'array',
+            maxItems: 100,
+            minItems: 1,
+            title: 'Ingredients'
+        },
+        outputs: {
+            items: {
+                '$ref': '#/components/schemas/BatchOutputActual'
+            },
+            type: 'array',
+            maxItems: 100,
+            minItems: 1,
+            title: 'Outputs'
+        }
+    },
+    type: 'object',
+    required: ['ingredients', 'outputs'],
+    title: 'ProductionBatchComplete'
+} as const;
+
+export const ProductionBatchCreateSchema = {
+    properties: {
+        planned_for: {
+            type: 'string',
+            format: 'date',
+            title: 'Planned For'
+        },
+        notes: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 1000
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Notes'
+        },
+        recipe_id: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'uuid'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Recipe Id'
+        },
+        formula_runs: {
+            anyOf: [
+                {
+                    type: 'number',
+                    exclusiveMinimum: 0
+                },
+                {
+                    type: 'string',
+                    pattern: '^(?!^[-+.]*$)[+-]?0*(?:\\d{0,14}|(?=[\\d.]{1,19}0*$)\\d{0,14}\\.\\d{0,4}0*$)'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Formula Runs'
+        },
+        ingredients: {
+            anyOf: [
+                {
+                    items: {
+                        '$ref': '#/components/schemas/BatchIngredientCreate'
+                    },
+                    type: 'array',
+                    maxItems: 100,
+                    minItems: 1
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Ingredients'
+        },
+        outputs: {
+            anyOf: [
+                {
+                    items: {
+                        '$ref': '#/components/schemas/BatchOutputCreate'
+                    },
+                    type: 'array',
+                    maxItems: 100,
+                    minItems: 1
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Outputs'
+        }
+    },
+    type: 'object',
+    required: ['planned_for'],
+    title: 'ProductionBatchCreate'
+} as const;
+
+export const ProductionBatchLotTracePublicSchema = {
+    properties: {
+        lot_id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Lot Id'
+        },
+        lot_number: {
+            type: 'string',
+            title: 'Lot Number'
+        },
+        inventory_item_id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Inventory Item Id'
+        },
+        item_name: {
+            type: 'string',
+            title: 'Item Name'
+        },
+        produced_quantity: {
+            type: 'string',
+            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
+            title: 'Produced Quantity'
+        },
+        quantity_on_hand: {
+            type: 'string',
+            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
+            title: 'Quantity On Hand'
+        },
+        available_quantity: {
+            type: 'string',
+            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
+            title: 'Available Quantity'
+        },
+        finished_at: {
+            type: 'string',
+            format: 'date-time',
+            title: 'Finished At'
+        },
+        expiry_date: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'date'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Expiry Date'
+        },
+        orders: {
+            items: {
+                '$ref': '#/components/schemas/ProductionLotOrderTracePublic'
+            },
+            type: 'array',
+            title: 'Orders'
+        }
+    },
+    type: 'object',
+    required: ['lot_id', 'lot_number', 'inventory_item_id', 'item_name', 'produced_quantity', 'quantity_on_hand', 'available_quantity', 'finished_at', 'expiry_date', 'orders'],
+    title: 'ProductionBatchLotTracePublic'
+} as const;
+
+export const ProductionBatchPublicSchema = {
+    properties: {
+        id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Id'
+        },
+        number: {
+            type: 'integer',
+            title: 'Number'
+        },
+        status: {
+            '$ref': '#/components/schemas/ProductionBatchStatus'
+        },
+        recipe_id: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'uuid'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Recipe Id'
+        },
+        formula_runs: {
+            anyOf: [
+                {
+                    type: 'string',
+                    pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Formula Runs'
+        },
+        total_material_cost: {
+            anyOf: [
+                {
+                    type: 'string',
+                    pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Total Material Cost'
+        },
+        cost_uncertain: {
+            type: 'boolean',
+            title: 'Cost Uncertain'
+        },
+        planned_for: {
+            type: 'string',
+            format: 'date',
+            title: 'Planned For'
+        },
+        finished_at: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'date-time'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Finished At'
+        },
+        notes: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Notes'
+        },
+        created_by_id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Created By Id'
+        },
+        completed_by_id: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'uuid'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Completed By Id'
+        },
+        reversed_by_id: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'uuid'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Reversed By Id'
+        },
+        reversed_at: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'date-time'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Reversed At'
+        },
+        reversal_reason: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Reversal Reason'
+        },
+        created_at: {
+            type: 'string',
+            format: 'date-time',
+            title: 'Created At'
+        },
+        updated_at: {
+            type: 'string',
+            format: 'date-time',
+            title: 'Updated At'
+        },
+        ingredients: {
+            items: {
+                '$ref': '#/components/schemas/BatchIngredientPublic'
+            },
+            type: 'array',
+            title: 'Ingredients'
+        },
+        outputs: {
+            items: {
+                '$ref': '#/components/schemas/BatchOutputPublic'
+            },
+            type: 'array',
+            title: 'Outputs'
+        }
+    },
+    type: 'object',
+    required: ['id', 'number', 'status', 'recipe_id', 'formula_runs', 'total_material_cost', 'cost_uncertain', 'planned_for', 'finished_at', 'notes', 'created_by_id', 'completed_by_id', 'reversed_by_id', 'reversed_at', 'reversal_reason', 'created_at', 'updated_at', 'ingredients', 'outputs'],
+    title: 'ProductionBatchPublic'
+} as const;
+
+export const ProductionBatchReverseSchema = {
+    properties: {
+        reason: {
+            type: 'string',
+            maxLength: 255,
+            minLength: 1,
+            title: 'Reason'
+        }
+    },
+    type: 'object',
+    required: ['reason'],
+    title: 'ProductionBatchReverse'
+} as const;
+
+export const ProductionBatchStatusSchema = {
+    type: 'string',
+    enum: ['draft', 'completed', 'cancelled', 'reversed'],
+    title: 'ProductionBatchStatus'
+} as const;
+
+export const ProductionBatchSummarySchema = {
+    properties: {
+        id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Id'
+        },
+        number: {
+            type: 'integer',
+            title: 'Number'
+        },
+        status: {
+            '$ref': '#/components/schemas/ProductionBatchStatus'
+        },
+        recipe_id: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'uuid'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Recipe Id'
+        },
+        formula_runs: {
+            anyOf: [
+                {
+                    type: 'string',
+                    pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Formula Runs'
+        },
+        total_material_cost: {
+            anyOf: [
+                {
+                    type: 'string',
+                    pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Total Material Cost'
+        },
+        cost_uncertain: {
+            type: 'boolean',
+            title: 'Cost Uncertain'
+        },
+        planned_for: {
+            type: 'string',
+            format: 'date',
+            title: 'Planned For'
+        },
+        finished_at: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'date-time'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Finished At'
+        },
+        created_at: {
+            type: 'string',
+            format: 'date-time',
+            title: 'Created At'
+        }
+    },
+    type: 'object',
+    required: ['id', 'number', 'status', 'recipe_id', 'formula_runs', 'total_material_cost', 'cost_uncertain', 'planned_for', 'finished_at', 'created_at'],
+    title: 'ProductionBatchSummary'
+} as const;
+
+export const ProductionBatchTraceabilityPublicSchema = {
+    properties: {
+        batch: {
+            '$ref': '#/components/schemas/ProductionBatchPublic'
+        },
+        lots: {
+            items: {
+                '$ref': '#/components/schemas/ProductionBatchLotTracePublic'
+            },
+            type: 'array',
+            title: 'Lots'
+        }
+    },
+    type: 'object',
+    required: ['batch', 'lots'],
+    title: 'ProductionBatchTraceabilityPublic'
+} as const;
+
+export const ProductionBatchUpdateSchema = {
+    properties: {
+        planned_for: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'date'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Planned For'
+        },
+        notes: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 1000
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Notes'
+        },
+        recipe_id: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'uuid'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Recipe Id'
+        },
+        formula_runs: {
+            anyOf: [
+                {
+                    type: 'number',
+                    exclusiveMinimum: 0
+                },
+                {
+                    type: 'string',
+                    pattern: '^(?!^[-+.]*$)[+-]?0*(?:\\d{0,14}|(?=[\\d.]{1,19}0*$)\\d{0,14}\\.\\d{0,4}0*$)'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Formula Runs'
+        },
+        ingredients: {
+            anyOf: [
+                {
+                    items: {
+                        '$ref': '#/components/schemas/BatchIngredientCreate'
+                    },
+                    type: 'array',
+                    maxItems: 100,
+                    minItems: 1
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Ingredients'
+        },
+        outputs: {
+            anyOf: [
+                {
+                    items: {
+                        '$ref': '#/components/schemas/BatchOutputCreate'
+                    },
+                    type: 'array',
+                    maxItems: 100,
+                    minItems: 1
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Outputs'
+        }
+    },
+    type: 'object',
+    title: 'ProductionBatchUpdate'
+} as const;
+
+export const ProductionBatchesPublicSchema = {
+    properties: {
+        data: {
+            items: {
+                '$ref': '#/components/schemas/ProductionBatchSummary'
+            },
+            type: 'array',
+            title: 'Data'
+        },
+        count: {
+            type: 'integer',
+            title: 'Count'
+        }
+    },
+    type: 'object',
+    required: ['data', 'count'],
+    title: 'ProductionBatchesPublic'
+} as const;
+
+export const ProductionLotOrderTracePublicSchema = {
+    properties: {
+        order_id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Order Id'
+        },
+        order_number: {
+            type: 'string',
+            title: 'Order Number'
+        },
+        order_status: {
+            type: 'string',
+            title: 'Order Status'
+        },
+        completed_at: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'date-time'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Completed At'
+        },
+        order_line_id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Order Line Id'
+        },
+        item_name: {
+            type: 'string',
+            title: 'Item Name'
+        },
+        allocated_quantity: {
+            type: 'string',
+            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
+            title: 'Allocated Quantity'
+        },
+        returned_quantity: {
+            type: 'string',
+            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
+            title: 'Returned Quantity'
+        },
+        returns: {
+            items: {
+                '$ref': '#/components/schemas/ProductionLotReturnTracePublic'
+            },
+            type: 'array',
+            title: 'Returns'
+        }
+    },
+    type: 'object',
+    required: ['order_id', 'order_number', 'order_status', 'completed_at', 'order_line_id', 'item_name', 'allocated_quantity', 'returned_quantity', 'returns'],
+    title: 'ProductionLotOrderTracePublic'
+} as const;
+
+export const ProductionLotReturnTracePublicSchema = {
+    properties: {
+        stock_return_line_id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Stock Return Line Id'
+        },
+        stock_return_id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Stock Return Id'
+        },
+        order_line_id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Order Line Id'
+        },
+        quantity: {
+            type: 'string',
+            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
+            title: 'Quantity'
+        },
+        sellable: {
+            type: 'boolean',
+            title: 'Sellable'
+        },
+        reason: {
+            type: 'string',
+            title: 'Reason'
+        },
+        returned_at: {
+            type: 'string',
+            format: 'date-time',
+            title: 'Returned At'
+        }
+    },
+    type: 'object',
+    required: ['stock_return_line_id', 'stock_return_id', 'order_line_id', 'quantity', 'sellable', 'reason', 'returned_at'],
+    title: 'ProductionLotReturnTracePublic'
+} as const;
+
+export const ProductionReportPublicSchema = {
+    properties: {
+        date_from: {
+            type: 'string',
+            format: 'date',
+            title: 'Date From'
+        },
+        date_to: {
+            type: 'string',
+            format: 'date',
+            title: 'Date To'
+        },
+        data: {
+            items: {
+                '$ref': '#/components/schemas/ProductionReportRow'
+            },
+            type: 'array',
+            title: 'Data'
+        },
+        count: {
+            type: 'integer',
+            title: 'Count'
+        }
+    },
+    type: 'object',
+    required: ['date_from', 'date_to', 'data', 'count'],
+    title: 'ProductionReportPublic'
+} as const;
+
+export const ProductionReportRowSchema = {
+    properties: {
+        batch_id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Batch Id'
+        },
+        batch_number: {
+            type: 'integer',
+            title: 'Batch Number'
+        },
+        status: {
+            '$ref': '#/components/schemas/ProductionBatchStatus'
+        },
+        report_date: {
+            type: 'string',
+            format: 'date',
+            title: 'Report Date'
+        },
+        menu_item_id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Menu Item Id'
+        },
+        menu_item_name: {
+            type: 'string',
+            title: 'Menu Item Name'
+        },
+        planned_quantity: {
+            type: 'string',
+            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
+            title: 'Planned Quantity'
+        },
+        actual_good_quantity: {
+            anyOf: [
+                {
+                    type: 'string',
+                    pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Actual Good Quantity'
+        },
+        waste_quantity: {
+            type: 'string',
+            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
+            title: 'Waste Quantity'
+        }
+    },
+    type: 'object',
+    required: ['batch_id', 'batch_number', 'status', 'report_date', 'menu_item_id', 'menu_item_name', 'planned_quantity', 'actual_good_quantity', 'waste_quantity'],
+    title: 'ProductionReportRow'
 } as const;
 
 export const ProfitComparisonPublicSchema = {
@@ -4153,6 +5503,84 @@ export const RecipeLinePublicSchema = {
     title: 'RecipeLinePublic'
 } as const;
 
+export const RecipeOutputLineCreateSchema = {
+    properties: {
+        menu_item_id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Menu Item Id'
+        },
+        inventory_item_id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Inventory Item Id'
+        },
+        quantity: {
+            anyOf: [
+                {
+                    type: 'number',
+                    exclusiveMinimum: 0
+                },
+                {
+                    type: 'string',
+                    pattern: '^(?!^[-+.]*$)[+-]?0*(?:\\d{0,14}|(?=[\\d.]{1,19}0*$)\\d{0,14}\\.\\d{0,4}0*$)'
+                }
+            ],
+            title: 'Quantity'
+        }
+    },
+    type: 'object',
+    required: ['menu_item_id', 'inventory_item_id', 'quantity'],
+    title: 'RecipeOutputLineCreate'
+} as const;
+
+export const RecipeOutputLinePublicSchema = {
+    properties: {
+        id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Id'
+        },
+        menu_item_id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Menu Item Id'
+        },
+        menu_item_name: {
+            type: 'string',
+            title: 'Menu Item Name'
+        },
+        menu_item_code: {
+            type: 'string',
+            title: 'Menu Item Code'
+        },
+        inventory_item_id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Inventory Item Id'
+        },
+        item_sku: {
+            type: 'string',
+            title: 'Item Sku'
+        },
+        item_name: {
+            type: 'string',
+            title: 'Item Name'
+        },
+        base_unit: {
+            '$ref': '#/components/schemas/Unit'
+        },
+        quantity: {
+            type: 'string',
+            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
+            title: 'Quantity'
+        }
+    },
+    type: 'object',
+    required: ['id', 'menu_item_id', 'menu_item_name', 'menu_item_code', 'inventory_item_id', 'item_sku', 'item_name', 'base_unit', 'quantity'],
+    title: 'RecipeOutputLinePublic'
+} as const;
+
 export const RecipePublicSchema = {
     properties: {
         id: {
@@ -4199,10 +5627,17 @@ export const RecipePublicSchema = {
             },
             type: 'array',
             title: 'Lines'
+        },
+        outputs: {
+            items: {
+                '$ref': '#/components/schemas/RecipeOutputLinePublic'
+            },
+            type: 'array',
+            title: 'Outputs'
         }
     },
     type: 'object',
-    required: ['id', 'menu_item_id', 'menu_item_name', 'menu_item_code', 'product_type', 'version', 'kind', 'effective_from', 'created_at', 'lines'],
+    required: ['id', 'menu_item_id', 'menu_item_name', 'menu_item_code', 'product_type', 'version', 'kind', 'effective_from', 'created_at', 'lines', 'outputs'],
     title: 'RecipePublic'
 } as const;
 
@@ -4226,6 +5661,14 @@ export const RecipeVersionCreateSchema = {
             maxItems: 100,
             minItems: 1,
             title: 'Lines'
+        },
+        outputs: {
+            items: {
+                '$ref': '#/components/schemas/RecipeOutputLineCreate'
+            },
+            type: 'array',
+            maxItems: 100,
+            title: 'Outputs'
         }
     },
     type: 'object',
@@ -5292,8 +6735,15 @@ export const StockReturnLinePublicSchema = {
             title: 'Sellable'
         },
         unit_cost: {
-            type: 'string',
-            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
+            anyOf: [
+                {
+                    type: 'string',
+                    pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$'
+                },
+                {
+                    type: 'null'
+                }
+            ],
             title: 'Unit Cost'
         },
         movement_id: {
@@ -5307,10 +6757,80 @@ export const StockReturnLinePublicSchema = {
                 }
             ],
             title: 'Movement Id'
+        },
+        finished_good_lot_id: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'uuid'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Finished Good Lot Id'
+        },
+        finished_good_lot_allocation_id: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'uuid'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Finished Good Lot Allocation Id'
+        },
+        lot_number: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Lot Number'
+        },
+        batch_id: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'uuid'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Batch Id'
+        },
+        batch_number: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Batch Number'
+        },
+        finished_at: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'date-time'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Finished At'
         }
     },
     type: 'object',
-    required: ['id', 'order_line_id', 'item_name', 'quantity', 'sellable', 'unit_cost', 'movement_id'],
+    required: ['id', 'order_line_id', 'item_name', 'quantity', 'sellable', 'unit_cost', 'movement_id', 'finished_good_lot_id', 'finished_good_lot_allocation_id', 'lot_number', 'batch_id', 'batch_number', 'finished_at'],
     title: 'StockReturnLinePublic'
 } as const;
 
@@ -5387,6 +6907,9 @@ export const StockStatusItemSchema = {
             type: 'string',
             title: 'Name'
         },
+        item_type: {
+            '$ref': '#/components/schemas/ItemType'
+        },
         quantity: {
             type: 'string',
             pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
@@ -5395,10 +6918,15 @@ export const StockStatusItemSchema = {
         base_unit: {
             type: 'string',
             title: 'Base Unit'
+        },
+        value: {
+            type: 'string',
+            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
+            title: 'Value'
         }
     },
     type: 'object',
-    required: ['item_id', 'sku', 'name', 'quantity', 'base_unit'],
+    required: ['item_id', 'sku', 'name', 'item_type', 'quantity', 'base_unit', 'value'],
     title: 'StockStatusItem'
 } as const;
 
@@ -5408,6 +6936,13 @@ export const StockStatusPublicSchema = {
             type: 'string',
             pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Total Value'
+        },
+        items: {
+            items: {
+                '$ref': '#/components/schemas/StockStatusItem'
+            },
+            type: 'array',
+            title: 'Items'
         },
         low_stock: {
             items: {
@@ -5425,7 +6960,7 @@ export const StockStatusPublicSchema = {
         }
     },
     type: 'object',
-    required: ['total_value', 'low_stock', 'negative_stock'],
+    required: ['total_value', 'items', 'low_stock', 'negative_stock'],
     title: 'StockStatusPublic'
 } as const;
 

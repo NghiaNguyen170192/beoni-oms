@@ -31,8 +31,9 @@ def _timestamp() -> Any:
 class Recipe(SQLModel, table=True):
     """One version of a menu item's consumption definition.
 
-    `recipe` is a prepared item's ingredient list. `stock_link` is a
-    direct-sale item's single inventory item and quantity per unit sold.
+    `recipe` is a prepared item's ingredient list and optional production
+    outputs. `stock_link` is a direct-sale item's single inventory item and
+    quantity per unit sold.
     """
 
     __tablename__ = "recipes"
@@ -71,6 +72,32 @@ class RecipeLine(SQLModel, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     recipe_id: uuid.UUID = Field(
         foreign_key="recipes.id", ondelete="RESTRICT", index=True
+    )
+    inventory_item_id: uuid.UUID = Field(
+        foreign_key="inventory_items.id", ondelete="RESTRICT"
+    )
+    quantity: Decimal = Field(sa_type=Numeric(18, 4))  # type: ignore
+
+
+class RecipeOutputLine(SQLModel, table=True):
+    __tablename__ = "recipe_output_lines"
+    __table_args__ = (
+        UniqueConstraint(
+            "recipe_id", "menu_item_id", name="uq_recipe_output_lines_menu_item"
+        ),
+        CheckConstraint(
+            "quantity > 0", name="ck_recipe_output_lines_quantity_positive"
+        ),
+        Index("ix_recipe_output_lines_menu_item", "menu_item_id"),
+        Index("ix_recipe_output_lines_inventory_item", "inventory_item_id"),
+    )
+
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    recipe_id: uuid.UUID = Field(
+        foreign_key="recipes.id", ondelete="RESTRICT", index=True
+    )
+    menu_item_id: uuid.UUID = Field(
+        foreign_key="menu_items.id", ondelete="RESTRICT"
     )
     inventory_item_id: uuid.UUID = Field(
         foreign_key="inventory_items.id", ondelete="RESTRICT"
@@ -126,7 +153,16 @@ class StockReturnLine(SQLModel, table=True):
             "(NOT sellable AND movement_id IS NULL)",
             name="ck_stock_return_lines_movement",
         ),
+        CheckConstraint(
+            "(finished_good_lot_id IS NULL) = "
+            "(finished_good_lot_allocation_id IS NULL)",
+            name="ck_stock_return_lines_finished_good_lot",
+        ),
         Index("ix_stock_return_lines_order_line", "order_line_id"),
+        Index(
+            "ix_stock_return_lines_finished_good_allocation",
+            "finished_good_lot_allocation_id",
+        ),
     )
 
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
@@ -138,7 +174,17 @@ class StockReturnLine(SQLModel, table=True):
     )
     quantity: Decimal = Field(sa_type=Numeric(18, 4))  # type: ignore
     sellable: bool
-    unit_cost: Decimal = Field(sa_type=Numeric(18, 4))  # type: ignore
+    unit_cost: Decimal | None = Field(
+        default=None, sa_type=Numeric(18, 4)  # type: ignore
+    )
     movement_id: uuid.UUID | None = Field(
         default=None, foreign_key="inventory_movements.id", ondelete="RESTRICT"
+    )
+    finished_good_lot_id: uuid.UUID | None = Field(
+        default=None, foreign_key="finished_good_lots.id", ondelete="RESTRICT"
+    )
+    finished_good_lot_allocation_id: uuid.UUID | None = Field(
+        default=None,
+        foreign_key="finished_good_lot_allocations.id",
+        ondelete="RESTRICT",
     )

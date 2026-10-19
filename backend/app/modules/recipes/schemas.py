@@ -16,10 +16,17 @@ class RecipeLineCreate(SQLModel):
     quantity: Decimal = Field(gt=0, max_digits=18, decimal_places=4)
 
 
+class RecipeOutputLineCreate(SQLModel):
+    menu_item_id: uuid.UUID
+    inventory_item_id: uuid.UUID
+    quantity: Decimal = Field(gt=0, max_digits=18, decimal_places=4)
+
+
 class RecipeVersionCreate(SQLModel):
     menu_item_id: uuid.UUID
     effective_from: datetime
     lines: list[RecipeLineCreate] = Field(min_length=1, max_length=100)
+    outputs: list[RecipeOutputLineCreate] = Field(default_factory=list, max_length=100)
 
     @field_validator("effective_from")
     @classmethod
@@ -33,11 +40,28 @@ class RecipeVersionCreate(SQLModel):
         ids = [line.inventory_item_id for line in self.lines]
         if len(set(ids)) != len(ids):
             raise ValueError("Each inventory item can appear only once")
+        output_menu_item_ids = [line.menu_item_id for line in self.outputs]
+        if len(set(output_menu_item_ids)) != len(output_menu_item_ids):
+            raise ValueError("Each menu item can appear only once in outputs")
+        if self.outputs and self.menu_item_id not in output_menu_item_ids:
+            raise ValueError("The formula's menu item must appear in outputs")
         return self
 
 
 class RecipeLinePublic(SQLModel):
     id: uuid.UUID
+    inventory_item_id: uuid.UUID
+    item_sku: str
+    item_name: str
+    base_unit: Unit
+    quantity: Decimal
+
+
+class RecipeOutputLinePublic(SQLModel):
+    id: uuid.UUID
+    menu_item_id: uuid.UUID
+    menu_item_name: str
+    menu_item_code: str
     inventory_item_id: uuid.UUID
     item_sku: str
     item_name: str
@@ -56,6 +80,7 @@ class RecipePublic(SQLModel):
     effective_from: datetime
     created_at: datetime
     lines: list[RecipeLinePublic]
+    outputs: list[RecipeOutputLinePublic]
 
 
 class RecipesPublic(SQLModel):
@@ -112,8 +137,14 @@ class StockReturnLinePublic(SQLModel):
     item_name: str
     quantity: Decimal
     sellable: bool
-    unit_cost: Decimal
+    unit_cost: Decimal | None
     movement_id: uuid.UUID | None
+    finished_good_lot_id: uuid.UUID | None
+    finished_good_lot_allocation_id: uuid.UUID | None
+    lot_number: str | None
+    batch_id: uuid.UUID | None
+    batch_number: int | None
+    finished_at: datetime | None
 
 
 class StockReturnPublic(SQLModel):
