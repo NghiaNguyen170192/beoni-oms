@@ -1,0 +1,55 @@
+name: Publish images
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+concurrency:
+  group: publish-images
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      # Baked into the frontend. *.nqtn.dev does not cover this name; nginx serves it.
+      VITE_API_URL: https://api.beoni.nqtn.dev
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Check Docker Hub secrets
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          missing=0
+          for name in DOCKERHUB_USERNAME DOCKERHUB_TOKEN; do
+            if [[ -z "${!name}" ]]; then
+              echo "Missing GitHub secret: ${name}"
+              missing=1
+            fi
+          done
+          test "${missing}" -eq 0
+
+      - name: Publish backend and frontend
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          printf '%s' "$DOCKERHUB_TOKEN" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+          docker build -f backend/Dockerfile -t "$DOCKERHUB_USERNAME/beoni-oms-backend:latest" .
+          docker build -f frontend/Dockerfile \
+            --build-arg "VITE_API_URL=${VITE_API_URL}" \
+            -t "$DOCKERHUB_USERNAME/beoni-oms-frontend:latest" .
+          docker push "$DOCKERHUB_USERNAME/beoni-oms-backend:latest"
+          docker push "$DOCKERHUB_USERNAME/beoni-oms-frontend:latest"
