@@ -19,6 +19,8 @@ permissions: {}
 
 jobs:
   changes:
+    # Disabled for now. Remove this line to run Playwright again.
+    if: false
     runs-on: ubuntu-latest
     timeout-minutes: 5
     # Set job outputs to values from filter step
