@@ -17,8 +17,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:
-      # Baked into the frontend. *.nqtn.dev does not cover this name; nginx serves it.
-      VITE_API_URL: https://api.beoni.nqtn.dev
+      # One label, so Cloudflare's free certificate covers it. api.beoni.nqtn.dev does not.
+      VITE_API_URL: https://beoni-api.nqtn.dev
     steps:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
