@@ -81,8 +81,11 @@ function PaymentsPage() {
         </h1>
         <p className="text-sm text-muted-foreground">{t("payments.netHint")}</p>
       </div>
-      <form className="flex flex-wrap items-end gap-3" onSubmit={apply}>
-        <div className="grid gap-1.5">
+      <form
+        className="grid grid-cols-1 items-end gap-3 sm:grid-cols-2 lg:flex lg:flex-wrap"
+        onSubmit={apply}
+      >
+        <div className="grid min-w-0 gap-1.5">
           <Label htmlFor="pay-from">{t("payments.from")}</Label>
           <Input
             id="pay-from"
@@ -91,7 +94,7 @@ function PaymentsPage() {
             onChange={(event) => setDateFrom(event.target.value)}
           />
         </div>
-        <div className="grid gap-1.5">
+        <div className="grid min-w-0 gap-1.5">
           <Label htmlFor="pay-to">{t("payments.to")}</Label>
           <Input
             id="pay-to"

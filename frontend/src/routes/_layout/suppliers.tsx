@@ -99,8 +99,14 @@ function Suppliers() {
         enableSorting: false,
         header: () => translate("common.status"),
         cell: ({ row }) => (
-          <Badge className={row.original.is_active ? badgeStyles.green : badgeStyles.red}>
-            {translate(row.original.is_active ? "common.active" : "common.inactive")}
+          <Badge
+            className={
+              row.original.is_active ? badgeStyles.green : badgeStyles.red
+            }
+          >
+            {translate(
+              row.original.is_active ? "common.active" : "common.inactive",
+            )}
           </Badge>
         ),
       },
@@ -125,7 +131,7 @@ function Suppliers() {
 
   return (
     <div className="flex w-full flex-col gap-4">
-      <div className="flex items-center justify-between gap-2">
+      <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h1 className="text-2xl font-semibold">
             {t("purchasing.suppliers.title")}
@@ -135,7 +141,10 @@ function Suppliers() {
           </p>
         </div>
         {canManage && (
-          <Button onClick={() => setCreating(true)}>
+          <Button
+            className="w-full sm:w-auto"
+            onClick={() => setCreating(true)}
+          >
             <Plus className="size-4" />
             {t("purchasing.suppliers.add")}
           </Button>

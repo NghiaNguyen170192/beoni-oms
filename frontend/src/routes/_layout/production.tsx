@@ -111,7 +111,7 @@ function Production() {
 				{canManage && <Button onClick={() => setCreating(true)}>{t("production.batch.createAction")}</Button>}
 			</div>
 
-			<div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+			<div className="grid min-w-0 gap-3 sm:grid-cols-2 lg:grid-cols-4">
 				<div className="flex flex-col gap-1">
 					<label htmlFor="production-status" className="text-sm font-medium">
 						{t("common.status")}

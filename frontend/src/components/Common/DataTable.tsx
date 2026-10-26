@@ -1,10 +1,10 @@
 import {
   type ColumnDef,
-  type SortingState,
   flexRender,
   getCoreRowModel,
   getPaginationRowModel,
   getSortedRowModel,
+  type SortingState,
   useReactTable,
 } from "@tanstack/react-table"
 import {
@@ -67,7 +67,7 @@ export function DataTable<TData, TValue>({
   }).split("{total}")
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex min-w-0 flex-col gap-4">
       <Table>
         <TableHeader>
           {table.getHeaderGroups().map((headerGroup) => (
@@ -120,7 +120,7 @@ export function DataTable<TData, TValue>({
             <TableRow className="hover:bg-transparent">
               <TableCell
                 colSpan={columns.length}
-                className="h-32 text-center text-muted-foreground"
+                className="h-32 text-left text-muted-foreground sm:text-center"
               >
                 {t("common.noResults")}
               </TableCell>

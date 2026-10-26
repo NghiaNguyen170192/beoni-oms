@@ -77,8 +77,8 @@ export function PeriodFilter({
           </Button>
         ))}
       </div>
-      <div className="flex flex-wrap items-end gap-3">
-        <div className="grid gap-1.5">
+      <div className="grid grid-cols-1 gap-3 sm:max-w-xl sm:grid-cols-2">
+        <div className="grid min-w-0 gap-1.5">
           <Label htmlFor="report-from">{t("reports.from")}</Label>
           <Input
             id="report-from"
@@ -87,7 +87,7 @@ export function PeriodFilter({
             onChange={(event) => onChange(event.target.value, dateTo)}
           />
         </div>
-        <div className="grid gap-1.5">
+        <div className="grid min-w-0 gap-1.5">
           <Label htmlFor="report-to">{t("reports.to")}</Label>
           <Input
             id="report-to"

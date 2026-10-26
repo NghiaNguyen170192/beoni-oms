@@ -402,7 +402,10 @@ function Orders() {
         </p>
       </div>
 
-      <form onSubmit={apply} className="flex flex-wrap items-end gap-3">
+      <form
+        onSubmit={apply}
+        className="grid grid-cols-1 items-end gap-3 sm:flex sm:flex-wrap"
+      >
         <div className="grid gap-1.5">
           <Label htmlFor="orders-number">{t("ordering.orders.number")}</Label>
           <Input

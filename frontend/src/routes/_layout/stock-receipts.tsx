@@ -178,7 +178,7 @@ function StockReceipts() {
 
   return (
     <div className="flex w-full flex-col gap-4">
-      <div className="flex items-center justify-between gap-2">
+      <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h1 className="text-2xl font-semibold">
             {t("purchasing.receipts.title")}
@@ -188,7 +188,10 @@ function StockReceipts() {
           </p>
         </div>
         {canManage && (
-          <Button onClick={() => setCreating(true)}>
+          <Button
+            className="w-full sm:w-auto"
+            onClick={() => setCreating(true)}
+          >
             <Plus className="size-4" />
             {t("purchasing.receipts.add")}
           </Button>

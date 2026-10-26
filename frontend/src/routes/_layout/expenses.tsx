@@ -281,7 +281,7 @@ function Expenses() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between gap-2">
+      <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h1 className="text-2xl font-semibold">
             {t("accounting.expenses.title")}
@@ -291,13 +291,16 @@ function Expenses() {
           </p>
         </div>
         {canManage && (
-          <Button onClick={() => setCreating(true)}>
+          <Button
+            className="w-full sm:w-auto"
+            onClick={() => setCreating(true)}
+          >
             {t("accounting.expenses.add")}
           </Button>
         )}
       </div>
-      <div className="flex flex-wrap items-end gap-3">
-        <div className="grid gap-1">
+      <div className="grid grid-cols-1 gap-3 sm:flex sm:flex-wrap sm:items-end">
+        <div className="grid min-w-0 gap-1 sm:w-56">
           <Label htmlFor="expense-from">{t("accounting.expenses.from")}</Label>
           <Input
             id="expense-from"
@@ -306,7 +309,7 @@ function Expenses() {
             onChange={(event) => setDateFrom(event.target.value)}
           />
         </div>
-        <div className="grid gap-1">
+        <div className="grid min-w-0 gap-1 sm:w-56">
           <Label htmlFor="expense-to">{t("accounting.expenses.to")}</Label>
           <Input
             id="expense-to"

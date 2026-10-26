@@ -34,8 +34,8 @@ function Layout() {
         <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center gap-2 border-b px-4">
           <SidebarTrigger className="-ml-1 text-muted-foreground" />
         </header>
-        <main className="flex-1 p-6 md:p-8">
-          <div className="mx-auto max-w-7xl">
+        <main className="min-w-0 flex-1 p-4 sm:p-6 md:p-8">
+          <div className="mx-auto w-full min-w-0 max-w-7xl">
             <Outlet />
           </div>
         </main>

@@ -121,7 +121,7 @@ function Cash() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between gap-2">
+      <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h1 className="text-2xl font-semibold">
             {t("accounting.cash.title")}
@@ -131,7 +131,10 @@ function Cash() {
           </p>
         </div>
         {canAdjust && selected && (
-          <Button onClick={() => setAdjusting(true)}>
+          <Button
+            className="w-full sm:w-auto"
+            onClick={() => setAdjusting(true)}
+          >
             {t("accounting.cash.adjust")}
           </Button>
         )}
@@ -168,8 +171,8 @@ function Cash() {
           ))}
         </div>
       )}
-      <div className="flex flex-wrap items-end gap-3">
-        <div className="grid gap-1">
+      <div className="grid grid-cols-1 gap-3 sm:max-w-xl sm:grid-cols-2">
+        <div className="grid min-w-0 gap-1">
           <Label htmlFor="cash-from">{t("accounting.expenses.from")}</Label>
           <Input
             id="cash-from"
@@ -178,7 +181,7 @@ function Cash() {
             onChange={(event) => setDateFrom(event.target.value)}
           />
         </div>
-        <div className="grid gap-1">
+        <div className="grid min-w-0 gap-1">
           <Label htmlFor="cash-to">{t("accounting.expenses.to")}</Label>
           <Input
             id="cash-to"
@@ -189,7 +192,7 @@ function Cash() {
         </div>
       </div>
       {movements.data && (
-        <div className="grid grid-cols-4 gap-2 text-sm">
+        <div className="grid grid-cols-2 gap-2 text-sm sm:grid-cols-4">
           {(
             [
               ["opening", movements.data.opening],
