@@ -26,6 +26,7 @@ import {
 import { useFormatters } from "@/hooks/useBusinessSettings"
 import useCustomToast from "@/hooks/useCustomToast"
 import { useI18n } from "@/i18n"
+import { formatAmountInput, parseAmountInput } from "@/lib/format"
 import { UNIT_LABELS } from "@/lib/labels"
 import { handleError } from "@/utils"
 
@@ -225,7 +226,7 @@ export function ReceiptDialog({
                   {item ? t(UNIT_LABELS[item.purchase_unit]) : "—"}
                 </p>
                 <div className="grid grid-cols-2 gap-2">
-                  <div className="grid gap-1.5">
+                  <div className="grid content-between gap-1.5">
                     <Label>{t("purchasing.receipts.field.quantity")}</Label>
                     <Input
                       aria-label={`${t("purchasing.receipts.field.quantity")} ${index + 1}`}
@@ -242,21 +243,20 @@ export function ReceiptDialog({
                       }
                     />
                   </div>
-                  <div className="grid gap-1.5">
+                  <div className="grid content-between gap-1.5">
                     <Label>{t("purchasing.receipts.field.cost")}</Label>
                     <Input
                       aria-label={`${t("purchasing.receipts.field.cost")} ${index + 1}`}
                       inputMode="decimal"
-                      value={line.cost}
-                      onChange={(event) =>
+                      value={formatAmountInput(line.cost)}
+                      onChange={(event) => {
+                        const cost = parseAmountInput(event.target.value)
                         setLines((current) =>
                           current.map((row) =>
-                            row.key === line.key
-                              ? { ...row, cost: event.target.value }
-                              : row,
+                            row.key === line.key ? { ...row, cost } : row,
                           ),
                         )
-                      }
+                      }}
                     />
                   </div>
                 </div>

@@ -272,7 +272,7 @@ function Inventory() {
           placeholder={t("inventory.searchPlaceholder")}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="max-w-xs"
+          className="w-full sm:max-w-xs"
         />
         <Select
           value={categoryId ?? ALL}
@@ -281,7 +281,7 @@ function Inventory() {
           }
         >
           <SelectTrigger
-            className="w-48"
+            className="w-full sm:w-48"
             aria-label={t("inventory.categoryFilter")}
           >
             <SelectValue />
@@ -300,7 +300,7 @@ function Inventory() {
           onValueChange={(value) => setStatus(value as StatusFilter)}
         >
           <SelectTrigger
-            className="w-48"
+            className="w-full sm:w-48"
             aria-label={t("inventory.statusFilter")}
           >
             <SelectValue />
@@ -320,7 +320,7 @@ function Inventory() {
           onValueChange={(value) => setStock(value as StockFilter)}
         >
           <SelectTrigger
-            className="w-56"
+            className="w-full sm:w-56"
             aria-label={t("inventory.stockFilter")}
           >
             <SelectValue />

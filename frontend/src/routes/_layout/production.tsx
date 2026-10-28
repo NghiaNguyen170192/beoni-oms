@@ -117,7 +117,7 @@ function Production() {
 						{t("common.status")}
 					</label>
 					<Select value={status} onValueChange={(value) => setStatus(value as typeof ALL | BatchStatus)}>
-						<SelectTrigger id="production-status">
+						<SelectTrigger id="production-status" className="w-full">
 							<SelectValue />
 						</SelectTrigger>
 						<SelectContent>
@@ -136,7 +136,7 @@ function Production() {
 						{t("production.batch.outputProduct")}
 					</label>
 					<Select value={menuItemId} onValueChange={setMenuItemId}>
-						<SelectTrigger id="production-menu-item">
+						<SelectTrigger id="production-menu-item" className="w-full">
 							<SelectValue />
 						</SelectTrigger>
 						<SelectContent>

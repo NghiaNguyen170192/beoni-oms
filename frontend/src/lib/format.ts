@@ -44,3 +44,35 @@ export function formatUnitCost(
     maximumFractionDigits: 4,
   }).format(Number(value))
 }
+
+/**
+ * Editable amounts: group the integer part with "." and keep up to
+ * `maximumFractionDigits` decimals after a ",". The form keeps the canonical API
+ * form ("29000.50") either way.
+ */
+export function formatAmountInput(
+  value: string,
+  maximumFractionDigits = 2,
+): string {
+  const negative = value.startsWith("-")
+  const [whole = "", fraction] = (negative ? value.slice(1) : value).split(".")
+  const grouped = whole.replace(/\B(?=(\d{3})+(?!\d))/g, ".")
+  const body = fraction
+    ? `${grouped},${fraction.slice(0, maximumFractionDigits)}`
+    : grouped
+  return negative ? `-${body}` : body
+}
+
+/** Inverse of {@link formatAmountInput}: drop grouping, keep the decimal tail. */
+export function parseAmountInput(
+  value: string,
+  maximumFractionDigits = 2,
+): string {
+  const negative = value.trim().startsWith("-")
+  const [whole = "", fraction = ""] = value.replace(/[^\d,]/g, "").split(",")
+  const trimmed = whole.replace(/^0+(?=\d)/, "")
+  const body = fraction
+    ? `${trimmed}.${fraction.slice(0, maximumFractionDigits)}`
+    : trimmed
+  return negative ? `-${body}` : body
+}

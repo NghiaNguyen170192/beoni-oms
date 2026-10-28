@@ -9,10 +9,9 @@ from app.core.config import settings
 from app.modules.catalog.models import ProductType
 from app.modules.identity.roles import Role
 from app.modules.inventory.models import Unit
-from app.modules.recipes import service
-from app.modules.recipes.schemas import RecipeLineCreate, RecipeVersionCreate
 from tests.utils.catalog import make_menu_item
 from tests.utils.inventory import balance_of, make_inventory_item, seed_stock
+from tests.utils.production import make_lot
 from tests.utils.user import make_user_with_role
 
 API = f"{settings.API_V1_STR}/recipes"
@@ -133,30 +132,14 @@ def _paid_shortage(
     client: TestClient, db: Session, headers: dict[str, str]
 ) -> tuple[str, str]:
     manager = make_user_with_role(db, Role.MANAGER)
-    milk = make_inventory_item(
-        db,
-        name="Milk",
-        base_unit=Unit.ML,
-        purchase_unit=Unit.ML,
-        conversion_factor=D("1"),
-    )
-    seed_stock(db, milk, "200", "10")
-    drink = make_menu_item(db, name="Latte", product_type=ProductType.PREPARED)
-    service.create_version(
-        db,
-        data=RecipeVersionCreate(
-            menu_item_id=drink.id,
-            effective_from=datetime.now(timezone.utc) - timedelta(days=1),
-            lines=[RecipeLineCreate(inventory_item_id=milk.id, quantity=D("300"))],
-        ),
-        actor=manager,
-    )
+    flan = make_menu_item(db, name="Flan", product_type=ProductType.DIRECT_SALE)
+    _, _, flan_stock, _ = make_lot(db, manager, menu_item=flan, good=D("2"))
     order = client.post(
         f"{ORDERS}/",
         headers=headers,
         json={
             "order_type": "takeaway",
-            "lines": [{"menu_item_id": str(drink.id), "quantity": "1"}],
+            "lines": [{"menu_item_id": str(flan.id), "quantity": "3"}],
         },
     )
     assert order.status_code == 201, order.text
@@ -171,24 +154,24 @@ def _paid_shortage(
         json={"method_id": cash, "amount": body["total"]},
     )
     assert paid.status_code == 201, paid.text
-    return body["id"], str(milk.id)
+    return body["id"], str(flan_stock.id)
 
 
 def test_complete_returns_structured_shortages(
     client: TestClient, db: Session, role_token_headers
 ) -> None:
     cashier = role_token_headers(Role.CASHIER)
-    order_id, milk_id = _paid_shortage(client, db, cashier)
+    order_id, stock_id = _paid_shortage(client, db, cashier)
 
     response = client.post(f"{ORDERS}/{order_id}/complete", headers=_key(cashier))
 
     assert response.status_code == 409
     [shortage] = response.json()["shortages"]
-    assert shortage["item"] == "Milk"
-    assert Decimal(shortage["required"]) == D("300")
-    assert Decimal(shortage["available"]) == D("200")
-    assert shortage["unit"] == "ml"
-    assert balance_of(db, uuid.UUID(milk_id)).quantity == D("200.0000")
+    assert shortage["item"] == "Flan stock"
+    assert Decimal(shortage["required"]) == D("3")
+    assert Decimal(shortage["available"]) == D("2")
+    assert shortage["unit"] == "piece"
+    assert balance_of(db, uuid.UUID(stock_id)).quantity == D("2.0000")
     assert (
         client.get(f"{ORDERS}/{order_id}", headers=cashier).json()["status"] == "paid"
     )
@@ -199,30 +182,14 @@ def test_pay_and_complete_returns_the_same_shortage(
 ) -> None:
     cashier = role_token_headers(Role.CASHIER)
     manager = make_user_with_role(db, Role.MANAGER)
-    milk = make_inventory_item(
-        db,
-        name="Milk",
-        base_unit=Unit.ML,
-        purchase_unit=Unit.ML,
-        conversion_factor=D("1"),
-    )
-    seed_stock(db, milk, "200", "10")
-    drink = make_menu_item(db, product_type=ProductType.PREPARED)
-    service.create_version(
-        db,
-        data=RecipeVersionCreate(
-            menu_item_id=drink.id,
-            effective_from=datetime.now(timezone.utc) - timedelta(days=1),
-            lines=[RecipeLineCreate(inventory_item_id=milk.id, quantity=D("300"))],
-        ),
-        actor=manager,
-    )
+    flan = make_menu_item(db, name="Flan", product_type=ProductType.DIRECT_SALE)
+    _, _, flan_stock, _ = make_lot(db, manager, menu_item=flan, good=D("2"))
     order = client.post(
         f"{ORDERS}/",
         headers=cashier,
         json={
             "order_type": "takeaway",
-            "lines": [{"menu_item_id": str(drink.id), "quantity": "1"}],
+            "lines": [{"menu_item_id": str(flan.id), "quantity": "3"}],
         },
     ).json()
     methods = client.get(
@@ -237,36 +204,20 @@ def test_pay_and_complete_returns_the_same_shortage(
     )
 
     assert response.status_code == 409
-    assert response.json()["shortages"][0]["item"] == "Milk"
+    assert response.json()["shortages"][0]["item"] == "Flan stock"
     assert (
         client.get(f"{ORDERS}/{order['id']}", headers=cashier).json()["status"]
         == "draft"
     )
-    assert balance_of(db, milk.id).quantity == D("200.0000")
+    assert balance_of(db, flan_stock.id).quantity == D("2.0000")
 
 
 def test_stock_return_route_requires_permission_and_is_idempotent(
     client: TestClient, db: Session, role_token_headers
 ) -> None:
     manager_user = make_user_with_role(db, Role.MANAGER)
-    bottle = make_inventory_item(
-        db,
-        name="Aquafina 500ml",
-        base_unit=Unit.BOTTLE,
-        purchase_unit=Unit.BOTTLE,
-        conversion_factor=D("1"),
-    )
-    seed_stock(db, bottle, "5", "5000")
-    water = make_menu_item(db, product_type=ProductType.DIRECT_SALE)
-    service.create_version(
-        db,
-        data=RecipeVersionCreate(
-            menu_item_id=water.id,
-            effective_from=datetime.now(timezone.utc) - timedelta(days=1),
-            lines=[RecipeLineCreate(inventory_item_id=bottle.id, quantity=D("1"))],
-        ),
-        actor=manager_user,
-    )
+    flan = make_menu_item(db, name="Flan", product_type=ProductType.DIRECT_SALE)
+    _, _, flan_stock, lot = make_lot(db, manager_user, menu_item=flan, good=D("3"))
     cashier = role_token_headers(Role.CASHIER)
     manager = role_token_headers(Role.MANAGER)
     order = client.post(
@@ -274,7 +225,7 @@ def test_stock_return_route_requires_permission_and_is_idempotent(
         headers=cashier,
         json={
             "order_type": "takeaway",
-            "lines": [{"menu_item_id": str(water.id), "quantity": "1"}],
+            "lines": [{"menu_item_id": str(flan.id), "quantity": "1"}],
         },
     ).json()
     methods = client.get(
@@ -295,6 +246,7 @@ def test_stock_return_route_requires_permission_and_is_idempotent(
         ).status_code
         == 200
     )
+    assert balance_of(db, flan_stock.id).quantity == D("2.0000")
     line_id = order["lines"][0]["id"]
     payload = {
         "reason": "unopened",
@@ -317,7 +269,9 @@ def test_stock_return_route_requires_permission_and_is_idempotent(
     assert first.status_code == 201, first.text
     assert second.status_code == 201
     assert first.json() == second.json()
-    assert balance_of(db, bottle.id).quantity == D("5.0000")
+    [return_line] = first.json()["lines"]
+    assert return_line["finished_good_lot_id"] == str(lot.id)
+    assert balance_of(db, flan_stock.id).quantity == D("3.0000")
     listed = client.get(f"{ORDERS}/{order['id']}/stock-returns", headers=manager)
     assert listed.status_code == 200
     assert listed.json()["count"] == 1

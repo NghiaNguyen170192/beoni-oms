@@ -24,6 +24,7 @@ import {
 import { useFormatters } from "@/hooks/useBusinessSettings"
 import useCustomToast from "@/hooks/useCustomToast"
 import { type MessageKey, useI18n } from "@/i18n"
+import { formatAmountInput, parseAmountInput } from "@/lib/format"
 import { useIdempotencyKey } from "@/lib/idempotency"
 import { handleError } from "@/utils"
 
@@ -130,8 +131,10 @@ export function RefundDialog({ order, open, onOpenChange }: RefundDialogProps) {
               id="refund-amount"
               className="h-12"
               inputMode="decimal"
-              value={amount}
-              onChange={(event) => setAmount(event.target.value)}
+              value={formatAmountInput(amount)}
+              onChange={(event) =>
+                setAmount(parseAmountInput(event.target.value))
+              }
               required
             />
           </div>

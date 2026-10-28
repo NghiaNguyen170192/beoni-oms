@@ -114,7 +114,7 @@ function ProductionReports() {
           </Label>
           <select
             id="production-report-status"
-            className="h-9 min-w-44 rounded-md border bg-transparent px-3 text-sm"
+            className="h-9 w-full rounded-md border bg-transparent px-3 text-sm sm:w-52"
             value={status}
             onChange={(event) =>
               setStatus(event.target.value as ProductionBatchStatus | "")
@@ -134,7 +134,7 @@ function ProductionReports() {
           </Label>
           <select
             id="production-report-product"
-            className="h-9 min-w-52 rounded-md border bg-transparent px-3 text-sm"
+            className="h-9 w-full rounded-md border bg-transparent px-3 text-sm sm:w-52"
             value={productId}
             onChange={(event) => setProductId(event.target.value)}
           >

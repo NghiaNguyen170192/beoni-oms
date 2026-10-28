@@ -372,7 +372,7 @@ function Orders() {
         }
       >
         <SelectTrigger
-          className="w-40"
+          className="w-full sm:w-40"
           aria-label={t("ordering.orders.filterLabel", { label })}
         >
           <SelectValue />
@@ -413,7 +413,7 @@ function Orders() {
             placeholder="HD-..."
             value={draft.number}
             onChange={(e) => setDraft({ ...draft, number: e.target.value })}
-            className="w-44"
+            className="w-full sm:w-44"
           />
         </div>
         <div className="grid gap-1.5">

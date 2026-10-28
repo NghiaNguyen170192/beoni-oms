@@ -382,7 +382,7 @@ export function ProductionBatchDialog({
                   onValueChange={chooseTemplate}
                   disabled={templates.isPending || templateRows.length === 0}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="w-full min-w-0">
                     <SelectValue
                       placeholder={t("production.templates.choose")}
                     />
@@ -481,7 +481,7 @@ export function ProductionBatchDialog({
                   setMode(value as "manual" | "formula")
                 }
               >
-                <SelectTrigger id="production-plan-mode">
+                <SelectTrigger id="production-plan-mode" className="w-full">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -510,7 +510,7 @@ export function ProductionBatchDialog({
                     setOutputs([])
                   }}
                 >
-                  <SelectTrigger id="production-formula-menu">
+                  <SelectTrigger id="production-formula-menu" className="w-full">
                     <SelectValue
                       placeholder={t("production.batch.chooseMenuItem")}
                     />
@@ -545,7 +545,7 @@ export function ProductionBatchDialog({
                   }}
                   disabled={!formulaMenuItemId || formulas.length === 0}
                 >
-                  <SelectTrigger id="production-formula-version">
+                  <SelectTrigger id="production-formula-version" className="w-full">
                     <SelectValue
                       placeholder={t("production.batch.chooseFormula")}
                     />
@@ -810,7 +810,7 @@ function InventorySelect({
 }) {
   return (
     <Select value={value} onValueChange={onChange}>
-      <SelectTrigger>
+      <SelectTrigger className="w-full">
         <SelectValue placeholder={placeholder} />
       </SelectTrigger>
       <SelectContent>
@@ -897,7 +897,7 @@ function OutputInput({
         value={line.menu_item_id}
         onValueChange={(value) => onChange(index, "menu_item_id", value)}
       >
-        <SelectTrigger>
+        <SelectTrigger className="w-full">
           <SelectValue placeholder={t("production.batch.chooseMenuItem")} />
         </SelectTrigger>
         <SelectContent>

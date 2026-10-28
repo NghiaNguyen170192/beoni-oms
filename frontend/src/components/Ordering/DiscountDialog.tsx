@@ -21,6 +21,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { type MessageKey, useI18n } from "@/i18n"
+import { formatAmountInput, parseAmountInput } from "@/lib/format"
 import { DISCOUNT_TYPE_LABELS } from "@/lib/labels"
 
 interface DiscountDialogProps {
@@ -106,8 +107,14 @@ export function DiscountDialog({
               <Input
                 id="discount-value"
                 inputMode="decimal"
-                value={value}
-                onChange={(e) => setValue(e.target.value)}
+                value={type === "amount" ? formatAmountInput(value) : value}
+                onChange={(e) =>
+                  setValue(
+                    type === "amount"
+                      ? parseAmountInput(e.target.value)
+                      : e.target.value,
+                  )
+                }
                 autoFocus
               />
               {error && <p className="text-sm text-destructive">{t(error)}</p>}

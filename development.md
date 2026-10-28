@@ -2,15 +2,25 @@
 
 ## Docker Compose
 
-* Start the local stack with Docker Compose:
+* On Windows, start the live-reload development setup with:
+
+```powershell
+.\scripts\start-dev.ps1
+```
+
+This starts the backend and its dependencies with Docker Compose Watch, and runs the frontend with Vite on your host. It opens separate PowerShell windows for each process; press Ctrl+C in each window to stop it. The script stops the Compose `frontend` service to free port 5173.
+
+For the full Compose stack (including its Nginx-built frontend), run:
 
 ```bash
 docker compose watch
 ```
 
+The Compose frontend is a production build and does not hot-reload frontend source changes; use the Windows script above for day-to-day frontend development.
+
 * Now you can open your browser and interact with these URLs:
 
-Frontend, built with Docker, with routes handled based on the path: <http://localhost:5173>
+Frontend: <http://localhost:5173>
 
 Backend, JSON based web API based on OpenAPI: <http://localhost:8000>
 

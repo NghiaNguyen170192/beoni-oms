@@ -35,6 +35,7 @@ import useAuth from "@/hooks/useAuth"
 import { useFormatters } from "@/hooks/useBusinessSettings"
 import useCustomToast from "@/hooks/useCustomToast"
 import { t as translate, useI18n } from "@/i18n"
+import { formatAmountInput, parseAmountInput } from "@/lib/format"
 import { useIdempotencyKey } from "@/lib/idempotency"
 import { hasPermission, requirePermission } from "@/lib/permissions"
 import { handleError } from "@/utils"
@@ -326,7 +327,7 @@ function Expenses() {
               setCategoryId(value === "all" ? "" : value)
             }
           >
-            <SelectTrigger className="w-48">
+            <SelectTrigger className="w-full sm:w-48">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -342,7 +343,7 @@ function Expenses() {
         <div className="grid gap-1">
           <Label>{t("accounting.expenses.field.payment")}</Label>
           <Select value={paymentStatus} onValueChange={setPaymentStatus}>
-            <SelectTrigger className="w-40">
+            <SelectTrigger className="w-full sm:w-40">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -409,7 +410,7 @@ function Expenses() {
                 value={formCategory || undefined}
                 onValueChange={setFormCategory}
               >
-                <SelectTrigger data-testid="expense-category">
+                <SelectTrigger data-testid="expense-category" className="w-full">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -429,8 +430,10 @@ function Expenses() {
                 id="expense-amount"
                 data-testid="expense-amount"
                 inputMode="decimal"
-                value={amount}
-                onChange={(event) => setAmount(event.target.value)}
+                value={formatAmountInput(amount)}
+                onChange={(event) =>
+                  setAmount(parseAmountInput(event.target.value))
+                }
                 required
               />
             </div>
@@ -475,7 +478,7 @@ function Expenses() {
                   value={accountId || undefined}
                   onValueChange={setAccountId}
                 >
-                  <SelectTrigger data-testid="expense-account">
+                  <SelectTrigger data-testid="expense-account" className="w-full">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -541,7 +544,7 @@ function Expenses() {
                 value={payAccount || undefined}
                 onValueChange={setPayAccount}
               >
-                <SelectTrigger>
+                <SelectTrigger className="w-full">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>

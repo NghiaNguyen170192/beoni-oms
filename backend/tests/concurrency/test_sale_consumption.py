@@ -1,8 +1,7 @@
-"""Concurrent completions against PostgreSQL. Each test repeats the race."""
+"""Concurrent completions against PostgreSQL finished-goods lots. Each test repeats the race."""
 
 import threading
 import uuid
-from datetime import datetime, timedelta, timezone
 from decimal import Decimal
 
 from sqlalchemy import Engine
@@ -18,7 +17,6 @@ from app.modules.inventory.models import (
     InventoryItem,
     InventoryMovement,
     MovementType,
-    Unit,
 )
 from app.modules.ordering import service as ordering
 from app.modules.ordering.models import Order, OrderLine, OrderType
@@ -27,13 +25,21 @@ from app.modules.ordering.states import InvalidTransition
 from app.modules.payments.models import Payment, PaymentMethod, PaymentMethodKind
 from app.modules.payments.schemas import PaymentCreate
 from app.modules.payments.service import record_payment
-from app.modules.recipes import service as recipes
+from app.modules.production.models import (
+    FinishedGoodLot,
+    FinishedGoodLotAllocation,
+    FinishedGoodLotMovement,
+    ProductionBatch,
+    ProductionBatchIngredientLine,
+    ProductionBatchOutputLine,
+)
 from app.modules.recipes.errors import InsufficientStock
-from app.modules.recipes.models import MovementAllocation, Recipe, RecipeLine
-from app.modules.recipes.schemas import RecipeLineCreate, RecipeVersionCreate
+from app.modules.recipes.models import StockReturn, StockReturnLine
+from app.modules.settings import service as settings_service
 from tests.utils.catalog import make_category, make_menu_item
 from tests.utils.db import purge_committed
-from tests.utils.inventory import make_inventory_item, seed_stock
+from tests.utils.inventory import balance_of
+from tests.utils.production import make_lot
 from tests.utils.user import make_user_with_role
 
 D = Decimal
@@ -48,8 +54,8 @@ class _Seed:
         self.menu_item_ids: list[uuid.UUID] = []
         self.category_ids: list[uuid.UUID] = []
         self.order_ids: list[uuid.UUID] = []
-        self.recipe_ids: list[uuid.UUID] = []
-        self.manager_id: uuid.UUID | None = None
+        self.batch_ids: list[uuid.UUID] = []
+        self.lot_ids: list[uuid.UUID] = []
 
 
 def _purge(engine: Engine, seed: _Seed) -> None:
@@ -68,9 +74,43 @@ def _purge(engine: Engine, seed: _Seed) -> None:
     statements = []
     if line_ids:
         statements.append(
-            delete(MovementAllocation).where(
-                col(MovementAllocation.order_line_id).in_(line_ids)
+            delete(StockReturnLine).where(
+                col(StockReturnLine.order_line_id).in_(line_ids)
             )
+        )
+        statements.append(
+            delete(FinishedGoodLotAllocation).where(
+                col(FinishedGoodLotAllocation.order_line_id).in_(line_ids)
+            )
+        )
+    if seed.order_ids:
+        statements.append(
+            delete(StockReturn).where(col(StockReturn.order_id).in_(seed.order_ids))
+        )
+    if seed.lot_ids:
+        statements.append(
+            delete(FinishedGoodLotMovement).where(
+                col(FinishedGoodLotMovement.lot_id).in_(seed.lot_ids)
+            )
+        )
+    if seed.batch_ids:
+        statements.append(
+            delete(FinishedGoodLot).where(
+                col(FinishedGoodLot.batch_id).in_(seed.batch_ids)
+            )
+        )
+        statements.append(
+            delete(ProductionBatchOutputLine).where(
+                col(ProductionBatchOutputLine.batch_id).in_(seed.batch_ids)
+            )
+        )
+        statements.append(
+            delete(ProductionBatchIngredientLine).where(
+                col(ProductionBatchIngredientLine.batch_id).in_(seed.batch_ids)
+            )
+        )
+        statements.append(
+            delete(ProductionBatch).where(col(ProductionBatch.id).in_(seed.batch_ids))
         )
     if seed.item_ids:
         statements.append(
@@ -86,11 +126,6 @@ def _purge(engine: Engine, seed: _Seed) -> None:
         statements.append(
             delete(InventoryItem).where(col(InventoryItem.id).in_(seed.item_ids))
         )
-    if seed.recipe_ids:
-        statements.append(
-            delete(RecipeLine).where(col(RecipeLine.recipe_id).in_(seed.recipe_ids))
-        )
-        statements.append(delete(Recipe).where(col(Recipe.id).in_(seed.recipe_ids)))
     if seed.order_ids:
         statements.append(
             delete(Payment).where(col(Payment.order_id).in_(seed.order_ids))
@@ -147,40 +182,26 @@ def _paid_order(
 def _prepare(
     session: Session, seed: _Seed, stock: str
 ) -> tuple[User, uuid.UUID, uuid.UUID]:
-    from app.modules.settings.service import get_settings
-
-    settings_row = get_settings(session)
+    """Seed one batch lot of `stock` units; return (manager, menu item, stock item)."""
+    settings_row = settings_service.get_settings(session)
     settings_row.allow_negative_stock = False
     session.add(settings_row)
     session.commit()
     manager = make_user_with_role(session, Role.MANAGER)
     seed.user_ids.append(manager.id)
-    seed.manager_id = manager.id
-    beans = make_inventory_item(
-        session,
-        base_unit=Unit.G,
-        purchase_unit=Unit.G,
-        conversion_factor=D("1"),
-    )
-    seed.item_ids.append(beans.id)
-    seed_stock(session, beans, stock, "400")
     category = make_category(session)
     seed.category_ids.append(category.id)
-    coffee = make_menu_item(
-        session, category=category, product_type=ProductType.PREPARED
+    flan = make_menu_item(
+        session, category=category, product_type=ProductType.DIRECT_SALE
     )
-    seed.menu_item_ids.append(coffee.id)
-    recipe = recipes.create_version(
-        session,
-        data=RecipeVersionCreate(
-            menu_item_id=coffee.id,
-            effective_from=datetime.now(timezone.utc) - timedelta(days=1),
-            lines=[RecipeLineCreate(inventory_item_id=beans.id, quantity=D("18"))],
-        ),
-        actor=manager,
+    seed.menu_item_ids.append(flan.id)
+    batch, ingredient, flan_stock, lot = make_lot(
+        session, manager, menu_item=flan, good=D(stock)
     )
-    seed.recipe_ids.append(recipe.id)
-    return manager, beans.id, coffee.id
+    seed.batch_ids.append(batch.id)
+    seed.lot_ids.append(lot.id)
+    seed.item_ids.extend([ingredient.id, flan_stock.id])
+    return manager, flan.id, flan_stock.id
 
 
 def _race(
@@ -220,28 +241,39 @@ def _race(
     return results
 
 
+def _sale_movements(session: Session, item_id: uuid.UUID) -> list[InventoryMovement]:
+    return list(
+        session.exec(
+            select(InventoryMovement).where(
+                InventoryMovement.item_id == item_id,
+                InventoryMovement.movement_type == MovementType.SALE_CONSUMPTION,
+            )
+        ).all()
+    )
+
+
+def _lot_quantity(session: Session, lot_id: uuid.UUID) -> Decimal:
+    lot = session.get(FinishedGoodLot, lot_id, populate_existing=True)
+    assert lot is not None
+    return lot.quantity_on_hand
+
+
 def test_concurrent_last_servings_do_not_oversell(db_engine: Engine) -> None:
     for _ in range(ITERATIONS):
         seed = _Seed()
         try:
             with Session(db_engine) as session:
-                manager, beans_id, coffee_id = _prepare(session, seed, "18")
+                manager, menu_id, flan_stock_id = _prepare(session, seed, "1")
                 manager_id = manager.id
-                first = _paid_order(session, seed, manager, coffee_id, "1")
-                second = _paid_order(session, seed, manager, coffee_id, "1")
+                first = _paid_order(session, seed, manager, menu_id, "1")
+                second = _paid_order(session, seed, manager, menu_id, "1")
+                lot_id = seed.lot_ids[0]
             results = _race(db_engine, [first, second], manager_id, seed.run_id)
             assert sorted(results) == ["ok", "short"]
             with Session(db_engine) as session:
-                balance = session.get(InventoryBalance, beans_id)
-                assert balance is not None and balance.quantity == D("0.0000")
-                movements = session.exec(
-                    select(InventoryMovement).where(
-                        InventoryMovement.item_id == beans_id,
-                        InventoryMovement.movement_type
-                        == MovementType.SALE_CONSUMPTION,
-                    )
-                ).all()
-                assert len(movements) == 1
+                assert _lot_quantity(session, lot_id) == D("0")
+                assert balance_of(session, flan_stock_id).quantity == D("0.0000")
+                assert len(_sale_movements(session, flan_stock_id)) == 1
         finally:
             _purge(db_engine, seed)
 
@@ -251,21 +283,15 @@ def test_concurrent_duplicate_completion_posts_once(db_engine: Engine) -> None:
         seed = _Seed()
         try:
             with Session(db_engine) as session:
-                manager, beans_id, coffee_id = _prepare(session, seed, "100")
+                manager, menu_id, flan_stock_id = _prepare(session, seed, "5")
                 manager_id = manager.id
-                order_id = _paid_order(session, seed, manager, coffee_id, "1")
+                order_id = _paid_order(session, seed, manager, menu_id, "1")
+                lot_id = seed.lot_ids[0]
             results = _race(db_engine, [order_id, order_id], manager_id, seed.run_id)
             assert sorted(results) == ["conflict", "ok"]
             with Session(db_engine) as session:
-                balance = session.get(InventoryBalance, beans_id)
-                assert balance is not None and balance.quantity == D("82.0000")
-                movements = session.exec(
-                    select(InventoryMovement).where(
-                        InventoryMovement.item_id == beans_id,
-                        InventoryMovement.movement_type
-                        == MovementType.SALE_CONSUMPTION,
-                    )
-                ).all()
-                assert len(movements) == 1
+                assert _lot_quantity(session, lot_id) == D("4")
+                assert balance_of(session, flan_stock_id).quantity == D("4.0000")
+                assert len(_sale_movements(session, flan_stock_id)) == 1
         finally:
             _purge(db_engine, seed)

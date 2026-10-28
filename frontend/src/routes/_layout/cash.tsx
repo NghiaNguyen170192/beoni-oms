@@ -27,6 +27,7 @@ import useAuth from "@/hooks/useAuth"
 import { useFormatters } from "@/hooks/useBusinessSettings"
 import useCustomToast from "@/hooks/useCustomToast"
 import { type MessageKey, t as translate, useI18n } from "@/i18n"
+import { formatAmountInput, parseAmountInput } from "@/lib/format"
 import { useIdempotencyKey } from "@/lib/idempotency"
 import { hasPermission, requirePermission } from "@/lib/permissions"
 import { handleError } from "@/utils"
@@ -263,8 +264,11 @@ function Cash() {
               </Label>
               <Input
                 id="adjust-amount"
-                value={amount}
-                onChange={(event) => setAmount(event.target.value)}
+                inputMode="decimal"
+                value={formatAmountInput(amount)}
+                onChange={(event) =>
+                  setAmount(parseAmountInput(event.target.value))
+                }
                 required
               />
             </div>

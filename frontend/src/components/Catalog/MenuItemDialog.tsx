@@ -42,6 +42,7 @@ import {
 } from "@/components/ui/select"
 import useCustomToast from "@/hooks/useCustomToast"
 import { t, useI18n } from "@/i18n"
+import { formatAmountInput, parseAmountInput } from "@/lib/format"
 import { PRODUCT_TYPE_LABELS, PRODUCT_TYPES } from "@/lib/labels"
 import { mediaUrl } from "@/lib/media"
 import { handleError } from "@/utils"
@@ -199,7 +200,15 @@ export function MenuItemDialog({
                   <FormItem>
                     <FormLabel>{t("catalog.price")}</FormLabel>
                     <FormControl>
-                      <Input inputMode="decimal" placeholder="0" {...field} />
+                      <Input
+                        inputMode="decimal"
+                        placeholder="0"
+                        {...field}
+                        value={formatAmountInput(field.value)}
+                        onChange={(event) =>
+                          field.onChange(parseAmountInput(event.target.value))
+                        }
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

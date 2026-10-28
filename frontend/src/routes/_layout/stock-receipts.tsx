@@ -45,7 +45,11 @@ import useAuth from "@/hooks/useAuth"
 import { useFormatters } from "@/hooks/useBusinessSettings"
 import useCustomToast from "@/hooks/useCustomToast"
 import { t as translate, useI18n } from "@/i18n"
-import { formatNumber } from "@/lib/format"
+import {
+  formatAmountInput,
+  formatNumber,
+  parseAmountInput,
+} from "@/lib/format"
 import { useIdempotencyKey } from "@/lib/idempotency"
 import { hasPermission, requirePermission } from "@/lib/permissions"
 import badgeStyles from "@/styles/badge.module.css"
@@ -490,8 +494,10 @@ function ReceiptDetail({
                 id="receipt-pay-amount"
                 data-testid="receipt-pay-amount"
                 inputMode="decimal"
-                value={payAmount}
-                onChange={(event) => setPayAmount(event.target.value)}
+                value={formatAmountInput(payAmount)}
+                onChange={(event) =>
+                  setPayAmount(parseAmountInput(event.target.value))
+                }
               />
             </div>
             <div className="grid gap-1.5">
