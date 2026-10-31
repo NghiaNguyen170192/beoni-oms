@@ -2,13 +2,13 @@
 
 ## Docker Compose
 
-* On Windows, start the live-reload development setup with:
+Start the live-reload development setup on macOS or Linux with:
 
-```powershell
-.\scripts\start-dev.ps1
+```bash
+./scripts/start-dev.sh
 ```
 
-This starts the backend and its dependencies with Docker Compose Watch, and runs the frontend with Vite on your host. It opens separate PowerShell windows for each process; press Ctrl+C in each window to stop it. The script stops the Compose `frontend` service to free port 5173.
+This stops the Compose `frontend` service to free port 5173, starts the backend and its dependencies with Docker Compose Watch, and runs the frontend with Vite on your host. Press Ctrl+C to stop the local dev servers.
 
 For the full Compose stack (including its Nginx-built frontend), run:
 
@@ -16,7 +16,7 @@ For the full Compose stack (including its Nginx-built frontend), run:
 docker compose watch
 ```
 
-The Compose frontend is a production build and does not hot-reload frontend source changes; use the Windows script above for day-to-day frontend development.
+The Compose frontend is a production build and does not hot-reload frontend source changes; use the script above for day-to-day frontend development.
 
 * Now you can open your browser and interact with these URLs:
 

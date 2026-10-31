@@ -4,7 +4,8 @@ from decimal import Decimal
 from typing import Any
 
 import pytest
-from sqlmodel import Session
+from sqlalchemy.exc import IntegrityError
+from sqlmodel import Session, select
 
 from app.models import User
 from app.modules.catalog import service as catalog
@@ -12,6 +13,7 @@ from app.modules.catalog.errors import MenuItemInUse, MenuItemNotSellable
 from app.modules.catalog.models import MenuItem
 from app.modules.catalog.schemas import MenuItemUpdate
 from app.modules.identity.roles import Role
+from app.modules.notifications.models import Notification
 from app.modules.ordering import service
 from app.modules.ordering.errors import (
     EmptyOrder,
@@ -322,14 +324,73 @@ def test_confirm_then_complete_records_time_and_user(
 def test_double_completion_same_key_returns_original(
     db: Session, cashier: User
 ) -> None:
+    make_user_with_role(db, Role.OWNER)
     order = _create(db, cashier, _line(make_menu_item(db)))
 
     first = _complete(db, cashier, order.id, key="complete-once")
     second = _complete(db, cashier, order.id, key="complete-once")
 
     assert first == second
+    active_owner_ids = set(
+        db.exec(
+            select(User.id).where(
+                User.is_active.is_(True),
+                User.role == Role.OWNER,
+            )
+        ).all()
+    )
+    notifications = db.exec(
+        select(Notification).where(Notification.order_id == order.id)
+    ).all()
+    assert {row.owner_id for row in notifications} == active_owner_ids
+    assert len(notifications) == len(active_owner_ids)
+    assert all(row.read_at is None for row in notifications)
     with pytest.raises(InvalidTransition):
         _complete(db, cashier, order.id, key="another-key")
+
+
+def test_completion_notifies_only_active_owners(db: Session, cashier: User) -> None:
+    make_user_with_role(db, Role.OWNER)
+    inactive_owner = make_user_with_role(db, Role.OWNER)
+    inactive_owner.is_active = False
+    db.add(inactive_owner)
+    db.commit()
+    order = _create(db, cashier, _line(make_menu_item(db)))
+
+    _complete(db, cashier, order.id)
+
+    active_owner_ids = set(
+        db.exec(
+            select(User.id).where(
+                User.is_active.is_(True),
+                User.role == Role.OWNER,
+            )
+        ).all()
+    )
+    notifications = db.exec(
+        select(Notification).where(Notification.order_id == order.id)
+    ).all()
+    assert {row.owner_id for row in notifications} == active_owner_ids
+    assert len(notifications) == len(active_owner_ids)
+
+
+def test_notification_failure_rolls_back_order_completion(
+    db: Session, cashier: User
+) -> None:
+    owner = make_user_with_role(db, Role.OWNER)
+    order = _create(db, cashier, _line(make_menu_item(db)))
+    db.add(Notification(owner_id=owner.id, order_id=order.id))
+    db.commit()
+
+    with pytest.raises(IntegrityError):
+        _complete(db, cashier, order.id, key="notification-conflict")
+
+    assert service.get_order(db, order_id=order.id, actor=cashier).status == (
+        OrderStatus.PAID
+    )
+    assert len(
+        db.exec(select(Notification).where(Notification.order_id == order.id)).all()
+    ) == 1
 
 
 def test_empty_order_cannot_be_completed(db: Session, cashier: User) -> None:

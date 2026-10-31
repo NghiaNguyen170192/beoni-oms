@@ -620,6 +620,24 @@ export type NewPassword = {
     new_password: string;
 };
 
+export type NotificationPublic = {
+    id: string;
+    order_id: string;
+    order_number: string;
+    created_at: string;
+    read_at: (string | null);
+};
+
+export type NotificationReadUpdate = {
+    is_read: boolean;
+};
+
+export type NotificationsPublic = {
+    data: Array<NotificationPublic>;
+    count: number;
+    unread_count: number;
+};
+
 export type OrderCancel = {
     reason: string;
 };
@@ -812,7 +830,7 @@ export type PaymentVoid = {
 
 export type PeriodPreset = 'today' | 'yesterday' | 'last_7_days' | 'this_month' | 'last_month';
 
-export type Permission = 'users:manage' | 'settings:manage' | 'audit:read' | 'catalog:view' | 'catalog:manage' | 'inventory:view' | 'inventory:manage' | 'inventory:adjust' | 'inventory:reverse' | 'inventory:return' | 'purchasing:read' | 'purchasing:manage' | 'purchasing:post' | 'purchasing:reverse' | 'recipes:read' | 'recipes:manage' | 'production:view' | 'production:manage' | 'production:complete' | 'production:backdate' | 'production:reverse' | 'production:traceability' | 'ordering:create' | 'ordering:view_own' | 'ordering:view_all' | 'ordering:discount' | 'ordering:cancel' | 'payments:read' | 'payments:record' | 'payments:void' | 'payments:refund' | 'payments:configure' | 'expenses:read' | 'expenses:manage' | 'supplier_payments:read' | 'supplier_payments:record' | 'cash:view' | 'cash:adjust' | 'finance:view' | 'reports:sales' | 'reports:inventory' | 'reports:financial';
+export type Permission = 'users:manage' | 'settings:manage' | 'audit:read' | 'catalog:view' | 'catalog:manage' | 'inventory:view' | 'inventory:manage' | 'inventory:adjust' | 'inventory:reverse' | 'inventory:return' | 'purchasing:read' | 'purchasing:manage' | 'purchasing:post' | 'purchasing:reverse' | 'recipes:read' | 'recipes:manage' | 'production:view' | 'production:manage' | 'production:complete' | 'production:backdate' | 'production:reverse' | 'production:traceability' | 'ordering:create' | 'ordering:view_own' | 'ordering:view_all' | 'ordering:discount' | 'ordering:cancel' | 'notifications:read' | 'payments:read' | 'payments:record' | 'payments:void' | 'payments:refund' | 'payments:configure' | 'expenses:read' | 'expenses:manage' | 'supplier_payments:read' | 'supplier_payments:record' | 'cash:view' | 'cash:adjust' | 'finance:view' | 'reports:sales' | 'reports:inventory' | 'reports:financial';
 
 export type PrivateUserCreate = {
     email: string;
@@ -1891,6 +1909,21 @@ export type LoginRecoverPasswordHtmlContentData = {
 };
 
 export type LoginRecoverPasswordHtmlContentResponse = (string);
+
+export type NotificationsReadNotificationsData = {
+    limit?: number;
+    skip?: number;
+    unreadOnly?: boolean;
+};
+
+export type NotificationsReadNotificationsResponse = (NotificationsPublic);
+
+export type NotificationsUpdateNotificationReadStateData = {
+    notificationId: string;
+    requestBody: NotificationReadUpdate;
+};
+
+export type NotificationsUpdateNotificationReadStateResponse = (NotificationPublic);
 
 export type OrdersReadOrdersData = {
     cashierId?: (string | null);

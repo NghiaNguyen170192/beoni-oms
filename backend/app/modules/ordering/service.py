@@ -15,6 +15,8 @@ from app.modules.catalog.service import like_pattern
 from app.modules.idempotency import service as idempotency
 from app.modules.idempotency.service import StoredResponse
 from app.modules.identity.permissions import Permission, has_permission
+from app.modules.identity.roles import Role
+from app.modules.notifications.models import Notification
 from app.modules.ordering.errors import (
     EmptyOrder,
     InvalidOrderChange,
@@ -487,6 +489,16 @@ def apply_completion(session: Session, order: Order, actor: User) -> None:
     if order.confirmed_at is None:
         order.confirmed_at = now
     _transition(session, order, OrderStatus.COMPLETED, actor, total=order.total)
+    owner_ids = session.exec(
+        select(User.id).where(
+            User.is_active.is_(True),
+            User.role == Role.OWNER,
+        )
+    ).all()
+    session.add_all(
+        Notification(owner_id=owner_id, order_id=order.id)
+        for owner_id in owner_ids
+    )
 
 
 def complete_order(

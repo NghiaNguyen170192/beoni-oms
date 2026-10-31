@@ -1,6 +1,7 @@
 import {
   Banknote,
   BarChart3,
+  Bell,
   ChefHat,
   Coffee,
   Factory,
@@ -54,6 +55,12 @@ const navItems: NavItem[] = [
     title: "nav.orders",
     path: "/orders",
     permissions: ["ordering:view_own", "ordering:view_all"],
+  },
+  {
+    icon: Bell,
+    title: "nav.notifications",
+    path: "/notifications",
+    permissions: ["notifications:read"],
   },
   {
     icon: Banknote,

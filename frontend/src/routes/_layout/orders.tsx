@@ -62,6 +62,9 @@ import {
 export const Route = createFileRoute("/_layout/orders")({
   component: Orders,
   beforeLoad: requirePermission("ordering:view_own", "ordering:view_all"),
+  validateSearch: (search: Record<string, unknown>) => ({
+    orderId: typeof search.orderId === "string" ? search.orderId : undefined,
+  }),
   head: () => ({
     meta: [{ title: translate("ordering.orders.pageTitle") }],
   }),
@@ -142,19 +145,21 @@ function OrderDetail({
                     <TableRow key={line.id}>
                       <TableCell>
                         {line.item_name}
-                        {(line.finished_good_allocations ?? []).map((allocation) => (
-                          <div
-                            key={allocation.finished_good_lot_id}
-                            className="text-xs text-muted-foreground"
-                          >
-                            {allocation.lot_number}
-                            {allocation.batch_number !== null &&
-                              ` · ${t("recipes.return.batch", {
-                                number: allocation.batch_number,
-                              })}`}
-                            {` · ${formatDateTime(allocation.finished_at)}`}
-                          </div>
-                        ))}
+                        {(line.finished_good_allocations ?? []).map(
+                          (allocation) => (
+                            <div
+                              key={allocation.finished_good_lot_id}
+                              className="text-xs text-muted-foreground"
+                            >
+                              {allocation.lot_number}
+                              {allocation.batch_number !== null &&
+                                ` · ${t("recipes.return.batch", {
+                                  number: allocation.batch_number,
+                                })}`}
+                              {` · ${formatDateTime(allocation.finished_at)}`}
+                            </div>
+                          ),
+                        )}
                         {Number(line.discount_amount) > 0 && (
                           <div className="text-xs text-muted-foreground">
                             {t("ordering.orders.lineDiscount", {
@@ -237,14 +242,14 @@ function OrderDetail({
 function Orders() {
   const { t } = useI18n()
   const { user } = useAuth()
+  const navigate = Route.useNavigate()
+  const { orderId: viewingId } = Route.useSearch()
   const viewAll = hasPermission(user, "ordering:view_all")
   const { formatMoney, formatDateTime } = useFormatters()
 
   const [draft, setDraft] = useState<Filters>(EMPTY_FILTERS)
   const [filters, setFilters] = useState<Filters>(EMPTY_FILTERS)
   const [page, setPage] = useState(0)
-  const [viewingId, setViewingId] = useState<string>()
-
   const { data, isPending } = useQuery({
     queryKey: ["orders", "list", filters, page],
     queryFn: () =>
@@ -327,7 +332,14 @@ function Orders() {
               aria-label={translate("ordering.orders.view", {
                 number: row.original.number,
               })}
-              onClick={() => setViewingId(row.original.id)}
+              onClick={() =>
+                void navigate({
+                  search: (previous) => ({
+                    ...previous,
+                    orderId: row.original.id,
+                  }),
+                })
+              }
             >
               <Eye />
             </Button>
@@ -353,7 +365,7 @@ function Orders() {
         ),
       },
     ],
-    [formatDateTime, formatMoney],
+    [formatDateTime, formatMoney, navigate],
   )
 
   const enumSelect = <T extends string>(
@@ -486,7 +498,12 @@ function Orders() {
 
       <OrderDetail
         orderId={viewingId}
-        onClose={() => setViewingId(undefined)}
+        onClose={() =>
+          void navigate({
+            search: (previous) => ({ ...previous, orderId: undefined }),
+            replace: true,
+          })
+        }
       />
     </div>
   )

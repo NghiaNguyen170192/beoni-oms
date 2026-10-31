@@ -20,6 +20,7 @@ import { Route as LayoutCashRouteImport } from './routes/_layout/cash'
 import { Route as LayoutExpensesRouteImport } from './routes/_layout/expenses'
 import { Route as LayoutInventoryRouteImport } from './routes/_layout/inventory'
 import { Route as LayoutMenuRouteImport } from './routes/_layout/menu'
+import { Route as LayoutNotificationsRouteImport } from './routes/_layout/notifications'
 import { Route as LayoutOrdersRouteImport } from './routes/_layout/orders'
 import { Route as LayoutPaymentsRouteImport } from './routes/_layout/payments'
 import { Route as LayoutPosRouteImport } from './routes/_layout/pos'
@@ -89,6 +90,11 @@ const LayoutInventoryRoute = LayoutInventoryRouteImport.update({
 const LayoutMenuRoute = LayoutMenuRouteImport.update({
   id: '/menu',
   path: '/menu',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const LayoutNotificationsRoute = LayoutNotificationsRouteImport.update({
+  id: '/notifications',
+  path: '/notifications',
   getParentRoute: () => LayoutRoute,
 } as any)
 const LayoutOrdersRoute = LayoutOrdersRouteImport.update({
@@ -183,6 +189,7 @@ export interface FileRoutesByFullPath {
   '/expenses': typeof LayoutExpensesRoute
   '/inventory': typeof LayoutInventoryRoute
   '/menu': typeof LayoutMenuRoute
+  '/notifications': typeof LayoutNotificationsRoute
   '/orders': typeof LayoutOrdersRoute
   '/payments': typeof LayoutPaymentsRoute
   '/pos': typeof LayoutPosRoute
@@ -210,6 +217,7 @@ export interface FileRoutesByTo {
   '/expenses': typeof LayoutExpensesRoute
   '/inventory': typeof LayoutInventoryRoute
   '/menu': typeof LayoutMenuRoute
+  '/notifications': typeof LayoutNotificationsRoute
   '/orders': typeof LayoutOrdersRoute
   '/payments': typeof LayoutPaymentsRoute
   '/pos': typeof LayoutPosRoute
@@ -240,6 +248,7 @@ export interface FileRoutesById {
   '/_layout/expenses': typeof LayoutExpensesRoute
   '/_layout/inventory': typeof LayoutInventoryRoute
   '/_layout/menu': typeof LayoutMenuRoute
+  '/_layout/notifications': typeof LayoutNotificationsRoute
   '/_layout/orders': typeof LayoutOrdersRoute
   '/_layout/payments': typeof LayoutPaymentsRoute
   '/_layout/pos': typeof LayoutPosRoute
@@ -271,6 +280,7 @@ export interface FileRouteTypes {
     | '/expenses'
     | '/inventory'
     | '/menu'
+    | '/notifications'
     | '/orders'
     | '/payments'
     | '/pos'
@@ -298,6 +308,7 @@ export interface FileRouteTypes {
     | '/expenses'
     | '/inventory'
     | '/menu'
+    | '/notifications'
     | '/orders'
     | '/payments'
     | '/pos'
@@ -327,6 +338,7 @@ export interface FileRouteTypes {
     | '/_layout/expenses'
     | '/_layout/inventory'
     | '/_layout/menu'
+    | '/_layout/notifications'
     | '/_layout/orders'
     | '/_layout/payments'
     | '/_layout/pos'
@@ -432,6 +444,13 @@ declare module '@tanstack/react-router' {
       path: '/menu'
       fullPath: '/menu'
       preLoaderRoute: typeof LayoutMenuRouteImport
+      parentRoute: typeof LayoutRoute
+    }
+    '/_layout/notifications': {
+      id: '/_layout/notifications'
+      path: '/notifications'
+      fullPath: '/notifications'
+      preLoaderRoute: typeof LayoutNotificationsRouteImport
       parentRoute: typeof LayoutRoute
     }
     '/_layout/orders': {
@@ -555,6 +574,7 @@ interface LayoutRouteChildren {
   LayoutExpensesRoute: typeof LayoutExpensesRoute
   LayoutInventoryRoute: typeof LayoutInventoryRoute
   LayoutMenuRoute: typeof LayoutMenuRoute
+  LayoutNotificationsRoute: typeof LayoutNotificationsRoute
   LayoutOrdersRoute: typeof LayoutOrdersRoute
   LayoutPaymentsRoute: typeof LayoutPaymentsRoute
   LayoutPosRoute: typeof LayoutPosRoute
@@ -579,6 +599,7 @@ const LayoutRouteChildren: LayoutRouteChildren = {
   LayoutExpensesRoute: LayoutExpensesRoute,
   LayoutInventoryRoute: LayoutInventoryRoute,
   LayoutMenuRoute: LayoutMenuRoute,
+  LayoutNotificationsRoute: LayoutNotificationsRoute,
   LayoutOrdersRoute: LayoutOrdersRoute,
   LayoutPaymentsRoute: LayoutPaymentsRoute,
   LayoutPosRoute: LayoutPosRoute,
