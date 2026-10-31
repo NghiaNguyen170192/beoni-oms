@@ -230,13 +230,13 @@ Traefik UI: <http://localhost.tiangolo.com:8090>
 
 MailCatcher: <http://localhost.tiangolo.com:1080>
 
-## AI agent tooling (Cursor)
+## AI agent tooling
 
-Project agent skills live in `.cursor/skills/` (`oms-*` for OMS conventions, `openspec-*` for the spec workflow), and always-on rules in `.cursor/rules/`. Feature work is planned and tracked as OpenSpec changes in `openspec/changes/`.
+Project agent skills live in `.agents/skills/` (`oms-*` for OMS conventions, `openspec-*` for the spec workflow). Always-on rules live in `AGENTS.md`. Feature work is planned and tracked as OpenSpec changes in `openspec/changes/`.
 
 ### MCP servers
 
-`.cursor/mcp.json` configures:
+`.vscode/mcp.json` configures:
 
 - **postgres** (`postgres-mcp`, restricted/read-only mode): inspect the local database, verify ledger/balance reconciliation, run `EXPLAIN`. Requires `uv` and the `OMS_READONLY_DATABASE_URI` environment variable.
 - **context7**: up-to-date library docs (FastAPI, SQLModel, Alembic, TanStack, shadcn). Requires Node.js.

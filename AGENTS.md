@@ -4,8 +4,8 @@ Beoni OMS is a small-restaurant/cafe business management system: inventory, POS 
 recipe-based stock deduction, basic accounting, and reports. `goals.md` is the product source;
 `openspec/` holds the specs and the change record.
 
-This file is the always-on contract for agents working in this repo. It mirrors
-`.cursor/rules/oms-domain-invariants.mdc` and `.cursor/rules/ponytail.mdc` — keep the three in sync.
+This file is the always-on contract for agents working in this repo. Keep project-wide agent
+guidance here; task-specific workflows belong in `.agents/skills/`.
 
 ## Stack
 
