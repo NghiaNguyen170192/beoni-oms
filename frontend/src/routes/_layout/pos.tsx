@@ -7,11 +7,14 @@ import {
   type ApiError,
   type DiscountUpdate,
   type MenuItemPublic,
+  type OrderFeeInput,
+  type OrderFeeTypePublic,
   type OrderLineInput,
   type OrderLinePublic,
   type OrderPublic,
   OrdersService,
   type OrderType,
+  SettingsService,
 } from "@/client"
 import { ConfirmDialog } from "@/components/Common/ConfirmDialog"
 import { Cart } from "@/components/Ordering/Cart"
@@ -44,6 +47,7 @@ export const Route = createFileRoute("/_layout/pos")({
 
 const CURRENT_ORDER_KEY = "pos.currentOrderId"
 const OPEN_STATUSES = ["draft", "confirmed"]
+const NO_FEE_TYPES: OrderFeeTypePublic[] = []
 
 type DiscountTarget =
   | { kind: "order" }
@@ -68,6 +72,11 @@ function Pos() {
   const { showSuccessToast, showErrorToast } = useCustomToast()
   const completeKey = useIdempotencyKey()
   const availabilityQuery = useQuery(finishedGoodAvailabilityQueryOptions())
+  const feeTypesQuery = useQuery({
+    queryKey: ["orderFeeTypes", "enabled"],
+    queryFn: () => SettingsService.readOrderFeeTypes(),
+  })
+  const feeTypes = feeTypesQuery.data ?? NO_FEE_TYPES
   const availability = Object.fromEntries(
     (availabilityQuery.data?.data ?? []).map((item) => [
       item.menu_item_id,
@@ -149,6 +158,16 @@ function Pos() {
     onError,
   })
 
+  const updateFees = useMutation({
+    mutationFn: (fees: OrderFeeInput[]) =>
+      OrdersService.replaceOrderFees({
+        orderId: order!.id,
+        requestBody: { fees },
+      }),
+    onSuccess: adopt,
+    onError,
+  })
+
   const updateOrder = useMutation({
     mutationFn: (body: { order_type: OrderType; table_label: string | null }) =>
       OrdersService.updateOrder({ orderId: order!.id, requestBody: body }),
@@ -216,6 +235,7 @@ function Pos() {
 
   const busy =
     saveLines.isPending ||
+    updateFees.isPending ||
     updateOrder.isPending ||
     discount.isPending ||
     cancel.isPending ||
@@ -297,6 +317,12 @@ function Pos() {
             </span>
           </p>
         )}
+        {feeTypesQuery.error && (
+          <p role="alert" className="text-sm text-destructive">
+            {t("ordering.pos.feeTypesError")}
+            <span className="block text-xs">{feeTypesQuery.error.message}</span>
+          </p>
+        )}
       </div>
 
       <Card className="h-fit md:sticky md:top-20">
@@ -341,6 +367,7 @@ function Pos() {
 
           <Cart
             order={order}
+            feeTypes={feeTypes}
             orderType={orderType}
             tableLabel={tableLabel}
             busy={busy}
@@ -351,6 +378,7 @@ function Pos() {
             onQuantityChange={changeQuantity}
             onRemove={removeLine}
             onLineDiscount={(line) => setDiscountTarget({ kind: "line", line })}
+            onFeesChange={(fees) => updateFees.mutate(fees)}
             availability={availability}
           />
 

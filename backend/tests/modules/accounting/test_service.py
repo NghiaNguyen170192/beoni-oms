@@ -19,13 +19,20 @@ from app.modules.accounting.models import (
     RecordStatus,
     SupplierPayment,
 )
-from app.modules.accounting.periods import period_bounds
+from app.modules.accounting.periods import noon_on, period_bounds
+from app.modules.accounting.schemas import FinancialSummaryPublic, IncomeRow
 from app.modules.identity.roles import Role
 from app.modules.inventory.models import InventoryMovement, MovementType
 from app.modules.ordering import service as ordering
 from app.modules.ordering.models import Order, OrderLine
 from app.modules.ordering.pricing import DiscountType
-from app.modules.ordering.schemas import DiscountUpdate, OrderCreate, OrderLineInput
+from app.modules.ordering.schemas import (
+    DiscountUpdate,
+    OrderCreate,
+    OrderFeeInput,
+    OrderFeesReplace,
+    OrderLineInput,
+)
 from app.modules.ordering.states import OrderStatus
 from app.modules.payments import service as payments
 from app.modules.payments.models import (
@@ -41,6 +48,7 @@ from app.modules.purchasing.errors import ReceiptHasPayments
 from app.modules.purchasing.models import PayableStatus, SupplierPayable
 from app.modules.purchasing.schemas import ReceiptCreate, ReceiptReverse, SupplierCreate
 from app.modules.settings import service as settings_service
+from app.modules.settings.schemas import OrderFeeTypeCreate
 from tests.utils.catalog import make_menu_item
 from tests.utils.inventory import make_inventory_item
 from tests.utils.user import make_user_with_role
@@ -513,15 +521,137 @@ def test_financial_summary_formula(db: Session) -> None:
     )
     assert (
         summary["net_sales"]
-        == summary["gross_sales"] - summary["discounts"] - summary["refunds"]
+        == summary["gross_sales"]
+        + summary["fees"]
+        - summary["discounts"]
+        - summary["refunds"]
+        - summary["tax"]
     )
     assert summary["gross_profit"] == summary["net_sales"] - summary["cogs"]
     assert summary["operating_profit"] == summary["gross_profit"] - summary["expenses"]
     assert summary["expenses"] >= D("200000.00")
 
 
+def test_fee_revenue_uses_completion_date_and_includes_fee_vat(
+    db: Session,
+) -> None:
+    actor = make_user_with_role(db, Role.OWNER)
+    settings = settings_service.get_settings(db)
+    settings.tax_rate = D("10")
+    db.add(settings)
+    db.commit()
+    item = make_menu_item(db, price=D("110000"))
+    fee_type = settings_service.create_order_fee_type(
+        db,
+        data=OrderFeeTypeCreate(name="Shipping"),
+        actor=actor,
+    )
+    order = ordering.create_order(
+        db,
+        data=OrderCreate(
+            order_type="takeaway",
+            lines=[OrderLineInput(menu_item_id=item.id, quantity=D("1"))],
+        ),
+        actor=actor,
+    )
+    ordering.set_order_discount(
+        db,
+        order_id=order.id,
+        data=DiscountUpdate(discount_type=DiscountType.PERCENT, discount_value=D("10")),
+        actor=actor,
+    )
+    order = ordering.replace_fees(
+        db,
+        order_id=order.id,
+        data=OrderFeesReplace(
+            fees=[OrderFeeInput(fee_type_id=fee_type.id, amount=D("5000"))]
+        ),
+        actor=actor,
+    )
+    assert (order.subtotal, order.discount_total, order.tax_total, order.total) == (
+        D("110000"),
+        D("11000"),
+        D("9455"),
+        D("104000"),
+    )
+    cash = db.exec(
+        select(PaymentMethod).where(PaymentMethod.kind == PaymentMethodKind.CASH)
+    ).one()
+    payments.record_payment(
+        db,
+        order_id=order.id,
+        data=PaymentCreate(method_id=cash.id, tendered=order.total),
+        actor=actor,
+        idempotency_key=uuid.uuid4().hex,
+    )
+    ordering.complete_order(
+        db, order_id=order.id, actor=actor, idempotency_key=uuid.uuid4().hex
+    )
+    completed = db.get(Order, order.id)
+    assert completed is not None
+    completed.completed_at = noon_on(date(2024, 6, 15), "Asia/Ho_Chi_Minh")
+    db.add(completed)
+    db.commit()
+    payments.record_refund(
+        db,
+        order_id=order.id,
+        data=RefundCreate(method_id=cash.id, amount=D("1000"), reason="Adjustment"),
+        actor=actor,
+        idempotency_key=uuid.uuid4().hex,
+    )
+    refund = db.exec(select(Refund).where(Refund.order_id == order.id)).one()
+    refund.recorded_at = noon_on(date(2024, 6, 15), "Asia/Ho_Chi_Minh")
+    db.add(refund)
+    db.commit()
+
+    pending = ordering.create_order(
+        db,
+        data=OrderCreate(
+            order_type="takeaway",
+            lines=[OrderLineInput(menu_item_id=item.id, quantity=D("1"))],
+        ),
+        actor=actor,
+    )
+    ordering.replace_fees(
+        db,
+        order_id=pending.id,
+        data=OrderFeesReplace(
+            fees=[OrderFeeInput(fee_type_id=fee_type.id, amount=D("7000"))]
+        ),
+        actor=actor,
+    )
+    payments.record_payment(
+        db,
+        order_id=pending.id,
+        data=PaymentCreate(method_id=cash.id, tendered=D("117000")),
+        actor=actor,
+        idempotency_key=uuid.uuid4().hex,
+    )
+
+    day = date(2024, 6, 15)
+    summary = FinancialSummaryPublic.model_validate(
+        accounting.financial_summary(db, date_from=day, date_to=day)
+    )
+    assert summary.gross_sales == D("110000.00")
+    assert summary.discounts == D("11000.00")
+    assert summary.fees == D("5000.00")
+    assert summary.tax == D("9455.00")
+    assert summary.refunds == D("1000.00")
+    assert summary.net_sales == D("93545.00")
+    assert summary.cogs == D("0.00")
+
+    income = accounting.income_listing(db, date_from=day, date_to=day)
+    assert len(income) == 1
+    income_row = IncomeRow.model_validate(income[0])
+    assert income_row.gross_sales == D("110000.00")
+    assert income_row.fees == D("5000.00")
+    assert income_row.tax == D("9455.00")
+    assert income_row.net_sales == D("93545.00")
+
+
 def test_seeded_documents_reconcile_with_summary_and_balances(db: Session) -> None:
     """Sales, a refund, a receipt payment, and an expense stay tied to source rows."""
+    today = datetime.now(ZoneInfo("Asia/Ho_Chi_Minh")).date()
     actor = make_user_with_role(db, Role.OWNER)
     cash_account = account_named(db, CASH_DRAWER)
     bank = account_named(db, BANK)
@@ -575,7 +705,7 @@ def test_seeded_documents_reconcile_with_summary_and_balances(db: Session) -> No
         data=ReceiptCreate.model_validate(
             {
                 "supplier_id": str(supplier.id),
-                "receipt_date": date.today().isoformat(),
+                "receipt_date": today.isoformat(),
                 "lines": [
                     {
                         "item_id": str(stock.id),
@@ -594,7 +724,7 @@ def test_seeded_documents_reconcile_with_summary_and_balances(db: Session) -> No
         db,
         supplier_id=supplier.id,
         amount=D("400000"),
-        payment_date=date.today(),
+        payment_date=today,
         account_id=cash_account.id,
         allocations=None,
         reference="REC-1",
@@ -608,7 +738,7 @@ def test_seeded_documents_reconcile_with_summary_and_balances(db: Session) -> No
         db,
         category_id=category.id,
         amount=D("200000"),
-        expense_date=date.today(),
+        expense_date=today,
         description="Shop rent",
         payment_status=ExpensePaymentStatus.PAID,
         account_id=bank.id,
@@ -643,7 +773,6 @@ def test_seeded_documents_reconcile_with_summary_and_balances(db: Session) -> No
         ).one()
         assert balance == movement_total
 
-    today = date.today()
     start, end = period_bounds(today, today, "Asia/Ho_Chi_Minh")
     sales = db.exec(
         select(
@@ -729,10 +858,13 @@ def test_seeded_documents_reconcile_with_summary_and_balances(db: Session) -> No
     refunds_total = D(period_refunds).quantize(D("0.01"))
     cogs = (-D(sale_value) - D(return_value)).quantize(D("0.01"))
     expenses = D(expense_total).quantize(D("0.01"))
-    net = (gross - discounts - refunds_total).quantize(D("0.01"))
+    fees = D(summary["fees"])
+    tax = D(summary["tax"])
+    net = (gross + fees - discounts - refunds_total - tax).quantize(D("0.01"))
     assert summary["gross_sales"] == gross
     assert summary["discounts"] == discounts
     assert summary["refunds"] == refunds_total
+    assert summary["fees"] == fees
     assert summary["cogs"] == cogs
     assert summary["expenses"] == expenses
     assert summary["net_sales"] == net

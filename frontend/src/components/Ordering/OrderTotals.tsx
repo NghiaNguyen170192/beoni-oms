@@ -58,6 +58,13 @@ export function OrderTotals({
           `−${formatMoney(order.discount_total)}`,
           "order-discount",
         )}
+      {order.fees.map((fee) =>
+        row(
+          t("ordering.totals.fee", { name: fee.fee_name }),
+          formatMoney(fee.amount),
+          `order-fee-${fee.fee_type_id}`,
+        ),
+      )}
       {Number(order.tax_rate) > 0 &&
         row(
           t("ordering.totals.inclTax", {

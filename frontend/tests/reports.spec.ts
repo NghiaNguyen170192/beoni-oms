@@ -2,11 +2,18 @@ import { readFileSync } from "node:fs"
 
 import { expect, type Page, test } from "@playwright/test"
 
-import { ReportsService } from "../src/client"
+import {
+  AccountingService,
+  CatalogService,
+  OrdersService,
+  PaymentsService,
+  ReportsService,
+} from "../src/client"
 import {
   asSuperuser,
   createCompletedOrder,
   createMenuItem,
+  createOrderFeeType,
   uniqueSuffix,
 } from "./utils/api"
 
@@ -51,10 +58,97 @@ test("dashboard shows today's metrics after a sale", async ({ page }) => {
     "data-value",
     dashboard.net_sales,
   )
+  await expect(page.getByTestId("dashboard-fees")).toHaveAttribute(
+    "data-value",
+    dashboard.fees,
+  )
   await expect(page.getByTestId("dashboard-order-count")).toHaveAttribute(
     "data-value",
     String(dashboard.order_count),
   )
+})
+
+test("fee revenue is separate from product and category sales", async ({
+  page,
+}) => {
+  const suffix = uniqueSuffix()
+  await asSuperuser()
+  const category = await CatalogService.createCategory({
+    requestBody: { name: `Fee category ${suffix}` },
+  })
+  const item = await CatalogService.createItem({
+    requestBody: {
+      name: `Fee product ${suffix}`,
+      price: "29000",
+      category_id: category.id,
+      product_type: "non_stock",
+    },
+  })
+  const feeType = await createOrderFeeType(`Delivery ${suffix}`)
+  const order = await OrdersService.createOrder({
+    requestBody: {
+      order_type: "takeaway",
+      lines: [{ menu_item_id: item.id, quantity: "1" }],
+    },
+  })
+  const orderWithFee = await OrdersService.replaceOrderFees({
+    orderId: order.id,
+    requestBody: {
+      fees: [{ fee_type_id: feeType.id, amount: "5000" }],
+    },
+  })
+  const methods = await PaymentsService.readPaymentMethods({ activeOnly: true })
+  const cash = methods.data.find((method) => method.kind === "cash")
+  if (!cash) throw new Error("Cash payment method is not seeded")
+  await PaymentsService.createOrderPayment({
+    orderId: order.id,
+    idempotencyKey: crypto.randomUUID(),
+    requestBody: { method_id: cash.id, amount: orderWithFee.total },
+  })
+  const completed = await OrdersService.completeOrder({
+    orderId: order.id,
+    idempotencyKey: crypto.randomUUID(),
+  })
+
+  const period = await ReportsService.readPreset({ preset: "today" })
+  const dates = { dateFrom: period.date_from, dateTo: period.date_to }
+  const [statement, income, products, categorySales] = await Promise.all([
+    ReportsService.readStatement(dates),
+    AccountingService.readIncome(dates),
+    ReportsService.readProducts(dates),
+    ReportsService.readSalesSummary({
+      ...dates,
+      groupBy: "day",
+      categoryId: category.id,
+    }),
+  ])
+  const incomeRow = income.data.find((row) => row.order_id === order.id)
+  expect(incomeRow).toBeDefined()
+  expect(incomeRow?.fees).toBe(completed.fee_total)
+  expect(Number(incomeRow?.net_sales)).toBe(
+    Number(completed.subtotal) +
+      Number(completed.fee_total) -
+      Number(completed.discount_total) -
+      Number(completed.tax_total),
+  )
+  expect(Number(categorySales.net_sales)).toBe(Number(item.price))
+  const product = products.data.find((row) => row.menu_item_id === item.id)
+  expect(product).toBeDefined()
+  expect(Number(product?.net_sales)).toBe(Number(item.price))
+  expect(Number(statement.fees)).toBe(
+    income.data.reduce((total, row) => total + Number(row.fees), 0),
+  )
+
+  await page.goto("/reports/profit")
+  await expect(page.getByTestId("profit-fees")).toHaveAttribute(
+    "data-value",
+    statement.fees,
+  )
+  const incomeRowOnPage = page
+    .getByTestId("income-row")
+    .filter({ hasText: completed.number })
+  await expect(incomeRowOnPage).toHaveAttribute("data-fee", completed.fee_total)
+  await expect(incomeRowOnPage.getByRole("cell").nth(1)).toContainText("5.000")
 })
 
 test("exported reports match the on-screen rows and totals", async ({
@@ -102,12 +196,18 @@ test("exported reports match the on-screen rows and totals", async ({
   const statementRows = await csvOf(page, "export-statement")
   expect(statementRows).toHaveLength(1)
   const profitValue = await profitNet.getAttribute("data-value")
+  const profitFees = await page
+    .getByTestId("profit-fees")
+    .getAttribute("data-value")
   expect(Number(statementRows[0][0]).toFixed(2)).toBe(
+    Number(profitFees).toFixed(2),
+  )
+  expect(Number(statementRows[0][1]).toFixed(2)).toBe(
     Number(profitValue).toFixed(2),
   )
   const operating = page.getByTestId("profit-operating")
   const operatingValue = await operating.getAttribute("data-value")
-  expect(Number(statementRows[0][5]).toFixed(2)).toBe(
+  expect(Number(statementRows[0][6]).toFixed(2)).toBe(
     Number(operatingValue).toFixed(2),
   )
 
@@ -131,7 +231,15 @@ test("exported reports match the on-screen rows and totals", async ({
     .evaluateAll((rows) =>
       rows.map((row) => Number(row.getAttribute("data-net")).toFixed(2)).sort(),
     )
-  expect(incomeRows.map((row) => Number(row[6]).toFixed(2)).sort()).toEqual(
+  const incomeFees = await page
+    .getByTestId("income-row")
+    .evaluateAll((rows) =>
+      rows.map((row) => Number(row.getAttribute("data-fee")).toFixed(2)).sort(),
+    )
+  expect(incomeRows.map((row) => Number(row[4]).toFixed(2)).sort()).toEqual(
+    incomeFees,
+  )
+  expect(incomeRows.map((row) => Number(row[7]).toFixed(2)).sort()).toEqual(
     incomeNets,
   )
 

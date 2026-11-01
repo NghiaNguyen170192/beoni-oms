@@ -1,6 +1,7 @@
 import uuid
-from datetime import date
+from datetime import date, datetime
 from decimal import Decimal
+from zoneinfo import ZoneInfo
 
 from sqlmodel import Session, select
 
@@ -15,7 +16,13 @@ from app.modules.inventory.models import InventoryBalance, ItemType, Unit
 from app.modules.inventory.schemas import StockAdjustmentCreate
 from app.modules.ordering import service as ordering
 from app.modules.ordering.models import Order
-from app.modules.ordering.schemas import OrderCancel, OrderCreate, OrderLineInput
+from app.modules.ordering.schemas import (
+    OrderCancel,
+    OrderCreate,
+    OrderFeeInput,
+    OrderFeesReplace,
+    OrderLineInput,
+)
 from app.modules.ordering.states import OrderStatus
 from app.modules.payments import service as payments
 from app.modules.payments.models import (
@@ -28,6 +35,7 @@ from app.modules.payments.schemas import PaymentCreate, RefundCreate
 from app.modules.reporting import service as reporting
 from app.modules.reporting.periods import GroupBy
 from app.modules.settings import service as settings_service
+from app.modules.settings.schemas import OrderFeeTypeCreate
 from tests.utils.catalog import make_menu_item
 from tests.utils.inventory import balance_of, make_inventory_item, seed_stock
 from tests.utils.user import make_user_with_role
@@ -76,12 +84,13 @@ def test_dashboard_matches_financial_summary_and_empty_average(db: Session) -> N
     actor = make_user_with_role(db, Role.MANAGER)
     item = make_menu_item(db, price=D("100000"))
     _complete_sale(db, actor, item)
-    today = date.today()
+    today = datetime.now(ZoneInfo("Asia/Ho_Chi_Minh")).date()
     board = reporting.dashboard(db, date_from=today, date_to=today, financial=True)
     summary = accounting.financial_summary(db, date_from=today, date_to=today)
     assert board["net_sales"] == summary["net_sales"]
     assert board["cogs"] == summary["cogs"]
     assert board["discounts"] == summary["discounts"]
+    assert board["fees"] == summary["fees"]
     assert board["refunds"] == summary["refunds"]
     assert board["expenses"] == summary["expenses"]
     assert board["gross_profit"] == summary["gross_profit"]
@@ -93,6 +102,74 @@ def test_dashboard_matches_financial_summary_and_empty_average(db: Session) -> N
     assert empty["order_count"] == 0
     assert empty["average_order_value"] == D("0.00")
     assert "cogs" not in empty
+    assert "fees" in empty
+
+
+def test_fees_are_not_attributed_to_product_sales_or_costs(db: Session) -> None:
+    _zero_tax(db)
+    actor = make_user_with_role(db, Role.OWNER)
+    item = make_menu_item(db, price=D("100000"))
+    fee_type = settings_service.create_order_fee_type(
+        db,
+        data=OrderFeeTypeCreate(name="Shipping"),
+        actor=actor,
+    )
+    order = ordering.create_order(
+        db,
+        data=OrderCreate(
+            order_type="takeaway",
+            lines=[OrderLineInput(menu_item_id=item.id, quantity=D("1"))],
+        ),
+        actor=actor,
+    )
+    ordering.replace_fees(
+        db,
+        order_id=order.id,
+        data=OrderFeesReplace(
+            fees=[OrderFeeInput(fee_type_id=fee_type.id, amount=D("5000"))]
+        ),
+        actor=actor,
+    )
+    cash = db.exec(
+        select(PaymentMethod).where(PaymentMethod.kind == PaymentMethodKind.CASH)
+    ).one()
+    payments.record_payment(
+        db,
+        order_id=order.id,
+        data=PaymentCreate(method_id=cash.id, tendered=D("105000")),
+        actor=actor,
+        idempotency_key=uuid.uuid4().hex,
+    )
+    ordering.complete_order(
+        db, order_id=order.id, actor=actor, idempotency_key=uuid.uuid4().hex
+    )
+    today = datetime.now(ZoneInfo("Asia/Ho_Chi_Minh")).date()
+    sales = reporting.sales_summary(
+        db, date_from=today, date_to=today, group_by=GroupBy.DAY
+    )
+    category_sales = reporting.sales_summary(
+        db,
+        date_from=today,
+        date_to=today,
+        group_by=GroupBy.DAY,
+        category_id=item.category_id,
+    )
+    products = reporting.product_performance(
+        db, date_from=today, date_to=today, financial=True, sort="quantity"
+    )
+    finance = accounting.financial_summary(db, date_from=today, date_to=today)
+
+    assert sales["net_sales"] == D("100000.00")
+    assert category_sales["net_sales"] == D("100000.00")
+    assert sum((row["net_sales"] for row in products["data"]), D("0")) == D("100000.00")
+    assert finance["fees"] == D("5000.00")
+    assert finance["net_sales"] == D("105000.00")
+    assert finance["cogs"] == D("0.00")
+    statement = reporting.profit_statement(db, date_from=today, date_to=today)
+    assert statement["fees"] == D("5000.00")
+    comparison = reporting.profit_comparison(db, date_from=today, date_to=today)
+    fee_line = next(row for row in comparison["lines"] if row["key"] == "fees")
+    assert fee_line["current"] == D("5000.00")
 
 
 def test_product_totals_match_summary_and_skip_cancelled_and_renames(
@@ -219,7 +296,7 @@ def test_payment_breakdown_nets_refunds(db: Session) -> None:
         actor=actor,
         idempotency_key=uuid.uuid4().hex,
     )
-    today = date.today()
+    today = datetime.now(ZoneInfo("Asia/Ho_Chi_Minh")).date()
     summary = reporting.sales_summary(
         db, date_from=today, date_to=today, group_by=GroupBy.DAY, cashier_id=actor.id
     )
@@ -250,7 +327,7 @@ def test_movement_identity_matches_balance(db: Session) -> None:
         actor=actor,
         idempotency_key=uuid.uuid4().hex,
     )
-    today = date.today()
+    today = datetime.now(ZoneInfo("Asia/Ho_Chi_Minh")).date()
     report = reporting.movement_summary(db, date_from=today, date_to=today)
     row = next(entry for entry in report["data"] if entry["item_id"] == item.id)
     closing = (

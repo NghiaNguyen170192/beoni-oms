@@ -4,7 +4,14 @@ from decimal import Decimal
 from enum import Enum
 from typing import Any
 
-from sqlalchemy import CheckConstraint, Date, DateTime, Index, Numeric
+from sqlalchemy import (
+    CheckConstraint,
+    Date,
+    DateTime,
+    Index,
+    Numeric,
+    UniqueConstraint,
+)
 from sqlmodel import Field, SQLModel
 
 from app.core.db_types import EnumString
@@ -76,10 +83,13 @@ class Order(SQLModel, table=True):
             name="ck_orders_discount_type",
         ),
         CheckConstraint(
-            "subtotal >= 0 AND discount_total >= 0 AND tax_total >= 0 AND total >= 0",
+            "subtotal >= 0 AND discount_total >= 0 AND tax_total >= 0 "
+            "AND fee_total >= 0 AND total >= 0",
             name="ck_orders_amounts_non_negative",
         ),
-        CheckConstraint("total = subtotal - discount_total", name="ck_orders_total"),
+        CheckConstraint(
+            "total = subtotal - discount_total + fee_total", name="ck_orders_total"
+        ),
         CheckConstraint("tax_rate >= 0 AND tax_rate <= 100", name="ck_orders_tax_rate"),
         CheckConstraint(
             "(status = 'cancelled') = (cancelled_at IS NOT NULL)",
@@ -120,6 +130,11 @@ class Order(SQLModel, table=True):
         default=None, foreign_key="user.id", ondelete="RESTRICT"
     )
     tax_total: Decimal = _money()
+    fee_total: Decimal = Field(
+        default=Decimal("0"),
+        sa_type=Numeric(18, 2),  # type: ignore
+        sa_column_kwargs={"server_default": "0"},
+    )
     total: Decimal = _money()
     cashier_id: uuid.UUID = Field(foreign_key="user.id", ondelete="RESTRICT")
     created_at: datetime = _timestamp()
@@ -134,6 +149,25 @@ class Order(SQLModel, table=True):
         default=None, foreign_key="user.id", ondelete="RESTRICT"
     )
     cancel_reason: str | None = Field(default=None, max_length=255)
+
+
+class OrderFee(SQLModel, table=True):
+    __tablename__ = "order_fees"
+    __table_args__ = (
+        UniqueConstraint("order_id", "fee_type_id", name="uq_order_fees_order_type"),
+        CheckConstraint(
+            "length(btrim(fee_name)) > 0", name="ck_order_fees_name_not_blank"
+        ),
+        CheckConstraint("amount > 0", name="ck_order_fees_amount_positive"),
+    )
+
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    order_id: uuid.UUID = Field(foreign_key="orders.id", ondelete="RESTRICT")
+    fee_type_id: uuid.UUID = Field(
+        foreign_key="order_fee_types.id", ondelete="RESTRICT"
+    )
+    fee_name: str = Field(max_length=255)
+    amount: Decimal = Field(sa_type=Numeric(18, 2))  # type: ignore
 
 
 class OrderLine(SQLModel, table=True):

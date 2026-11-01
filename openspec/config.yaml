@@ -9,7 +9,7 @@ context: |
   Backend domains live in backend/app/modules/<domain>/ (models, schemas, service, routes).
   Money is Decimal/Numeric(18,2) in VND; quantities Numeric(18,4); business timezone Asia/Ho_Chi_Minh.
   Critical stock/money operations must be atomic, idempotent, auditable, and corrected by reversal only.
-  Specs describe behavior only; follow the oms-* agent skills in .cursor/skills for implementation conventions.
+  Specs describe behavior only; follow the oms-* agent skills in .agents/skills for implementation conventions.
 
 rules:
   tasks:

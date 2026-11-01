@@ -167,6 +167,7 @@ def dashboard(
         "order_count": count,
         "average_order_value": money(net / count) if count else money(ZERO),
         "discounts": summary["discounts"],
+        "fees": summary["fees"],
         "refunds": summary["refunds"],
         "low_stock_count": low,
     }
@@ -1002,6 +1003,7 @@ def profit_statement(
     return {
         "date_from": date_from,
         "date_to": date_to,
+        "fees": summary["fees"],
         "net_sales": net,
         "cogs": summary["cogs"],
         "gross_profit": gross_profit,
@@ -1032,6 +1034,7 @@ def profit_comparison(
     current = profit_statement(session, date_from=date_from, date_to=date_to)
     previous = profit_statement(session, date_from=compare_from, date_to=compare_to)
     keys = (
+        "fees",
         "net_sales",
         "cogs",
         "gross_profit",

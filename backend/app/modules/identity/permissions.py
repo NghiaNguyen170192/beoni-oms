@@ -38,6 +38,7 @@ class Permission(str, Enum):
     ORDERING_VIEW_ALL = "ordering:view_all"
     ORDERING_DISCOUNT = "ordering:discount"
     ORDERING_CANCEL = "ordering:cancel"
+    NOTIFICATIONS_READ = "notifications:read"
 
     PAYMENTS_READ = "payments:read"
     PAYMENTS_RECORD = "payments:record"

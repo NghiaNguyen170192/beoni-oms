@@ -6,6 +6,7 @@ import {
   type OrderPublic,
   OrdersService,
   PaymentsService,
+  SettingsService,
 } from "../../src/client"
 import { firstSuperuser, firstSuperuserPassword } from "../config"
 
@@ -43,6 +44,25 @@ export async function createMenuItem({
       category_id: categories.data[0].id,
       product_type: productType,
     },
+  })
+}
+
+export async function createOrderFeeType(name: string) {
+  await asSuperuser()
+  return SettingsService.createOrderFeeType({
+    requestBody: { name, is_enabled: true },
+  })
+}
+
+export async function readBusinessTaxRate() {
+  await asSuperuser()
+  return (await SettingsService.readBusinessSettings()).tax_rate
+}
+
+export async function updateBusinessTaxRate(rate: string) {
+  await asSuperuser()
+  return SettingsService.updateBusinessTaxRate({
+    requestBody: { tax_rate: rate },
   })
 }
 

@@ -31,26 +31,12 @@ import { handleError } from "@/utils"
 const SUPPORTED_CURRENCIES = ["VND"] as const
 
 const formSchema = z.object({
-  business_name: z
-    .string()
-    .trim()
-    .min(1, { error: () => t("account.business.nameRequired") })
-    .max(255, { error: () => t("account.business.nameMax") }),
   currency_code: z.enum(SUPPORTED_CURRENCIES),
   timezone: z
     .string()
     .trim()
     .min(1, { error: () => t("account.business.timezoneRequired") }),
   allow_negative_stock: z.boolean(),
-  tax_rate: z
-    .string()
-    .trim()
-    .regex(/^\d{1,3}(\.\d{1,2})?$/, {
-      error: () => t("account.business.taxRateFormat"),
-    })
-    .refine((value) => Number(value) <= 100, {
-      error: () => t("account.business.taxRateRange"),
-    }),
 })
 
 type FormData = z.infer<typeof formSchema>
@@ -69,11 +55,9 @@ const BusinessSettings = () => {
     mode: "onBlur",
     criteriaMode: "all",
     values: settings && {
-      business_name: settings.business_name,
       currency_code: settings.currency_code as FormData["currency_code"],
       timezone: settings.timezone,
       allow_negative_stock: settings.allow_negative_stock,
-      tax_rate: settings.tax_rate,
     },
   })
 
@@ -112,20 +96,6 @@ const BusinessSettings = () => {
         >
           <FormField
             control={form.control}
-            name="business_name"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>{t("account.business.name")}</FormLabel>
-                <FormControl>
-                  <Input type="text" disabled={!canEdit} {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
             name="currency_code"
             render={({ field }) => (
               <FormItem>
@@ -159,28 +129,6 @@ const BusinessSettings = () => {
                 </FormControl>
                 <FormDescription>
                   {t("account.business.timezoneHint")}
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="tax_rate"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>{t("account.business.taxRate")}</FormLabel>
-                <FormControl>
-                  <Input
-                    type="text"
-                    inputMode="decimal"
-                    disabled={!canEdit}
-                    {...field}
-                  />
-                </FormControl>
-                <FormDescription>
-                  {t("account.business.taxRateHint")}
                 </FormDescription>
                 <FormMessage />
               </FormItem>

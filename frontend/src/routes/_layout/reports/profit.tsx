@@ -20,6 +20,7 @@ import { type MessageKey, t as translate, useI18n } from "@/i18n"
 import { hasPermission, requirePermission } from "@/lib/permissions"
 
 const LINE_LABELS: Record<string, MessageKey> = {
+  fees: "reports.fees",
   net_sales: "reports.netSales",
   cogs: "reports.cogs",
   gross_profit: "reports.grossProfit",
@@ -103,6 +104,18 @@ function ProfitReports() {
                 data-value={statement.data.net_sales}
               >
                 {formatMoney(statement.data.net_sales)}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-xs text-muted-foreground">
+                {t("reports.fees")}
+              </dt>
+              <dd
+                className="text-lg font-semibold tabular-nums"
+                data-testid="profit-fees"
+                data-value={statement.data.fees}
+              >
+                {formatMoney(statement.data.fees)}
               </dd>
             </div>
             <div>
@@ -287,6 +300,9 @@ function ProfitReports() {
                 <TableRow>
                   <TableHead>{t("reports.order")}</TableHead>
                   <TableHead className="text-right">
+                    {t("reports.fees")}
+                  </TableHead>
+                  <TableHead className="text-right">
                     {t("reports.netSales")}
                   </TableHead>
                   <TableHead className="text-right">
@@ -300,8 +316,12 @@ function ProfitReports() {
                     key={row.order_id}
                     data-testid="income-row"
                     data-net={row.net_sales}
+                    data-fee={row.fees}
                   >
                     <TableCell>{row.number}</TableCell>
+                    <TableCell className="text-right tabular-nums">
+                      {formatMoney(row.fees)}
+                    </TableCell>
                     <TableCell className="text-right tabular-nums">
                       {formatMoney(row.net_sales)}
                     </TableCell>

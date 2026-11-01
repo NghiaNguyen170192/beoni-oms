@@ -2,11 +2,13 @@ import uuid
 from decimal import Decimal
 
 import pytest
+from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session, func, select
 
 from app.models import User
 from app.modules.identity.roles import Role
 from app.modules.inventory.models import InventoryMovement
+from app.modules.notifications.models import Notification
 from app.modules.ordering import service as ordering
 from app.modules.ordering.models import Order, OrderType
 from app.modules.ordering.schemas import OrderCreate, OrderLineInput
@@ -194,6 +196,7 @@ def test_unpaid_completion_names_the_remaining_amount(
 def test_pay_and_complete_is_one_result_and_idempotent(
     db: Session, cashier: User
 ) -> None:
+    make_user_with_role(db, Role.OWNER)
     order = _order(db, cashier, "29000")
     key = "pay-complete-1"
     data = PaymentCreate(
@@ -210,6 +213,48 @@ def test_pay_and_complete_is_one_result_and_idempotent(
     assert first.body["status"] == "completed"
     assert second.body == first.body
     assert service.active_paid(db, order.id) == D("29000.00")
+    owner_ids = set(
+        db.exec(
+            select(User.id).where(
+                User.is_active.is_(True),
+                User.role == Role.OWNER,
+            )
+        ).all()
+    )
+    notifications = db.exec(
+        select(Notification).where(Notification.order_id == order.id)
+    ).all()
+    assert {notification.owner_id for notification in notifications} == owner_ids
+    assert len(notifications) == len(owner_ids)
+
+
+def test_pay_and_complete_notification_failure_rolls_back_payment(
+    db: Session, cashier: User
+) -> None:
+    owner = make_user_with_role(db, Role.OWNER)
+    order = _order(db, cashier, "29000")
+    notification = Notification(owner_id=owner.id, order_id=order.id)
+    db.add(notification)
+    db.commit()
+    data = PaymentCreate(
+        method_id=_method(db, PaymentMethodKind.CASH).id, amount=D("29000")
+    )
+
+    with pytest.raises(IntegrityError):
+        service.pay_and_complete(
+            db,
+            order_id=order.id,
+            data=data,
+            actor=cashier,
+            idempotency_key="pay-complete-notification-conflict",
+        )
+
+    db.refresh(order)
+    assert order.status == OrderStatus.DRAFT
+    assert service.active_paid(db, order.id) == D("0.00")
+    assert len(
+        db.exec(select(Notification).where(Notification.order_id == order.id)).all()
+    ) == 1
 
 
 def test_inactive_method_rejected(db: Session, cashier: User, manager: User) -> None:

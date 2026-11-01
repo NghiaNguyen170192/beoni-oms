@@ -47,6 +47,22 @@ class OrderLinesReplace(SQLModel):
         return self
 
 
+class OrderFeeInput(SQLModel):
+    fee_type_id: uuid.UUID
+    amount: Decimal = Field(ge=0, max_digits=18, decimal_places=2)
+
+
+class OrderFeesReplace(SQLModel):
+    fees: list[OrderFeeInput]
+
+    @model_validator(mode="after")
+    def unique_fee_types(self) -> Self:
+        ids = [fee.fee_type_id for fee in self.fees]
+        if len(set(ids)) != len(ids):
+            raise ValueError("Each fee type may appear only once")
+        return self
+
+
 class OrderHeaderFields(SQLModel):
     @model_validator(mode="after")
     def table_only_for_dine_in(self) -> Self:
@@ -150,6 +166,12 @@ class OrderLinePublic(SQLModel):
     )
 
 
+class OrderFeePublic(SQLModel):
+    fee_type_id: uuid.UUID
+    fee_name: str
+    amount: Decimal
+
+
 class OrderPublic(SQLModel):
     id: uuid.UUID
     number: str
@@ -166,6 +188,7 @@ class OrderPublic(SQLModel):
     order_discount_amount: Decimal
     order_discount_by_id: uuid.UUID | None
     tax_total: Decimal
+    fee_total: Decimal
     total: Decimal
     cashier_id: uuid.UUID
     cashier_email: str | None
@@ -179,6 +202,7 @@ class OrderPublic(SQLModel):
     cancelled_by_id: uuid.UUID | None
     cancel_reason: str | None
     lines: list[OrderLinePublic]
+    fees: list[OrderFeePublic]
 
 
 class OrderSummary(SQLModel):

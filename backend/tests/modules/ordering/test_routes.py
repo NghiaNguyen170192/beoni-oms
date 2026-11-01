@@ -10,7 +10,9 @@ from sqlmodel import Session
 from app.core.config import settings
 from app.modules.identity.roles import Role
 from app.modules.settings import service as settings_service
+from app.modules.settings.schemas import OrderFeeTypeCreate
 from tests.utils.catalog import make_menu_item
+from tests.utils.user import make_user_with_role
 
 API = f"{settings.API_V1_STR}/orders"
 CATALOG = f"{settings.API_V1_STR}/catalog"
@@ -76,6 +78,42 @@ def test_cashier_creates_order_with_lines_and_server_totals(
     assert order["status"] == "draft"
     assert order["subtotal"] == "93000.00" and order["total"] == "93000.00"
     assert [line["line_total"] for line in order["lines"]] == ["58000.00", "35000.00"]
+
+
+def test_cashier_can_replace_fees_on_an_open_order(
+    client: TestClient, db: Session, role_token_headers: RoleHeaders
+) -> None:
+    owner = make_user_with_role(db, Role.OWNER)
+    fee_type = settings_service.create_order_fee_type(
+        db,
+        data=OrderFeeTypeCreate(name="Shipping"),
+        actor=owner,
+    )
+    headers = role_token_headers(Role.CASHIER)
+    item = make_menu_item(db, price=Decimal("29000"))
+    order = _new_order(
+        client,
+        headers,
+        lines=[{"menu_item_id": str(item.id), "quantity": "1"}],
+    )
+
+    response = client.put(
+        f"{API}/{order['id']}/fees",
+        headers=headers,
+        json={"fees": [{"fee_type_id": str(fee_type.id), "amount": "5000"}]},
+    )
+
+    assert response.status_code == 200, response.text
+    result = response.json()
+    assert result["fee_total"] == "5000.00"
+    assert result["total"] == "34000.00"
+    assert result["fees"] == [
+        {
+            "fee_type_id": str(fee_type.id),
+            "fee_name": "Shipping",
+            "amount": "5000.00",
+        }
+    ]
 
 
 @pytest.mark.parametrize("quantity", ["0", "-1", "1.0001"])

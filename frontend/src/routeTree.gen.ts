@@ -20,6 +20,7 @@ import { Route as LayoutCashRouteImport } from './routes/_layout/cash'
 import { Route as LayoutExpensesRouteImport } from './routes/_layout/expenses'
 import { Route as LayoutInventoryRouteImport } from './routes/_layout/inventory'
 import { Route as LayoutMenuRouteImport } from './routes/_layout/menu'
+import { Route as LayoutNotificationsRouteImport } from './routes/_layout/notifications'
 import { Route as LayoutOrdersRouteImport } from './routes/_layout/orders'
 import { Route as LayoutPaymentsRouteImport } from './routes/_layout/payments'
 import { Route as LayoutPosRouteImport } from './routes/_layout/pos'
@@ -31,6 +32,7 @@ import { Route as LayoutStockReceiptsRouteImport } from './routes/_layout/stock-
 import { Route as LayoutSuppliersRouteImport } from './routes/_layout/suppliers'
 import { Route as ReceiptOrderIdRouteImport } from './routes/receipt.$orderId'
 import { Route as LayoutAdminAuditLogRouteImport } from './routes/_layout/admin_.audit-log'
+import { Route as LayoutAdminFeesRouteImport } from './routes/_layout/admin_.fees'
 import { Route as LayoutAdminLanguageRouteImport } from './routes/_layout/admin_.language'
 import { Route as LayoutReportsInventoryRouteImport } from './routes/_layout/reports/inventory'
 import { Route as LayoutReportsProductionRouteImport } from './routes/_layout/reports/production'
@@ -91,6 +93,11 @@ const LayoutMenuRoute = LayoutMenuRouteImport.update({
   path: '/menu',
   getParentRoute: () => LayoutRoute,
 } as any)
+const LayoutNotificationsRoute = LayoutNotificationsRouteImport.update({
+  id: '/notifications',
+  path: '/notifications',
+  getParentRoute: () => LayoutRoute,
+} as any)
 const LayoutOrdersRoute = LayoutOrdersRouteImport.update({
   id: '/orders',
   path: '/orders',
@@ -146,6 +153,11 @@ const LayoutAdminAuditLogRoute = LayoutAdminAuditLogRouteImport.update({
   path: '/admin/audit-log',
   getParentRoute: () => LayoutRoute,
 } as any)
+const LayoutAdminFeesRoute = LayoutAdminFeesRouteImport.update({
+  id: '/admin_/fees',
+  path: '/admin/fees',
+  getParentRoute: () => LayoutRoute,
+} as any)
 const LayoutAdminLanguageRoute = LayoutAdminLanguageRouteImport.update({
   id: '/admin_/language',
   path: '/admin/language',
@@ -183,6 +195,7 @@ export interface FileRoutesByFullPath {
   '/expenses': typeof LayoutExpensesRoute
   '/inventory': typeof LayoutInventoryRoute
   '/menu': typeof LayoutMenuRoute
+  '/notifications': typeof LayoutNotificationsRoute
   '/orders': typeof LayoutOrdersRoute
   '/payments': typeof LayoutPaymentsRoute
   '/pos': typeof LayoutPosRoute
@@ -194,6 +207,7 @@ export interface FileRoutesByFullPath {
   '/suppliers': typeof LayoutSuppliersRoute
   '/receipt/$orderId': typeof ReceiptOrderIdRoute
   '/admin/audit-log': typeof LayoutAdminAuditLogRoute
+  '/admin/fees': typeof LayoutAdminFeesRoute
   '/admin/language': typeof LayoutAdminLanguageRoute
   '/reports/inventory': typeof LayoutReportsInventoryRoute
   '/reports/production': typeof LayoutReportsProductionRoute
@@ -210,6 +224,7 @@ export interface FileRoutesByTo {
   '/expenses': typeof LayoutExpensesRoute
   '/inventory': typeof LayoutInventoryRoute
   '/menu': typeof LayoutMenuRoute
+  '/notifications': typeof LayoutNotificationsRoute
   '/orders': typeof LayoutOrdersRoute
   '/payments': typeof LayoutPaymentsRoute
   '/pos': typeof LayoutPosRoute
@@ -222,6 +237,7 @@ export interface FileRoutesByTo {
   '/receipt/$orderId': typeof ReceiptOrderIdRoute
   '/': typeof LayoutIndexRoute
   '/admin/audit-log': typeof LayoutAdminAuditLogRoute
+  '/admin/fees': typeof LayoutAdminFeesRoute
   '/admin/language': typeof LayoutAdminLanguageRoute
   '/reports/inventory': typeof LayoutReportsInventoryRoute
   '/reports/production': typeof LayoutReportsProductionRoute
@@ -240,6 +256,7 @@ export interface FileRoutesById {
   '/_layout/expenses': typeof LayoutExpensesRoute
   '/_layout/inventory': typeof LayoutInventoryRoute
   '/_layout/menu': typeof LayoutMenuRoute
+  '/_layout/notifications': typeof LayoutNotificationsRoute
   '/_layout/orders': typeof LayoutOrdersRoute
   '/_layout/payments': typeof LayoutPaymentsRoute
   '/_layout/pos': typeof LayoutPosRoute
@@ -252,6 +269,7 @@ export interface FileRoutesById {
   '/receipt/$orderId': typeof ReceiptOrderIdRoute
   '/_layout/': typeof LayoutIndexRoute
   '/_layout/admin_/audit-log': typeof LayoutAdminAuditLogRoute
+  '/_layout/admin_/fees': typeof LayoutAdminFeesRoute
   '/_layout/admin_/language': typeof LayoutAdminLanguageRoute
   '/_layout/reports/inventory': typeof LayoutReportsInventoryRoute
   '/_layout/reports/production': typeof LayoutReportsProductionRoute
@@ -271,6 +289,7 @@ export interface FileRouteTypes {
     | '/expenses'
     | '/inventory'
     | '/menu'
+    | '/notifications'
     | '/orders'
     | '/payments'
     | '/pos'
@@ -282,6 +301,7 @@ export interface FileRouteTypes {
     | '/suppliers'
     | '/receipt/$orderId'
     | '/admin/audit-log'
+    | '/admin/fees'
     | '/admin/language'
     | '/reports/inventory'
     | '/reports/production'
@@ -298,6 +318,7 @@ export interface FileRouteTypes {
     | '/expenses'
     | '/inventory'
     | '/menu'
+    | '/notifications'
     | '/orders'
     | '/payments'
     | '/pos'
@@ -310,6 +331,7 @@ export interface FileRouteTypes {
     | '/receipt/$orderId'
     | '/'
     | '/admin/audit-log'
+    | '/admin/fees'
     | '/admin/language'
     | '/reports/inventory'
     | '/reports/production'
@@ -327,6 +349,7 @@ export interface FileRouteTypes {
     | '/_layout/expenses'
     | '/_layout/inventory'
     | '/_layout/menu'
+    | '/_layout/notifications'
     | '/_layout/orders'
     | '/_layout/payments'
     | '/_layout/pos'
@@ -339,6 +362,7 @@ export interface FileRouteTypes {
     | '/receipt/$orderId'
     | '/_layout/'
     | '/_layout/admin_/audit-log'
+    | '/_layout/admin_/fees'
     | '/_layout/admin_/language'
     | '/_layout/reports/inventory'
     | '/_layout/reports/production'
@@ -434,6 +458,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutMenuRouteImport
       parentRoute: typeof LayoutRoute
     }
+    '/_layout/notifications': {
+      id: '/_layout/notifications'
+      path: '/notifications'
+      fullPath: '/notifications'
+      preLoaderRoute: typeof LayoutNotificationsRouteImport
+      parentRoute: typeof LayoutRoute
+    }
     '/_layout/orders': {
       id: '/_layout/orders'
       path: '/orders'
@@ -511,6 +542,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutAdminAuditLogRouteImport
       parentRoute: typeof LayoutRoute
     }
+    '/_layout/admin_/fees': {
+      id: '/_layout/admin_/fees'
+      path: '/admin/fees'
+      fullPath: '/admin/fees'
+      preLoaderRoute: typeof LayoutAdminFeesRouteImport
+      parentRoute: typeof LayoutRoute
+    }
     '/_layout/admin_/language': {
       id: '/_layout/admin_/language'
       path: '/admin/language'
@@ -555,6 +593,7 @@ interface LayoutRouteChildren {
   LayoutExpensesRoute: typeof LayoutExpensesRoute
   LayoutInventoryRoute: typeof LayoutInventoryRoute
   LayoutMenuRoute: typeof LayoutMenuRoute
+  LayoutNotificationsRoute: typeof LayoutNotificationsRoute
   LayoutOrdersRoute: typeof LayoutOrdersRoute
   LayoutPaymentsRoute: typeof LayoutPaymentsRoute
   LayoutPosRoute: typeof LayoutPosRoute
@@ -566,6 +605,7 @@ interface LayoutRouteChildren {
   LayoutSuppliersRoute: typeof LayoutSuppliersRoute
   LayoutIndexRoute: typeof LayoutIndexRoute
   LayoutAdminAuditLogRoute: typeof LayoutAdminAuditLogRoute
+  LayoutAdminFeesRoute: typeof LayoutAdminFeesRoute
   LayoutAdminLanguageRoute: typeof LayoutAdminLanguageRoute
   LayoutReportsInventoryRoute: typeof LayoutReportsInventoryRoute
   LayoutReportsProductionRoute: typeof LayoutReportsProductionRoute
@@ -579,6 +619,7 @@ const LayoutRouteChildren: LayoutRouteChildren = {
   LayoutExpensesRoute: LayoutExpensesRoute,
   LayoutInventoryRoute: LayoutInventoryRoute,
   LayoutMenuRoute: LayoutMenuRoute,
+  LayoutNotificationsRoute: LayoutNotificationsRoute,
   LayoutOrdersRoute: LayoutOrdersRoute,
   LayoutPaymentsRoute: LayoutPaymentsRoute,
   LayoutPosRoute: LayoutPosRoute,
@@ -590,6 +631,7 @@ const LayoutRouteChildren: LayoutRouteChildren = {
   LayoutSuppliersRoute: LayoutSuppliersRoute,
   LayoutIndexRoute: LayoutIndexRoute,
   LayoutAdminAuditLogRoute: LayoutAdminAuditLogRoute,
+  LayoutAdminFeesRoute: LayoutAdminFeesRoute,
   LayoutAdminLanguageRoute: LayoutAdminLanguageRoute,
   LayoutReportsInventoryRoute: LayoutReportsInventoryRoute,
   LayoutReportsProductionRoute: LayoutReportsProductionRoute,

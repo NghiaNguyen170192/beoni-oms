@@ -21,6 +21,7 @@ def test_cashier_dashboard_omits_cost_and_profit(
     assert response.status_code == 200
     body = response.json()
     assert "net_sales" in body
+    assert "fees" in body
     assert "low_stock_count" in body
     assert "cogs" not in body
     assert "gross_profit" not in body

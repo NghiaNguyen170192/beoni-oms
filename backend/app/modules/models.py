@@ -9,6 +9,7 @@ from app.modules.audit import models as audit_models  # noqa: F401
 from app.modules.catalog import models as catalog_models  # noqa: F401
 from app.modules.idempotency import models as idempotency_models  # noqa: F401
 from app.modules.inventory import models as inventory_models  # noqa: F401
+from app.modules.notifications import models as notification_models  # noqa: F401
 from app.modules.ordering import models as ordering_models  # noqa: F401
 from app.modules.payments import models as payments_models  # noqa: F401
 from app.modules.production import models as production_models  # noqa: F401

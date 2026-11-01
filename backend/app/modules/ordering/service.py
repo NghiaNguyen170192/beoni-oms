@@ -1,6 +1,7 @@
 import uuid
 from collections.abc import Callable
 from datetime import date, datetime
+from decimal import Decimal
 from typing import Any
 from zoneinfo import ZoneInfo
 
@@ -15,6 +16,8 @@ from app.modules.catalog.service import like_pattern
 from app.modules.idempotency import service as idempotency
 from app.modules.idempotency.service import StoredResponse
 from app.modules.identity.permissions import Permission, has_permission
+from app.modules.identity.roles import Role
+from app.modules.notifications.models import Notification
 from app.modules.ordering.errors import (
     EmptyOrder,
     InvalidOrderChange,
@@ -25,16 +28,24 @@ from app.modules.ordering.errors import (
 )
 from app.modules.ordering.models import (
     Order,
+    OrderFee,
     OrderLine,
     OrderNumberCounter,
     OrderType,
 )
-from app.modules.ordering.pricing import LineInput, PricingError, price_order
+from app.modules.ordering.pricing import (
+    LineInput,
+    PricingError,
+    price_order,
+    round_vnd,
+)
 from app.modules.ordering.schemas import (
     DiscountUpdate,
     FinishedGoodOrderAllocationPublic,
     OrderCancel,
     OrderCreate,
+    OrderFeePublic,
+    OrderFeesReplace,
     OrderLineInput,
     OrderLinePublic,
     OrderPublic,
@@ -53,6 +64,7 @@ from app.modules.production.models import (
     FinishedGoodLotMovement,
     ProductionBatch,
 )
+from app.modules.settings.models import OrderFeeType
 from app.modules.settings.service import get_settings
 
 COMPLETE_SCOPE = "order.complete"
@@ -129,6 +141,11 @@ def _lines(session: Session, order_id: uuid.UUID) -> list[OrderLine]:
 def to_public(session: Session, order: Order) -> OrderPublic:
     cashier = session.get(User, order.cashier_id)
     order_lines = _lines(session, order.id)
+    order_fees = session.exec(
+        select(OrderFee)
+        .where(OrderFee.order_id == order.id)
+        .order_by(col(OrderFee.fee_type_id))
+    ).all()
     lot_allocation_rows = session.exec(
         select(
             FinishedGoodLotAllocation,
@@ -173,6 +190,14 @@ def to_public(session: Session, order: Order) -> OrderPublic:
             **order.model_dump(),
             "cashier_email": cashier.email if cashier else None,
             "cashier_name": cashier.full_name if cashier else None,
+            "fees": [
+                OrderFeePublic(
+                    fee_type_id=fee.fee_type_id,
+                    fee_name=fee.fee_name,
+                    amount=fee.amount,
+                )
+                for fee in order_fees
+            ],
             "lines": [
                 OrderLinePublic.model_validate(
                     {
@@ -195,7 +220,13 @@ def get_order(session: Session, *, order_id: uuid.UUID, actor: User) -> OrderPub
 # Pricing
 
 
-def _recalculate(session: Session, order: Order, lines: list[OrderLine]) -> None:
+def _recalculate(
+    session: Session,
+    order: Order,
+    lines: list[OrderLine],
+    *,
+    fee_amounts: list[Decimal] | None = None,
+) -> None:
     """Recompute every line and order amount from snapshots; never trusts clients."""
     try:
         amounts = price_order(
@@ -211,6 +242,15 @@ def _recalculate(session: Session, order: Order, lines: list[OrderLine]) -> None
             order_discount_type=order.order_discount_type,
             order_discount_value=order.order_discount_value,
             tax_rate=order.tax_rate,
+            fee_amounts=(
+                fee_amounts
+                if fee_amounts is not None
+                else session.exec(
+                    select(OrderFee.amount)
+                    .where(OrderFee.order_id == order.id)
+                    .order_by(col(OrderFee.fee_type_id))
+                ).all()
+            ),
         )
     except PricingError as exc:
         raise InvalidOrderChange(str(exc)) from exc
@@ -351,6 +391,121 @@ def replace_lines(
     return to_public(session, order)
 
 
+def replace_fees(
+    session: Session,
+    *,
+    order_id: uuid.UUID,
+    data: OrderFeesReplace,
+    actor: User,
+) -> OrderPublic:
+    order = _load_open(session, order_id, actor)
+    existing = {
+        fee.fee_type_id: fee
+        for fee in session.exec(
+            select(OrderFee)
+            .where(OrderFee.order_id == order.id)
+            .order_by(col(OrderFee.fee_type_id))
+            .with_for_update()
+        ).all()
+    }
+    inputs = {fee.fee_type_id: fee.amount for fee in data.fees}
+    fee_types = {
+        fee_type.id: fee_type
+        for fee_type in session.exec(
+            select(OrderFeeType)
+            .where(col(OrderFeeType.id).in_(sorted(inputs)))
+            .order_by(col(OrderFeeType.id))
+            .with_for_update()
+            .execution_options(populate_existing=True)
+        ).all()
+    } if inputs else {}
+    if len(fee_types) != len(inputs):
+        raise InvalidOrderChange("Unknown fee type")
+
+    for fee_type_id, amount in inputs.items():
+        if amount < 0 or amount != round_vnd(amount):
+            raise InvalidOrderChange("Fees must be non-negative whole VND amounts")
+        fee_type = fee_types[fee_type_id]
+        current = existing.get(fee_type_id)
+        if not fee_type.is_enabled and (
+            current is None or amount not in (0, current.amount)
+        ):
+            raise InvalidOrderChange(
+                "A disabled fee can only be kept unchanged or removed"
+            )
+
+    old_fees = [
+        {
+            "fee_type_id": str(fee.fee_type_id),
+            "fee_name": fee.fee_name,
+            "amount": fee.amount,
+        }
+        for fee in sorted(existing.values(), key=lambda row: row.fee_type_id)
+    ]
+    desired: dict[uuid.UUID, tuple[str, Decimal]] = {}
+    for fee_type_id, amount in sorted(inputs.items()):
+        if amount == 0:
+            continue
+        current = existing.get(fee_type_id)
+        fee_type = fee_types[fee_type_id]
+        desired[fee_type_id] = (
+            current.fee_name if current else fee_type.name,
+            amount,
+        )
+    new_fees = [
+        {
+            "fee_type_id": str(fee_type_id),
+            "fee_name": fee_name,
+            "amount": amount,
+        }
+        for fee_type_id, (fee_name, amount) in sorted(desired.items())
+    ]
+
+    for fee_type_id, current in existing.items():
+        fee = desired.get(fee_type_id)
+        if fee is None:
+            session.delete(current)
+        else:
+            current.amount = fee[1]
+            session.add(current)
+    for fee_type_id, (fee_name, amount) in desired.items():
+        if fee_type_id not in existing:
+            session.add(
+                OrderFee(
+                    order_id=order.id,
+                    fee_type_id=fee_type_id,
+                    fee_name=fee_name,
+                    amount=amount,
+                )
+            )
+
+    lines = _lines(session, order.id)
+    old_total = order.fee_total
+    order.fee_total = sum(
+        (fee[1] for fee in desired.values()), start=Decimal("0")
+    )
+    _recalculate(
+        session,
+        order,
+        lines,
+        fee_amounts=[fee[1] for fee in desired.values()],
+    )
+    if old_fees != new_fees:
+        audit.record(
+            session,
+            actor=actor,
+            entity_type="order",
+            entity_id=order.id,
+            action="fees_changed",
+            changes={
+                "fees": {"old": old_fees, "new": new_fees},
+                "fee_total": {"old": old_total, "new": order.fee_total},
+            },
+        )
+    session.commit()
+    return to_public(session, order)
+
+
 def set_order_discount(
     session: Session, *, order_id: uuid.UUID, data: DiscountUpdate, actor: User
 ) -> OrderPublic:
@@ -487,6 +642,16 @@ def apply_completion(session: Session, order: Order, actor: User) -> None:
     if order.confirmed_at is None:
         order.confirmed_at = now
     _transition(session, order, OrderStatus.COMPLETED, actor, total=order.total)
+    owner_ids = session.exec(
+        select(User.id).where(
+            User.is_active.is_(True),
+            User.role == Role.OWNER,
+        )
+    ).all()
+    session.add_all(
+        Notification(owner_id=owner_id, order_id=order.id)
+        for owner_id in owner_ids
+    )
 
 
 def complete_order(

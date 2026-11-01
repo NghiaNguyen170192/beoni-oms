@@ -1,5 +1,6 @@
 .vscode/*
 !.vscode/extensions.json
+!.vscode/mcp.json
 node_modules/
 
 # Local and production secrets. Commit only the placeholder templates.

@@ -4,7 +4,11 @@ from decimal import Decimal
 
 from sqlmodel import Field, SQLModel
 
-from app.modules.accounting.models import AccountKind, ExpensePaymentStatus, RecordStatus
+from app.modules.accounting.models import (
+    AccountKind,
+    ExpensePaymentStatus,
+    RecordStatus,
+)
 
 
 class MoneyAccountPublic(SQLModel):
@@ -152,6 +156,7 @@ class FinancialSummaryPublic(SQLModel):
     discounts: Decimal
     refunds: Decimal
     tax: Decimal
+    fees: Decimal
     net_sales: Decimal
     cogs: Decimal
     gross_profit: Decimal
@@ -167,6 +172,7 @@ class IncomeRow(SQLModel):
     completed_at: datetime
     gross_sales: Decimal
     discounts: Decimal
+    fees: Decimal
     refunds: Decimal
     tax: Decimal
     net_sales: Decimal

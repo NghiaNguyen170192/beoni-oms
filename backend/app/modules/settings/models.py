@@ -1,3 +1,4 @@
+import uuid
 from datetime import datetime
 from decimal import Decimal
 from enum import Enum
@@ -52,6 +53,29 @@ class BusinessSettings(SQLModel, table=True):
     language: Language = Field(
         default=Language.EN,
         sa_type=EnumString(Language, length=2),  # type: ignore
+        nullable=False,
+    )
+    updated_at: datetime = Field(
+        default_factory=get_datetime_utc,
+        sa_type=DateTime(timezone=True),  # type: ignore
+        nullable=False,
+    )
+
+
+class OrderFeeType(SQLModel, table=True):
+    __tablename__ = "order_fee_types"
+    __table_args__ = (
+        CheckConstraint(
+            "length(btrim(name)) > 0", name="ck_order_fee_types_name_not_blank"
+        ),
+    )
+
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    name: str = Field(max_length=255)
+    is_enabled: bool = True
+    created_at: datetime = Field(
+        default_factory=get_datetime_utc,
+        sa_type=DateTime(timezone=True),  # type: ignore
         nullable=False,
     )
     updated_at: datetime = Field(
