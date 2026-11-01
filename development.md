@@ -8,6 +8,15 @@ Start the live-reload development setup on macOS or Linux with:
 ./scripts/start-dev.sh
 ```
 
+On Windows, run the PowerShell script from the repository root:
+
+```powershell
+.\scripts\start-dev.ps1
+```
+
+No execution-policy change is needed for this local script. Do not use
+`Set-ExecutionPolicy Unrestricted`; follow your machine's effective policy.
+
 This stops the Compose `frontend` service to free port 5173, starts the backend and its dependencies with Docker Compose Watch, and runs the frontend with Vite on your host. Press Ctrl+C to stop the local dev servers.
 
 For the full Compose stack (including its Nginx-built frontend), run:
