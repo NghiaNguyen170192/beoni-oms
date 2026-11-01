@@ -23,6 +23,7 @@ class DashboardSales(SQLModel):
     order_count: int
     average_order_value: Decimal
     discounts: Decimal
+    fees: Decimal
     refunds: Decimal
     low_stock_count: int
 
@@ -189,6 +190,7 @@ class ProductionReportPublic(SQLModel):
 class ProfitStatementPublic(SQLModel):
     date_from: date
     date_to: date
+    fees: Decimal
     net_sales: Decimal
     cogs: Decimal
     gross_profit: Decimal

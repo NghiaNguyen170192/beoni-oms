@@ -88,6 +88,12 @@ function Dashboard() {
             raw={data.net_sales}
           />
           <Metric
+            label={t("reports.fees")}
+            value={formatMoney(data.fees)}
+            testId="dashboard-fees"
+            raw={data.fees}
+          />
+          <Metric
             label={t("reports.orders")}
             value={String(data.order_count)}
             testId="dashboard-order-count"

@@ -40,7 +40,7 @@ from app.modules.idempotency.service import StoredResponse
 from app.modules.inventory.models import InventoryMovement, MovementType
 from app.modules.ordering.models import Order, OrderLine
 from app.modules.ordering.states import OrderStatus
-from app.modules.payments.models import Payment, PaymentStatus, Refund
+from app.modules.payments.models import Refund
 from app.modules.production.models import ProductionBatch, ProductionBatchStatus
 from app.modules.purchasing.models import (
     PayableStatus,
@@ -755,6 +755,7 @@ def financial_summary(
             func.coalesce(func.sum(Order.subtotal), 0),
             func.coalesce(func.sum(Order.discount_total), 0),
             func.coalesce(func.sum(Order.tax_total), 0),
+            func.coalesce(func.sum(Order.fee_total), 0),
         ).where(
             col(Order.status).in_(SALE_STATUSES),
             Order.completed_at >= start,
@@ -814,16 +815,18 @@ def financial_summary(
     gross = money(sales[0])
     discounts = money(sales[1])
     tax = money(sales[2])
+    fees = money(sales[3])
     refunded = money(refunds)
     cogs = money(-Decimal(sale_value) - Decimal(return_value))
     expense_total = money(Decimal(expenses or 0) + production_cost)
-    net = money(gross - discounts - refunded)
+    net = money(gross + fees - discounts - refunded - tax)
     gross_profit = money(net - cogs)
     return {
         "gross_sales": gross,
         "discounts": discounts,
         "refunds": refunded,
         "tax": tax,
+        "fees": fees,
         "net_sales": net,
         "cogs": cogs,
         "gross_profit": gross_profit,
@@ -878,20 +881,16 @@ def income_listing(
         .group_by(Refund.order_id)
     ).all()
     refunded = {order_id: money(total) for order_id, total in refund_rows}
-    paid = dict(
-        session.exec(
-            select(Payment.order_id, func.coalesce(func.sum(Payment.amount), 0))
-            .where(
-                col(Payment.order_id).in_([order.id for order in orders]),
-                Payment.status == PaymentStatus.ACTIVE,
-            )
-            .group_by(Payment.order_id)
-        ).all()
-    )
     rows: list[dict[str, object]] = []
     for order in orders:
         refund_amount = refunded.get(order.id, Decimal("0.00"))
-        net = money(order.subtotal - order.discount_total - refund_amount)
+        net = money(
+            order.subtotal
+            + order.fee_total
+            - order.discount_total
+            - refund_amount
+            - order.tax_total
+        )
         rows.append(
             {
                 "order_id": order.id,
@@ -899,6 +898,7 @@ def income_listing(
                 "completed_at": order.completed_at,
                 "gross_sales": order.subtotal,
                 "discounts": order.discount_total,
+                "fees": order.fee_total,
                 "refunds": refund_amount,
                 "tax": order.tax_total,
                 "net_sales": net,

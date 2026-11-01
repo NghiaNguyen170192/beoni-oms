@@ -1,6 +1,13 @@
 import { expect, type Page, test } from "@playwright/test"
 import type { Role } from "../src/client"
-import { createCompletedOrder, createMenuItem, uniqueSuffix } from "./utils/api"
+import {
+  createCompletedOrder,
+  createMenuItem,
+  createOrderFeeType,
+  readBusinessTaxRate,
+  uniqueSuffix,
+  updateBusinessTaxRate,
+} from "./utils/api"
 import { createUser } from "./utils/privateApi"
 import { randomEmail, randomPassword } from "./utils/random"
 import { logInUser } from "./utils/user"
@@ -36,6 +43,9 @@ const en = {
   filter: "Filter",
   empty: "No results found.",
   lineDiscount: "Discount",
+  feeAmount: (name: string) => `${name} fee amount`,
+  removeFee: "Remove",
+  view: "View",
   pay: "Pay and complete",
   record: "Record payment",
   refund: "Record refund",
@@ -61,6 +71,9 @@ const vi = {
   filter: "Lọc",
   empty: "Không có kết quả.",
   lineDiscount: "Giảm giá",
+  feeAmount: (name: string) => `Số tiền phí ${name}`,
+  removeFee: "Xóa phí",
+  view: "Xem",
   pay: "Thu và hoàn thành",
   record: "Ghi nhận thanh toán",
   refund: "Ghi nhận hoàn tiền",
@@ -189,4 +202,63 @@ test("Cashier sees only their own orders and cannot discount", async ({
   await page.getByLabel(copy.number).fill(otherOrder.number)
   await page.getByRole("button", { name: copy.filter }).click()
   await expect(page.getByText(copy.empty)).toBeVisible()
+})
+
+test("Cashier applies a fee and sees it in order details and the receipt", async ({
+  page,
+  context,
+}) => {
+  const originalRate = await readBusinessTaxRate()
+  try {
+    await updateBusinessTaxRate("10")
+    const suffix = uniqueSuffix()
+    const feeType = await createOrderFeeType(`Delivery ${suffix}`)
+    const item = await createMenuItem({
+      name: `Drink ${suffix}`,
+      price: "29000",
+    })
+
+    await logInAs(page, "cashier")
+    const copy = await labels(page)
+    await addToCart(page, item.code, item.name, copy)
+
+    const amount = page.getByLabel(copy.feeAmount(feeType.name))
+    await amount.fill("12000")
+    await amount.blur()
+    await expect(page.getByTestId(`order-fee-${feeType.id}`)).toContainText(
+      "12.000",
+    )
+    await expect(page.getByTestId("order-tax")).toContainText("3.727")
+    await expect(page.getByTestId("order-total")).toContainText("41.000")
+
+    await page.getByRole("button", { name: copy.complete }).click()
+    const done = page.getByTestId("order-completed")
+    await payCash(page, copy)
+    await expect(done).toContainText("41.000")
+    const orderNumber = (await done.textContent())?.match(/HD-\d{8}-\d{4}/)?.[0]
+    expect(orderNumber).toBeTruthy()
+
+    await page.goto("/orders")
+    await page
+      .getByRole("button", { name: `${copy.view} ${orderNumber}` })
+      .click()
+    await expect(page.getByTestId(`order-fee-${feeType.id}`)).toContainText(
+      "12.000",
+    )
+    await expect(page.getByTestId("order-tax")).toContainText("3.727")
+
+    const receiptPromise = context.waitForEvent("page")
+    await page.getByRole("link", { name: copy.receipt }).click()
+    const receipt = await receiptPromise
+    await receipt.waitForLoadState()
+    await expect(
+      receipt.getByRole("article", { name: copy.receipt }),
+    ).toContainText(feeType.name)
+    await expect(
+      receipt.getByRole("article", { name: copy.receipt }),
+    ).toContainText("3.727")
+    await expect(receipt.getByTestId("receipt-total")).toContainText("41.000")
+  } finally {
+    await updateBusinessTaxRate(originalRate)
+  }
 })

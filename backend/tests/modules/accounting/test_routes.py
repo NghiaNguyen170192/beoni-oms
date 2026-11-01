@@ -22,7 +22,10 @@ def test_cashier_cannot_read_cash_or_record_expenses(
 ) -> None:
     cashier = role_token_headers(Role.CASHIER)
     assert client.get(f"{API}/cash/accounts", headers=cashier).status_code == 403
-    assert client.post(f"{API}/expenses", headers=_key(cashier), json={}).status_code == 403
+    assert (
+        client.post(f"{API}/expenses", headers=_key(cashier), json={}).status_code
+        == 403
+    )
 
 
 def test_manager_sees_recorded_balances_and_not_profit(
@@ -43,10 +46,9 @@ def test_manager_sees_recorded_balances_and_not_profit(
     )
     assert movements.status_code == 200
     report = movements.json()
-    assert (
-        Decimal(report["opening"]) + Decimal(report["inflows"]) - Decimal(report["outflows"])
-        == Decimal(report["closing"])
-    )
+    assert Decimal(report["opening"]) + Decimal(report["inflows"]) - Decimal(
+        report["outflows"]
+    ) == Decimal(report["closing"])
     summary = client.get(
         f"{API}/finance/summary",
         headers=manager,
@@ -54,14 +56,13 @@ def test_manager_sees_recorded_balances_and_not_profit(
     )
     assert summary.status_code == 403
     accountant = role_token_headers(Role.ACCOUNTANT)
-    assert (
-        client.get(
-            f"{API}/finance/summary",
-            headers=accountant,
-            params={"date_from": today, "date_to": today},
-        ).status_code
-        == 200
+    summary = client.get(
+        f"{API}/finance/summary",
+        headers=accountant,
+        params={"date_from": today, "date_to": today},
     )
+    assert summary.status_code == 200
+    assert "fees" in summary.json()
     rent = db.exec(select(ExpenseCategory).where(ExpenseCategory.name == "Rent")).one()
     bank = account_named(db, BANK)
     created = client.post(

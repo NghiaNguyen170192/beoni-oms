@@ -105,6 +105,10 @@ export type Body_login_login_access_token = {
     client_secret?: (string | null);
 };
 
+export type BusinessNameUpdate = {
+    business_name: string;
+};
+
 export type BusinessSettingsPublic = {
     business_name: string;
     currency_code: string;
@@ -116,10 +120,12 @@ export type BusinessSettingsPublic = {
 };
 
 export type BusinessSettingsUpdate = {
-    business_name: string;
     currency_code: string;
     timezone: string;
     allow_negative_stock: boolean;
+};
+
+export type BusinessTaxRateUpdate = {
     tax_rate: (number | string);
 };
 
@@ -195,6 +201,7 @@ export type DashboardFinancial = {
     order_count: number;
     average_order_value: string;
     discounts: string;
+    fees: string;
     refunds: string;
     low_stock_count: number;
     cogs: string;
@@ -210,6 +217,7 @@ export type DashboardSales = {
     order_count: number;
     average_order_value: string;
     discounts: string;
+    fees: string;
     refunds: string;
     low_stock_count: number;
 };
@@ -289,6 +297,7 @@ export type FinancialSummaryPublic = {
     discounts: string;
     refunds: string;
     tax: string;
+    fees: string;
     net_sales: string;
     cogs: string;
     gross_profit: string;
@@ -359,6 +368,7 @@ export type IncomeRow = {
     completed_at: string;
     gross_sales: string;
     discounts: string;
+    fees: string;
     refunds: string;
     tax: string;
     net_sales: string;
@@ -649,6 +659,38 @@ export type OrderCreate = {
     lines?: Array<OrderLineInput>;
 };
 
+export type OrderFeeInput = {
+    fee_type_id: string;
+    amount: (number | string);
+};
+
+export type OrderFeePublic = {
+    fee_type_id: string;
+    fee_name: string;
+    amount: string;
+};
+
+export type OrderFeesReplace = {
+    fees: Array<OrderFeeInput>;
+};
+
+export type OrderFeeTypeCreate = {
+    name: string;
+    is_enabled?: boolean;
+};
+
+export type OrderFeeTypePublic = {
+    id: string;
+    name: string;
+    is_enabled: boolean;
+    updated_at: string;
+};
+
+export type OrderFeeTypeUpdate = {
+    name?: (string | null);
+    is_enabled?: (boolean | null);
+};
+
 /**
  * A cart line. Send `id` to keep an existing line (and its snapshot when
  * unchanged); omit it to add a new line. Lines not sent are removed.
@@ -714,6 +756,7 @@ export type OrderPublic = {
     order_discount_amount: string;
     order_discount_by_id: (string | null);
     tax_total: string;
+    fee_total: string;
     total: string;
     cashier_id: string;
     cashier_email: (string | null);
@@ -727,6 +770,7 @@ export type OrderPublic = {
     cancelled_by_id: (string | null);
     cancel_reason: (string | null);
     lines: Array<OrderLinePublic>;
+    fees: Array<OrderFeePublic>;
 };
 
 export type OrdersPublic = {
@@ -1051,6 +1095,7 @@ export type ProfitComparisonPublic = {
 export type ProfitStatementPublic = {
     date_from: string;
     date_to: string;
+    fees: string;
     net_sales: string;
     cogs: string;
     gross_profit: string;
@@ -1964,6 +2009,13 @@ export type OrdersReplaceOrderLinesData = {
 
 export type OrdersReplaceOrderLinesResponse = (OrderPublic);
 
+export type OrdersReplaceOrderFeesData = {
+    orderId: string;
+    requestBody: OrderFeesReplace;
+};
+
+export type OrdersReplaceOrderFeesResponse = (OrderPublic);
+
 export type OrdersSetOrderDiscountData = {
     orderId: string;
     requestBody: DiscountUpdate;
@@ -2471,11 +2523,40 @@ export type SettingsUpdateBusinessSettingsData = {
 
 export type SettingsUpdateBusinessSettingsResponse = (BusinessSettingsPublic);
 
+export type SettingsUpdateBusinessTaxRateData = {
+    requestBody: BusinessTaxRateUpdate;
+};
+
+export type SettingsUpdateBusinessTaxRateResponse = (BusinessSettingsPublic);
+
+export type SettingsUpdateBusinessNameData = {
+    requestBody: BusinessNameUpdate;
+};
+
+export type SettingsUpdateBusinessNameResponse = (BusinessSettingsPublic);
+
 export type SettingsUpdateLanguageData = {
     requestBody: LanguageUpdate;
 };
 
 export type SettingsUpdateLanguageResponse = (BusinessSettingsPublic);
+
+export type SettingsReadOrderFeeTypesResponse = (Array<OrderFeeTypePublic>);
+
+export type SettingsCreateOrderFeeTypeData = {
+    requestBody: OrderFeeTypeCreate;
+};
+
+export type SettingsCreateOrderFeeTypeResponse = (OrderFeeTypePublic);
+
+export type SettingsReadAllOrderFeeTypesResponse = (Array<OrderFeeTypePublic>);
+
+export type SettingsUpdateOrderFeeTypeData = {
+    feeTypeId: string;
+    requestBody: OrderFeeTypeUpdate;
+};
+
+export type SettingsUpdateOrderFeeTypeResponse = (OrderFeeTypePublic);
 
 export type UsersReadUsersData = {
     limit?: number;

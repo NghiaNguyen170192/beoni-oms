@@ -3,27 +3,15 @@ import { createUser } from "./utils/privateApi"
 import { randomEmail, randomPassword } from "./utils/random"
 import { logInUser } from "./utils/user"
 
-test("Owner updates business settings", async ({ page }) => {
+test("Business settings no longer expose the shop name or VAT controls", async ({
+  page,
+}) => {
   await page.goto("/settings")
   await page.getByRole("tab", { name: "Business" }).click()
-
-  const name = page.getByLabel("Business name")
-  await expect(name).toBeEnabled()
-  const originalName = await name.inputValue()
-  const updatedName = `Beoni ${randomPassword().slice(0, 6)}`
-
-  await name.fill(updatedName)
-  await page.getByRole("button", { name: "Save" }).click()
-  await expect(page.getByText("Business settings updated")).toBeVisible()
-
-  await page.reload()
-  await page.getByRole("tab", { name: "Business" }).click()
-  await expect(page.getByLabel("Business name")).toHaveValue(updatedName)
+  await expect(page.getByLabel("Business name")).toHaveCount(0)
+  await expect(page.getByLabel("Tax rate (%)")).toHaveCount(0)
+  await expect(page.getByLabel("Timezone")).not.toHaveValue("")
   await expect(page.getByText("Preview:")).toContainText("₫")
-
-  await page.getByLabel("Business name").fill(originalName)
-  await page.getByRole("button", { name: "Save" }).click()
-  await expect(page.getByText("Business settings updated").last()).toBeVisible()
 })
 
 test("Invalid timezone is rejected", async ({ page }) => {

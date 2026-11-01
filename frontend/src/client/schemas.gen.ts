@@ -517,6 +517,20 @@ export const Body_login_login_access_tokenSchema = {
     title: 'Body_login-login_access_token'
 } as const;
 
+export const BusinessNameUpdateSchema = {
+    properties: {
+        business_name: {
+            type: 'string',
+            maxLength: 255,
+            minLength: 1,
+            title: 'Business Name'
+        }
+    },
+    type: 'object',
+    required: ['business_name'],
+    title: 'BusinessNameUpdate'
+} as const;
+
 export const BusinessSettingsPublicSchema = {
     properties: {
         business_name: {
@@ -556,12 +570,6 @@ export const BusinessSettingsPublicSchema = {
 
 export const BusinessSettingsUpdateSchema = {
     properties: {
-        business_name: {
-            type: 'string',
-            maxLength: 255,
-            minLength: 1,
-            title: 'Business Name'
-        },
         currency_code: {
             type: 'string',
             maxLength: 3,
@@ -577,7 +585,15 @@ export const BusinessSettingsUpdateSchema = {
         allow_negative_stock: {
             type: 'boolean',
             title: 'Allow Negative Stock'
-        },
+        }
+    },
+    type: 'object',
+    required: ['currency_code', 'timezone', 'allow_negative_stock'],
+    title: 'BusinessSettingsUpdate'
+} as const;
+
+export const BusinessTaxRateUpdateSchema = {
+    properties: {
         tax_rate: {
             anyOf: [
                 {
@@ -594,8 +610,8 @@ export const BusinessSettingsUpdateSchema = {
         }
     },
     type: 'object',
-    required: ['business_name', 'currency_code', 'timezone', 'allow_negative_stock', 'tax_rate'],
-    title: 'BusinessSettingsUpdate'
+    required: ['tax_rate'],
+    title: 'BusinessTaxRateUpdate'
 } as const;
 
 export const CashAdjustmentCreateSchema = {
@@ -918,6 +934,11 @@ export const DashboardFinancialSchema = {
             pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Discounts'
         },
+        fees: {
+            type: 'string',
+            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
+            title: 'Fees'
+        },
         refunds: {
             type: 'string',
             pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
@@ -949,7 +970,7 @@ export const DashboardFinancialSchema = {
         }
     },
     type: 'object',
-    required: ['date_from', 'date_to', 'net_sales', 'order_count', 'average_order_value', 'discounts', 'refunds', 'low_stock_count', 'cogs', 'gross_profit', 'expenses', 'operating_profit'],
+    required: ['date_from', 'date_to', 'net_sales', 'order_count', 'average_order_value', 'discounts', 'fees', 'refunds', 'low_stock_count', 'cogs', 'gross_profit', 'expenses', 'operating_profit'],
     title: 'DashboardFinancial'
 } as const;
 
@@ -984,6 +1005,11 @@ export const DashboardSalesSchema = {
             pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Discounts'
         },
+        fees: {
+            type: 'string',
+            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
+            title: 'Fees'
+        },
         refunds: {
             type: 'string',
             pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
@@ -995,7 +1021,7 @@ export const DashboardSalesSchema = {
         }
     },
     type: 'object',
-    required: ['date_from', 'date_to', 'net_sales', 'order_count', 'average_order_value', 'discounts', 'refunds', 'low_stock_count'],
+    required: ['date_from', 'date_to', 'net_sales', 'order_count', 'average_order_value', 'discounts', 'fees', 'refunds', 'low_stock_count'],
     title: 'DashboardSales'
 } as const;
 
@@ -1340,6 +1366,11 @@ export const FinancialSummaryPublicSchema = {
             pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Tax'
         },
+        fees: {
+            type: 'string',
+            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
+            title: 'Fees'
+        },
         net_sales: {
             type: 'string',
             pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
@@ -1375,7 +1406,7 @@ export const FinancialSummaryPublicSchema = {
         }
     },
     type: 'object',
-    required: ['gross_sales', 'discounts', 'refunds', 'tax', 'net_sales', 'cogs', 'gross_profit', 'expenses', 'operating_profit', 'uncertain_cost_lines', 'missing_cost_lines'],
+    required: ['gross_sales', 'discounts', 'refunds', 'tax', 'fees', 'net_sales', 'cogs', 'gross_profit', 'expenses', 'operating_profit', 'uncertain_cost_lines', 'missing_cost_lines'],
     title: 'FinancialSummaryPublic'
 } as const;
 
@@ -1664,6 +1695,11 @@ export const IncomeRowSchema = {
             pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Discounts'
         },
+        fees: {
+            type: 'string',
+            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
+            title: 'Fees'
+        },
         refunds: {
             type: 'string',
             pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
@@ -1685,7 +1721,7 @@ export const IncomeRowSchema = {
         }
     },
     type: 'object',
-    required: ['order_id', 'number', 'completed_at', 'gross_sales', 'discounts', 'refunds', 'tax', 'net_sales', 'payment_status'],
+    required: ['order_id', 'number', 'completed_at', 'gross_sales', 'discounts', 'fees', 'refunds', 'tax', 'net_sales', 'payment_status'],
     title: 'IncomeRow'
 } as const;
 
@@ -3046,6 +3082,144 @@ export const OrderCreateSchema = {
     title: 'OrderCreate'
 } as const;
 
+export const OrderFeeInputSchema = {
+    properties: {
+        fee_type_id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Fee Type Id'
+        },
+        amount: {
+            anyOf: [
+                {
+                    type: 'number',
+                    minimum: 0
+                },
+                {
+                    type: 'string',
+                    pattern: '^(?!^[-+.]*$)[+-]?0*(?:\\d{0,16}|(?=[\\d.]{1,19}0*$)\\d{0,16}\\.\\d{0,2}0*$)'
+                }
+            ],
+            title: 'Amount'
+        }
+    },
+    type: 'object',
+    required: ['fee_type_id', 'amount'],
+    title: 'OrderFeeInput'
+} as const;
+
+export const OrderFeePublicSchema = {
+    properties: {
+        fee_type_id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Fee Type Id'
+        },
+        fee_name: {
+            type: 'string',
+            title: 'Fee Name'
+        },
+        amount: {
+            type: 'string',
+            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
+            title: 'Amount'
+        }
+    },
+    type: 'object',
+    required: ['fee_type_id', 'fee_name', 'amount'],
+    title: 'OrderFeePublic'
+} as const;
+
+export const OrderFeeTypeCreateSchema = {
+    properties: {
+        name: {
+            type: 'string',
+            maxLength: 255,
+            minLength: 1,
+            title: 'Name'
+        },
+        is_enabled: {
+            type: 'boolean',
+            title: 'Is Enabled',
+            default: true
+        }
+    },
+    type: 'object',
+    required: ['name'],
+    title: 'OrderFeeTypeCreate'
+} as const;
+
+export const OrderFeeTypePublicSchema = {
+    properties: {
+        id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Id'
+        },
+        name: {
+            type: 'string',
+            title: 'Name'
+        },
+        is_enabled: {
+            type: 'boolean',
+            title: 'Is Enabled'
+        },
+        updated_at: {
+            type: 'string',
+            format: 'date-time',
+            title: 'Updated At'
+        }
+    },
+    type: 'object',
+    required: ['id', 'name', 'is_enabled', 'updated_at'],
+    title: 'OrderFeeTypePublic'
+} as const;
+
+export const OrderFeeTypeUpdateSchema = {
+    properties: {
+        name: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 255
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Name'
+        },
+        is_enabled: {
+            anyOf: [
+                {
+                    type: 'boolean'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Is Enabled'
+        }
+    },
+    type: 'object',
+    title: 'OrderFeeTypeUpdate'
+} as const;
+
+export const OrderFeesReplaceSchema = {
+    properties: {
+        fees: {
+            items: {
+                '$ref': '#/components/schemas/OrderFeeInput'
+            },
+            type: 'array',
+            title: 'Fees'
+        }
+    },
+    type: 'object',
+    required: ['fees'],
+    title: 'OrderFeesReplace'
+} as const;
+
 export const OrderLineInputSchema = {
     properties: {
         id: {
@@ -3411,6 +3585,11 @@ export const OrderPublicSchema = {
             pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
             title: 'Tax Total'
         },
+        fee_total: {
+            type: 'string',
+            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
+            title: 'Fee Total'
+        },
         total: {
             type: 'string',
             pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
@@ -3530,10 +3709,17 @@ export const OrderPublicSchema = {
             },
             type: 'array',
             title: 'Lines'
+        },
+        fees: {
+            items: {
+                '$ref': '#/components/schemas/OrderFeePublic'
+            },
+            type: 'array',
+            title: 'Fees'
         }
     },
     type: 'object',
-    required: ['id', 'number', 'business_date', 'order_type', 'table_label', 'notes', 'status', 'tax_rate', 'subtotal', 'discount_total', 'order_discount_type', 'order_discount_value', 'order_discount_amount', 'order_discount_by_id', 'tax_total', 'total', 'cashier_id', 'cashier_email', 'cashier_name', 'created_at', 'updated_at', 'confirmed_at', 'completed_at', 'completed_by_id', 'cancelled_at', 'cancelled_by_id', 'cancel_reason', 'lines'],
+    required: ['id', 'number', 'business_date', 'order_type', 'table_label', 'notes', 'status', 'tax_rate', 'subtotal', 'discount_total', 'order_discount_type', 'order_discount_value', 'order_discount_amount', 'order_discount_by_id', 'tax_total', 'fee_total', 'total', 'cashier_id', 'cashier_email', 'cashier_name', 'created_at', 'updated_at', 'confirmed_at', 'completed_at', 'completed_by_id', 'cancelled_at', 'cancelled_by_id', 'cancel_reason', 'lines', 'fees'],
     title: 'OrderPublic'
 } as const;
 
@@ -5256,6 +5442,11 @@ export const ProfitStatementPublicSchema = {
             format: 'date',
             title: 'Date To'
         },
+        fees: {
+            type: 'string',
+            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
+            title: 'Fees'
+        },
         net_sales: {
             type: 'string',
             pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
@@ -5306,7 +5497,7 @@ export const ProfitStatementPublicSchema = {
         }
     },
     type: 'object',
-    required: ['date_from', 'date_to', 'net_sales', 'cogs', 'gross_profit', 'gross_margin', 'expenses', 'operating_profit', 'uncertain_cost_lines', 'missing_cost_lines'],
+    required: ['date_from', 'date_to', 'fees', 'net_sales', 'cogs', 'gross_profit', 'gross_margin', 'expenses', 'operating_profit', 'uncertain_cost_lines', 'missing_cost_lines'],
     title: 'ProfitStatementPublic'
 } as const;
 

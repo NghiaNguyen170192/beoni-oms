@@ -6,6 +6,7 @@ from app.modules.ordering.pricing import (
     DiscountExceedsBase,
     DiscountType,
     InvalidDiscount,
+    InvalidFeeTotal,
     LineInput,
     allocate,
     discount_amount,
@@ -120,6 +121,42 @@ def test_tax_follows_order_discount() -> None:
     )
     assert result.total == D("54000")
     assert result.tax_total == D("4000")
+
+
+def test_vat_inclusive_fee_is_added_after_discount_without_changing_due() -> None:
+    lines = [
+        LineInput(unit_price=D("29000"), quantity=D("2")),
+        LineInput(unit_price=D("35000"), quantity=D("1")),
+    ]
+    base = price_order(
+        lines, order_discount_type=P, order_discount_value=D("10"), tax_rate=D("10")
+    )
+    with_fee = price_order(
+        lines,
+        order_discount_type=P,
+        order_discount_value=D("10"),
+        tax_rate=D("10"),
+        fee_amounts=[D("5000")],
+    )
+
+    assert with_fee.total == D("88700")
+    assert with_fee.fee_total == D("5000")
+    assert with_fee.tax_total == base.tax_total + D("455")
+    assert [line.net_total for line in with_fee.lines] == [
+        line.net_total for line in base.lines
+    ]
+
+
+@pytest.mark.parametrize("fee_amount", [D("-1"), D("1.25")])
+def test_invalid_fee_amount_rejected(fee_amount: Decimal) -> None:
+    with pytest.raises(InvalidFeeTotal):
+        price_order([], fee_amounts=[fee_amount])
+
+
+def test_vat_is_rounded_per_fee_amount() -> None:
+    result = price_order([], tax_rate=D("10"), fee_amounts=[D("6"), D("6")])
+    assert result.fee_total == D("12")
+    assert result.tax_total == D("2")
 
 
 def test_discount_exceeding_base_rejected() -> None:

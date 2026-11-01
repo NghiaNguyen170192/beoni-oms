@@ -28,11 +28,14 @@ from app.modules.ordering.schemas import (
     DiscountUpdate,
     OrderCancel,
     OrderCreate,
+    OrderFeeInput,
+    OrderFeesReplace,
     OrderLineInput,
     OrderUpdate,
 )
 from app.modules.ordering.states import InvalidTransition, OrderStatus
 from app.modules.settings import service as settings_service
+from app.modules.settings.schemas import OrderFeeTypeCreate, OrderFeeTypeUpdate
 from tests.utils.catalog import make_menu_item
 from tests.utils.user import make_user_with_role
 
@@ -254,6 +257,162 @@ def test_spec_totals_with_order_discount(
     )
     assert order.order_discount_by_id == manager.id
     assert sum(line.net_total for line in order.lines) == D("83700")
+
+
+def _create_fee_type(
+    db: Session, actor: User, name: str = "Shipping", *, enabled: bool = True
+) -> Any:
+    return settings_service.create_order_fee_type(
+        db,
+        data=OrderFeeTypeCreate(name=name, is_enabled=enabled),
+        actor=actor,
+    )
+
+
+def _replace_fees(
+    db: Session, order_id: uuid.UUID, actor: User, *fees: tuple[uuid.UUID, Decimal]
+) -> Any:
+    return service.replace_fees(
+        db,
+        order_id=order_id,
+        data=OrderFeesReplace(
+            fees=[
+                OrderFeeInput(fee_type_id=fee_type_id, amount=amount)
+                for fee_type_id, amount in fees
+            ]
+        ),
+        actor=actor,
+    )
+
+
+def test_fee_updates_recalculate_total_and_preserve_name_snapshot(
+    db: Session, cashier: User
+) -> None:
+    item = make_menu_item(db, price=D("29000"))
+    fee_type = _create_fee_type(db, cashier)
+    order = _create(db, cashier, _line(item))
+
+    order = _replace_fees(db, order.id, cashier, (fee_type.id, D("5000")))
+    assert (order.fee_total, order.total) == (D("5000"), D("34000"))
+    assert [(fee.fee_name, fee.amount) for fee in order.fees] == [
+        ("Shipping", D("5000"))
+    ]
+
+    settings_service.update_order_fee_type(
+        db,
+        fee_type_id=fee_type.id,
+        data=OrderFeeTypeUpdate(name="Delivery"),
+        actor=cashier,
+    )
+    order = _replace_fees(db, order.id, cashier, (fee_type.id, D("6000")))
+    assert (order.fee_total, order.total) == (D("6000"), D("35000"))
+    assert [(fee.fee_name, fee.amount) for fee in order.fees] == [
+        ("Shipping", D("6000"))
+    ]
+
+    order = _replace_fees(db, order.id, cashier, (fee_type.id, D("0")))
+    assert order.fees == []
+    assert (order.fee_total, order.total) == (D("0"), D("29000"))
+
+
+def test_order_uses_saved_tax_rate_for_vat_inclusive_fees(
+    db: Session, cashier: User
+) -> None:
+    settings = settings_service.get_settings(db)
+    settings.tax_rate = D("10")
+    db.add(settings)
+    db.commit()
+
+    fee_type = _create_fee_type(db, cashier)
+    order = _create(db, cashier, _line(make_menu_item(db, price=D("29000"))))
+
+    settings.tax_rate = D("8")
+    db.add(settings)
+    db.commit()
+
+    order = _replace_fees(db, order.id, cashier, (fee_type.id, D("5000")))
+
+    assert order.tax_rate == D("10")
+    assert order.total == D("34000")
+    assert order.tax_total == D("3091")
+    assert order.lines[0].tax_amount == D("2636")
+
+    new_order = _create(db, cashier, _line(make_menu_item(db, price=D("29000"))))
+    assert new_order.tax_rate == D("8")
+    assert new_order.tax_total == D("2148")
+
+
+def test_disabled_fee_can_only_be_kept_unchanged_or_removed(
+    db: Session, cashier: User
+) -> None:
+    fee_type = _create_fee_type(db, cashier)
+    order = _create(db, cashier, _line(make_menu_item(db)))
+    order = _replace_fees(db, order.id, cashier, (fee_type.id, D("5000")))
+    settings_service.update_order_fee_type(
+        db,
+        fee_type_id=fee_type.id,
+        data=OrderFeeTypeUpdate(is_enabled=False),
+        actor=cashier,
+    )
+
+    with pytest.raises(InvalidOrderChange):
+        _replace_fees(db, order.id, cashier, (fee_type.id, D("6000")))
+    unchanged = service.get_order(db, order_id=order.id, actor=cashier)
+    assert unchanged.fee_total == D("5000")
+    assert [(fee.fee_name, fee.amount) for fee in unchanged.fees] == [
+        ("Shipping", D("5000"))
+    ]
+
+    kept = _replace_fees(db, order.id, cashier, (fee_type.id, D("5000")))
+    assert kept.fee_total == D("5000")
+    removed = _replace_fees(db, order.id, cashier)
+    assert removed.fees == []
+    assert removed.fee_total == D("0")
+    with pytest.raises(InvalidOrderChange):
+        _replace_fees(db, order.id, cashier, (fee_type.id, D("5000")))
+
+
+def test_unknown_and_fractional_fees_are_rejected_without_changing_order(
+    db: Session, cashier: User
+) -> None:
+    fee_type = _create_fee_type(db, cashier)
+    order = _create(db, cashier, _line(make_menu_item(db)))
+    _replace_fees(db, order.id, cashier, (fee_type.id, D("5000")))
+
+    with pytest.raises(InvalidOrderChange):
+        _replace_fees(db, order.id, cashier, (uuid.uuid4(), D("1000")))
+    with pytest.raises(InvalidOrderChange):
+        _replace_fees(db, order.id, cashier, (fee_type.id, D("1000.25")))
+    unchanged = service.get_order(db, order_id=order.id, actor=cashier)
+    assert unchanged.fee_total == D("5000")
+    assert unchanged.total == D("34000")
+    with pytest.raises(ValueError):
+        OrderFeesReplace(
+            fees=[OrderFeeInput(fee_type_id=fee_type.id, amount=D("-1"))]
+        )
+    with pytest.raises(ValueError):
+        OrderFeesReplace(
+            fees=[
+                OrderFeeInput(fee_type_id=fee_type.id, amount=D("1000")),
+                OrderFeeInput(fee_type_id=fee_type.id, amount=D("2000")),
+            ]
+        )
+
+
+def test_fee_total_is_paid_and_completed_orders_reject_fee_changes(
+    db: Session, cashier: User
+) -> None:
+    fee_type = _create_fee_type(db, cashier)
+    order = _create(db, cashier, _line(make_menu_item(db, price=D("29000"))))
+    order = _replace_fees(db, order.id, cashier, (fee_type.id, D("5000")))
+
+    result = _complete(db, cashier, order.id)
+
+    assert result.body["status"] == OrderStatus.COMPLETED
+    assert result.body["fee_total"] == "5000.00"
+    assert result.body["total"] == "34000.00"
+    with pytest.raises(OrderNotEditable):
+        _replace_fees(db, order.id, cashier, (fee_type.id, D("6000")))
 
 
 def test_line_discount_exceeding_line_rejected(

@@ -19,6 +19,7 @@ from app.modules.ordering.schemas import (
     DiscountUpdate,
     OrderCancel,
     OrderCreate,
+    OrderFeesReplace,
     OrderLinesReplace,
     OrderPublic,
     OrdersPublic,
@@ -124,6 +125,17 @@ def replace_order_lines(
     return service.replace_lines(
         session, order_id=order_id, lines=lines_in.lines, actor=actor
     )
+
+
+@router.put("/{order_id}/fees", response_model=OrderPublic)
+def replace_order_fees(
+    session: SessionDep,
+    actor: Creator,
+    order_id: uuid.UUID,
+    fees_in: OrderFeesReplace,
+) -> Any:
+    """Replace the fee amounts on an open order."""
+    return service.replace_fees(session, order_id=order_id, data=fees_in, actor=actor)
 
 
 @router.put("/{order_id}/discount", response_model=OrderPublic)

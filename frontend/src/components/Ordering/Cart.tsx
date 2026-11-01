@@ -1,9 +1,17 @@
 import { Minus, Percent, Plus, Trash2 } from "lucide-react"
+import { useEffect, useState } from "react"
 
-import type { OrderLinePublic, OrderPublic, OrderType } from "@/client"
+import type {
+  OrderFeeInput,
+  OrderFeeTypePublic,
+  OrderLinePublic,
+  OrderPublic,
+  OrderType,
+} from "@/client"
 import type { FinishedGoodAvailability } from "@/components/Production/api"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import { useFormatters } from "@/hooks/useBusinessSettings"
 import { useI18n } from "@/i18n"
 import { formatNumber } from "@/lib/format"
@@ -12,6 +20,7 @@ import { OrderTotals } from "./OrderTotals"
 
 interface CartProps {
   order: OrderPublic | null
+  feeTypes: OrderFeeTypePublic[]
   orderType: OrderType
   tableLabel: string
   busy: boolean
@@ -23,10 +32,12 @@ interface CartProps {
   onQuantityChange: (line: OrderLinePublic, quantity: number) => void
   onRemove: (line: OrderLinePublic) => void
   onLineDiscount: (line: OrderLinePublic) => void
+  onFeesChange: (fees: OrderFeeInput[]) => void
 }
 
 export function Cart({
   order,
+  feeTypes,
   orderType,
   tableLabel,
   busy,
@@ -38,10 +49,69 @@ export function Cart({
   onQuantityChange,
   onRemove,
   onLineDiscount,
+  onFeesChange,
 }: CartProps) {
   const { t } = useI18n()
   const { formatMoney } = useFormatters()
   const lines = order?.lines ?? []
+  const [feeAmounts, setFeeAmounts] = useState<Record<string, string>>({})
+  const [invalidFeeId, setInvalidFeeId] = useState<string>()
+  const appliedFees = new Map(
+    (order?.fees ?? []).map((fee) => [fee.fee_type_id, fee]),
+  )
+  const enabledFeeIds = new Set(feeTypes.map((feeType) => feeType.id))
+  const visibleFees = [
+    ...feeTypes.map((feeType) => {
+      const applied = appliedFees.get(feeType.id)
+      return {
+        id: feeType.id,
+        name: applied?.fee_name ?? feeType.name,
+        enabled: true,
+        amount: applied?.amount ?? "0",
+      }
+    }),
+    ...(order?.fees ?? [])
+      .filter((fee) => !enabledFeeIds.has(fee.fee_type_id))
+      .map((fee) => ({
+        id: fee.fee_type_id,
+        name: fee.fee_name,
+        enabled: false,
+        amount: fee.amount,
+      })),
+  ]
+
+  useEffect(() => {
+    const currentFees = new Map(
+      (order?.fees ?? []).map((fee) => [fee.fee_type_id, fee]),
+    )
+    setFeeAmounts(
+      Object.fromEntries(
+        feeTypes.map((feeType) => [
+          feeType.id,
+          currentFees.get(feeType.id)?.amount ?? "0",
+        ]),
+      ),
+    )
+  }, [feeTypes, order?.fees])
+
+  const submitFees = (removedFeeId?: string) => {
+    if (!order) return
+    const fees = visibleFees.flatMap((fee): OrderFeeInput[] => {
+      if (fee.id === removedFeeId) return []
+      if (!fee.enabled) {
+        return [{ fee_type_id: fee.id, amount: fee.amount }]
+      }
+      const amount = feeAmounts[fee.id]?.trim() || "0"
+      return amount === "0" ? [] : [{ fee_type_id: fee.id, amount }]
+    })
+    const current = new Map(order.fees.map((fee) => [fee.fee_type_id, fee]))
+    if (
+      fees.length !== current.size ||
+      fees.some((fee) => current.get(fee.fee_type_id)?.amount !== fee.amount)
+    ) {
+      onFeesChange(fees)
+    }
+  }
 
   return (
     <div className="flex flex-col gap-4">
@@ -180,6 +250,78 @@ export function Cart({
             )
           })}
         </ul>
+      )}
+
+      {order && visibleFees.length > 0 && (
+        <section
+          className="flex flex-col gap-2"
+          aria-label={t("ordering.cart.fees")}
+        >
+          <h3 className="text-sm font-medium">{t("ordering.cart.fees")}</h3>
+          {visibleFees.map((fee) => (
+            <div key={fee.id} className="flex items-center gap-2">
+              {fee.enabled ? (
+                <>
+                  <Label htmlFor={`order-fee-${fee.id}`} className="flex-1">
+                    {fee.name}
+                  </Label>
+                  <div className="flex flex-col items-end gap-1">
+                    <Input
+                      id={`order-fee-${fee.id}`}
+                      type="number"
+                      inputMode="numeric"
+                      min="0"
+                      step="1"
+                      className="w-36 text-right tabular-nums"
+                      value={feeAmounts[fee.id] ?? "0"}
+                      disabled={busy}
+                      aria-invalid={invalidFeeId === fee.id}
+                      onChange={(event) => {
+                        setFeeAmounts((previous) => ({
+                          ...previous,
+                          [fee.id]: event.target.value,
+                        }))
+                        setInvalidFeeId(undefined)
+                      }}
+                      onBlur={(event) => {
+                        if (!event.currentTarget.validity.valid) {
+                          setInvalidFeeId(fee.id)
+                          return
+                        }
+                        setInvalidFeeId(undefined)
+                        submitFees()
+                      }}
+                    />
+                    {invalidFeeId === fee.id && (
+                      <p role="alert" className="text-xs text-destructive">
+                        {t("ordering.cart.invalidFeeAmount")}
+                      </p>
+                    )}
+                  </div>
+                </>
+              ) : (
+                <>
+                  <span className="flex-1">{fee.name}</span>
+                  <span className="text-sm tabular-nums">
+                    {formatMoney(fee.amount)}
+                  </span>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    disabled={busy}
+                    aria-label={t("ordering.cart.removeFee", {
+                      name: fee.name,
+                    })}
+                    onClick={() => submitFees(fee.id)}
+                  >
+                    {t("ordering.cart.removeFee", { name: fee.name })}
+                  </Button>
+                </>
+              )}
+            </div>
+          ))}
+        </section>
       )}
 
       {order && lines.length > 0 && <OrderTotals order={order} />}

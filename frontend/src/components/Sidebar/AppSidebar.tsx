@@ -176,6 +176,12 @@ const navItems: NavItem[] = [
         path: "/admin/language",
         permissions: ["settings:manage"],
       },
+      {
+        icon: ReceiptText,
+        title: "nav.posFees",
+        path: "/admin/fees",
+        permissions: ["settings:manage"],
+      },
     ],
   },
 ]

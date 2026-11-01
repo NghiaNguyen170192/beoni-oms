@@ -401,6 +401,7 @@ def export_statement(
 ):
     report = service.profit_statement(session, date_from=date_from, date_to=date_to)
     header = [
+        "fees",
         "net_sales",
         "cogs",
         "gross_profit",
@@ -488,6 +489,7 @@ def export_income(
         "completed_at",
         "gross_sales",
         "discounts",
+        "fees",
         "refunds",
         "tax",
         "net_sales",

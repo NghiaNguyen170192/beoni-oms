@@ -34,6 +34,10 @@ class DiscountExceedsBase(PricingError):
     pass
 
 
+class InvalidFeeTotal(PricingError):
+    pass
+
+
 def round_vnd(value: Decimal) -> Decimal:
     return value.quantize(VND, rounding=ROUND_HALF_UP)
 
@@ -110,6 +114,7 @@ class OrderAmounts:
     order_discount_amount: Decimal
     discount_total: Decimal
     tax_total: Decimal
+    fee_total: Decimal
     total: Decimal
 
 
@@ -119,7 +124,14 @@ def price_order(
     order_discount_type: DiscountType | None = None,
     order_discount_value: Decimal | None = None,
     tax_rate: Decimal = ZERO,
+    fee_amounts: Sequence[Decimal] = (),
 ) -> OrderAmounts:
+    fee_total = sum(fee_amounts, ZERO)
+    if fee_total < ZERO or fee_total != round_vnd(fee_total):
+        raise InvalidFeeTotal("Fees must be non-negative whole VND amounts")
+    if any(fee < ZERO or fee != round_vnd(fee) for fee in fee_amounts):
+        raise InvalidFeeTotal("Fees must be non-negative whole VND amounts")
+
     gross = [round_vnd(line.unit_price * line.quantity) for line in lines]
     line_discounts = [
         discount_amount(g, line.discount_type, line.discount_value)
@@ -153,6 +165,8 @@ def price_order(
         subtotal=subtotal,
         order_discount_amount=order_discount,
         discount_total=discount_total,
-        tax_total=sum(taxes, ZERO),
-        total=subtotal - discount_total,
+        tax_total=sum(taxes, ZERO)
+        + sum((included_tax(fee, tax_rate) for fee in fee_amounts), ZERO),
+        fee_total=fee_total,
+        total=subtotal - discount_total + fee_total,
     )

@@ -120,6 +120,12 @@ function Receipt() {
               t("ordering.totals.discounts"),
               `−${money(order.discount_total)}`,
             )}
+          {order.fees.map((fee) =>
+            row(
+              t("ordering.totals.fee", { name: fee.fee_name }),
+              money(fee.amount),
+            ),
+          )}
           {Number(order.tax_rate) > 0 &&
             row(
               t("ordering.totals.inclTax", {
