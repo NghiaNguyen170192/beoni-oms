@@ -8,6 +8,7 @@ from sqlalchemy import Engine
 from sqlmodel import Session, col, delete, select
 
 from app.models import User
+from app.modules.accounting.models import CashMovement
 from app.modules.audit.models import AuditLog
 from app.modules.catalog.models import MenuCategory, MenuItem, ProductType
 from app.modules.idempotency.models import IdempotencyKey
@@ -127,6 +128,16 @@ def _purge(engine: Engine, seed: _Seed) -> None:
             delete(InventoryItem).where(col(InventoryItem.id).in_(seed.item_ids))
         )
     if seed.order_ids:
+        statements.append(
+            delete(CashMovement).where(
+                CashMovement.source_type.in_(["payment", "payment_void"]),
+                col(CashMovement.source_id).in_(
+                    select(Payment.id).where(
+                        col(Payment.order_id).in_(seed.order_ids)
+                    )
+                ),
+            )
+        )
         statements.append(
             delete(Payment).where(col(Payment.order_id).in_(seed.order_ids))
         )

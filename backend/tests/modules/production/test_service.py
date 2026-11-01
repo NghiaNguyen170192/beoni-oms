@@ -492,14 +492,28 @@ def test_update_batch_replaces_draft_plan_and_audits_changes(db: Session) -> Non
 
 def test_completed_batch_cannot_be_updated(db: Session) -> None:
     manager = make_user_with_role(db, Role.MANAGER)
-    batch, *_ = _create_batch(db, manager)
-    row = db.get(ProductionBatch, batch.id)
-    assert row is not None
-    row.status = ProductionBatchStatus.COMPLETED
-    row.finished_at = datetime.now(timezone.utc)
-    row.completed_by_id = manager.id
-    db.add(row)
-    db.commit()
+    batch, ingredient, _, _ = _create_batch(db, manager)
+    seed_stock(db, ingredient, "1000", unit_cost="2", actor=manager)
+    service.complete_batch(
+        db,
+        batch_id=batch.id,
+        data=ProductionBatchComplete(
+            ingredients=[
+                BatchIngredientActual(
+                    line_id=batch.ingredients[0].id,
+                    actual_quantity=D("175"),
+                )
+            ],
+            outputs=[
+                BatchOutputActual(
+                    line_id=batch.outputs[0].id,
+                    actual_good_quantity=D("5"),
+                )
+            ],
+        ),
+        actor=manager,
+        idempotency_key="production-completed-update",
+    )
 
     with pytest.raises(BatchNotDraft):
         service.update_batch(

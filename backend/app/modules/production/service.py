@@ -1619,7 +1619,7 @@ def reverse_batch(
             output_lines_with_stock, output_reversals, strict=True
         ):
             lot = lots_by_output_line[line.id]
-            reversal_quantity = -movement.quantity
+            reversal_quantity = movement.quantity
             lot.quantity_on_hand = quantity(lot.quantity_on_hand + reversal_quantity)
             lot.updated_at = movement.occurred_at
             session.add(lot)
