@@ -93,9 +93,7 @@ test("a sale can be split across two cash payments", async ({ page }) => {
     await page.getByRole("button", { name: digit, exact: true }).click()
   }
   await page.getByRole("button", { name: copy.record }).click()
-  await expect(
-    page.locator("span").filter({ hasText: "30.000" }),
-  ).toBeVisible()
+  await expect(page.locator("span").filter({ hasText: "30.000" })).toBeVisible()
   for (const digit of "30000") {
     await page.getByRole("button", { name: digit, exact: true }).click()
   }

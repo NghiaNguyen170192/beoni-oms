@@ -298,6 +298,7 @@ function ProfitReports() {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead>{t("reports.rowType")}</TableHead>
                   <TableHead>{t("reports.order")}</TableHead>
                   <TableHead className="text-right">
                     {t("reports.fees")}
@@ -313,11 +314,17 @@ function ProfitReports() {
               <TableBody>
                 {income.data.data.map((row) => (
                   <TableRow
-                    key={row.order_id}
+                    key={`${row.kind}-${row.order_id}`}
                     data-testid="income-row"
+                    data-kind={row.kind}
                     data-net={row.net_sales}
                     data-fee={row.fees}
                   >
+                    <TableCell>
+                      {row.kind === "refund"
+                        ? t("reports.refund")
+                        : t("reports.sale")}
+                    </TableCell>
                     <TableCell>{row.number}</TableCell>
                     <TableCell className="text-right tabular-nums">
                       {formatMoney(row.fees)}

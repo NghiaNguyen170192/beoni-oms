@@ -125,7 +125,9 @@ test("a recipe deducts stock, a shortage is shown, and a bottle can be returned"
   await page
     .getByRole("button", { name: new RegExp(`^(Add|Thêm) ${water.name}$`) })
     .click()
-  await page.getByRole("button", { name: /^(Complete|Hoàn thành đơn)$/ }).click()
+  await page
+    .getByRole("button", { name: /^(Complete|Hoàn thành đơn)$/ })
+    .click()
   await page.getByRole("button", { name: /Cash|Tiền mặt/ }).click()
   const total = (await page.getByTestId("order-total").innerText()).trim()
   await page
@@ -153,7 +155,9 @@ test("a recipe deducts stock, a shortage is shown, and a bottle can be returned"
   await page
     .getByRole("button", { name: new RegExp(`^(Add|Thêm) ${latte.name}$`) })
     .click()
-  await page.getByRole("button", { name: /^(Complete|Hoàn thành đơn)$/ }).click()
+  await page
+    .getByRole("button", { name: /^(Complete|Hoàn thành đơn)$/ })
+    .click()
   await page.getByRole("button", { name: /Cash|Tiền mặt/ }).click()
   const latteTotal = (await page.getByTestId("order-total").innerText()).trim()
   await page

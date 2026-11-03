@@ -948,27 +948,51 @@ def income_listing(
             .order_by(col(Order.completed_at))
         ).all()
     )
-    if not orders:
-        return []
-    rates = {order.id: order.tax_rate for order in orders}
-    refund_rows = session.exec(
-        select(Refund.order_id, Refund.amount).where(
-            col(Refund.order_id).in_([order.id for order in orders])
+    sale_order_ids = {order.id for order in orders}
+    period_refund_rows = session.exec(
+        select(
+            Refund.order_id,
+            Refund.amount,
+            Order.tax_rate,
+            Order.number,
+            Order.completed_at,
+            Order.total,
+        )
+        .join(Order, Order.id == Refund.order_id)
+        .where(
+            Refund.recorded_at >= start,
+            Refund.recorded_at < end,
+            col(Order.status).in_(SALE_STATUSES),
         )
     ).all()
-    gross_refunds: dict[uuid.UUID, Decimal] = {}
+    refund_order_ids = {order_id for order_id, *_ in period_refund_rows}
+    all_order_ids = sale_order_ids | refund_order_ids
+    if not all_order_ids:
+        return []
+
+    all_refund_totals = dict(
+        session.exec(
+            select(Refund.order_id, func.sum(Refund.amount))
+            .where(col(Refund.order_id).in_(all_order_ids))
+            .group_by(Refund.order_id)
+        ).all()
+    )
+    period_gross_refunds: dict[uuid.UUID, Decimal] = {}
     net_refunds: dict[uuid.UUID, Decimal] = {}
-    for order_id, amount in refund_rows:
-        gross_refunds[order_id] = money(
-            gross_refunds.get(order_id, Decimal("0")) + money(amount)
+    refund_order_details: dict[uuid.UUID, tuple[str, datetime, Decimal]] = {}
+    for order_id, amount, tax_rate, number, completed_at, total in period_refund_rows:
+        period_gross_refunds[order_id] = money(
+            period_gross_refunds.get(order_id, Decimal("0")) + money(amount)
         )
         net_refunds[order_id] = money(
             net_refunds.get(order_id, Decimal("0"))
-            + _refund_net(amount, rates[order_id])
+            + _refund_net(amount, tax_rate)
         )
+        refund_order_details[order_id] = (number, completed_at, total)
+
     rows: list[dict[str, object]] = []
     for order in orders:
-        refund_amount = gross_refunds.get(order.id, Decimal("0.00"))
+        refund_amount = period_gross_refunds.get(order.id, Decimal("0.00"))
         net = money(
             order.subtotal
             + order.fee_total
@@ -976,14 +1000,16 @@ def income_listing(
             - net_refunds.get(order.id, Decimal("0.00"))
             - order.tax_total
         )
-        if refund_amount == 0:
+        total_refunds = money(all_refund_totals.get(order.id, Decimal("0")))
+        if total_refunds == 0:
             payment_status = "paid"
-        elif refund_amount >= order.total:
+        elif total_refunds >= order.total:
             payment_status = "refunded"
         else:
             payment_status = "partially_refunded"
         rows.append(
             {
+                "kind": "sale",
                 "order_id": order.id,
                 "number": order.number,
                 "completed_at": order.completed_at,
@@ -996,4 +1022,27 @@ def income_listing(
                 "payment_status": payment_status,
             }
         )
+    for order_id in refund_order_ids - sale_order_ids:
+        number, completed_at, total = refund_order_details[order_id]
+        total_refunds = money(all_refund_totals.get(order_id, Decimal("0")))
+        if total_refunds >= total:
+            payment_status = "refunded"
+        else:
+            payment_status = "partially_refunded"
+        rows.append(
+            {
+                "kind": "refund",
+                "order_id": order_id,
+                "number": number,
+                "completed_at": completed_at,
+                "gross_sales": Decimal("0.00"),
+                "discounts": Decimal("0.00"),
+                "fees": Decimal("0.00"),
+                "refunds": period_gross_refunds[order_id],
+                "tax": Decimal("0.00"),
+                "net_sales": -net_refunds[order_id],
+                "payment_status": payment_status,
+            }
+        )
+    rows.sort(key=lambda row: str(row["completed_at"]))
     return rows

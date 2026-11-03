@@ -684,11 +684,114 @@ def test_fee_revenue_uses_completion_date_and_includes_fee_vat(
     income = accounting.income_listing(db, date_from=day, date_to=day)
     assert len(income) == 1
     income_row = IncomeRow.model_validate(income[0])
+    assert income_row.kind == "sale"
     assert income_row.gross_sales == D("110000.00")
     assert income_row.fees == D("5000.00")
     assert income_row.tax == D("9455.00")
     assert income_row.net_sales == D("93636.00")
     assert income_row.payment_status == "partially_refunded"
+
+
+def test_income_listing_refunds_reconcile_by_recorded_period(db: Session) -> None:
+    actor = make_user_with_role(db, Role.OWNER)
+    settings = settings_service.get_settings(db)
+    settings.tax_rate = D("10")
+    db.add(settings)
+    db.commit()
+    item = make_menu_item(db, price=D("1100"))
+    order = ordering.create_order(
+        db,
+        data=OrderCreate(
+            order_type="takeaway",
+            lines=[OrderLineInput(menu_item_id=item.id, quantity=D("1"))],
+        ),
+        actor=actor,
+    )
+    cash = db.exec(
+        select(PaymentMethod).where(PaymentMethod.kind == PaymentMethodKind.CASH)
+    ).one()
+    payments.record_payment(
+        db,
+        order_id=order.id,
+        data=PaymentCreate(method_id=cash.id, tendered=order.total),
+        actor=actor,
+        idempotency_key=uuid.uuid4().hex,
+    )
+    ordering.complete_order(
+        db, order_id=order.id, actor=actor, idempotency_key=uuid.uuid4().hex
+    )
+    completed = db.get(Order, order.id)
+    assert completed is not None
+    completed.completed_at = noon_on(date(2024, 6, 15), "Asia/Ho_Chi_Minh")
+    db.add(completed)
+    db.commit()
+    payments.record_refund(
+        db,
+        order_id=order.id,
+        data=RefundCreate(method_id=cash.id, amount=D("550"), reason="Adjustment"),
+        actor=actor,
+        idempotency_key=uuid.uuid4().hex,
+    )
+    refund = db.exec(select(Refund).where(Refund.order_id == order.id)).one()
+    refund.recorded_at = noon_on(date(2024, 6, 16), "Asia/Ho_Chi_Minh")
+    db.add(refund)
+    db.commit()
+
+    sale_day = date(2024, 6, 15)
+    refund_day = date(2024, 6, 16)
+    sale_income = [
+        IncomeRow.model_validate(row)
+        for row in accounting.income_listing(
+            db, date_from=sale_day, date_to=sale_day
+        )
+    ]
+    refund_income = [
+        IncomeRow.model_validate(row)
+        for row in accounting.income_listing(
+            db, date_from=refund_day, date_to=refund_day
+        )
+    ]
+    combined_income = [
+        IncomeRow.model_validate(row)
+        for row in accounting.income_listing(
+            db, date_from=sale_day, date_to=refund_day
+        )
+    ]
+    sale_summary = accounting.financial_summary(
+        db, date_from=sale_day, date_to=sale_day
+    )
+    refund_summary = accounting.financial_summary(
+        db, date_from=refund_day, date_to=refund_day
+    )
+    combined_summary = accounting.financial_summary(
+        db, date_from=sale_day, date_to=refund_day
+    )
+
+    assert len(sale_income) == len(refund_income) == len(combined_income) == 1
+    sale_row = sale_income[0]
+    refund_row = refund_income[0]
+    combined_row = combined_income[0]
+    assert sale_row.kind == combined_row.kind == "sale"
+    assert refund_row.kind == "refund"
+    assert sale_row.refunds == D("0.00")
+    assert sale_row.payment_status == "partially_refunded"
+    assert refund_row.gross_sales == D("0.00")
+    assert refund_row.refunds == D("550.00")
+    assert refund_row.tax == D("0.00")
+    assert refund_row.net_sales == D("-500.00")
+    assert combined_row.refunds == D("550.00")
+    assert sale_row.net_sales == sale_summary["net_sales"]
+    assert refund_row.net_sales == refund_summary["net_sales"]
+    assert combined_row.net_sales == combined_summary["net_sales"]
+    assert sum((row.net_sales for row in sale_income), D("0")) == sale_summary[
+        "net_sales"
+    ]
+    assert sum((row.net_sales for row in refund_income), D("0")) == refund_summary[
+        "net_sales"
+    ]
+    assert sum((row.net_sales for row in combined_income), D("0")) == combined_summary[
+        "net_sales"
+    ]
 
 
 def test_seeded_documents_reconcile_with_summary_and_balances(db: Session) -> None:

@@ -510,7 +510,10 @@ export function ProductionBatchDialog({
                     setOutputs([])
                   }}
                 >
-                  <SelectTrigger id="production-formula-menu" className="w-full">
+                  <SelectTrigger
+                    id="production-formula-menu"
+                    className="w-full"
+                  >
                     <SelectValue
                       placeholder={t("production.batch.chooseMenuItem")}
                     />
@@ -545,7 +548,10 @@ export function ProductionBatchDialog({
                   }}
                   disabled={!formulaMenuItemId || formulas.length === 0}
                 >
-                  <SelectTrigger id="production-formula-version" className="w-full">
+                  <SelectTrigger
+                    id="production-formula-version"
+                    className="w-full"
+                  >
                     <SelectValue
                       placeholder={t("production.batch.chooseFormula")}
                     />

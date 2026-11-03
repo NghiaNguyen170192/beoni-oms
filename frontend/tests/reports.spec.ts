@@ -148,7 +148,52 @@ test("fee revenue is separate from product and category sales", async ({
     .getByTestId("income-row")
     .filter({ hasText: completed.number })
   await expect(incomeRowOnPage).toHaveAttribute("data-fee", completed.fee_total)
-  await expect(incomeRowOnPage.getByRole("cell").nth(1)).toContainText("5.000")
+  await expect(incomeRowOnPage).toHaveAttribute("data-kind", "sale")
+  await expect(incomeRowOnPage.getByRole("cell").nth(2)).toContainText("5.000")
+})
+
+test("income report displays and exports refund rows", async ({ page }) => {
+  await asSuperuser()
+  await page.route(/\/api\/v1\/finance\/income(?:\?.*)?$/, (route) =>
+    route.fulfill({
+      json: {
+        count: 1,
+        data: [
+          {
+            kind: "refund",
+            order_id: "00000000-0000-0000-0000-000000000001",
+            number: "OLD-ORDER",
+            completed_at: "2024-06-15T05:00:00Z",
+            gross_sales: "0.00",
+            discounts: "0.00",
+            fees: "0.00",
+            refunds: "550.00",
+            tax: "0.00",
+            net_sales: "-500.00",
+            payment_status: "partially_refunded",
+          },
+        ],
+      },
+    }),
+  )
+  await page.route(/\/api\/v1\/reports\/income\.csv(?:\?.*)?$/, (route) =>
+    route.fulfill({
+      contentType: "text/csv; charset=utf-8",
+      body: [
+        "number,kind,completed_at,gross_sales,discounts,fees,refunds,tax,net_sales,payment_status",
+        "OLD-ORDER,refund,2024-06-15,0.00,0.00,0.00,550.00,0.00,-500.00,partially_refunded",
+      ].join("\n"),
+    }),
+  )
+
+  await page.goto("/reports/profit")
+  const row = page.getByTestId("income-row")
+  await expect(row).toHaveAttribute("data-kind", "refund")
+  await expect(row.getByRole("cell").nth(0)).toHaveText(/Refund|Hoàn tiền/)
+  const rows = await csvOf(page, "export-income")
+  expect(rows).toHaveLength(1)
+  expect(rows[0][1]).toBe("refund")
+  expect(rows[0][8]).toBe("-500.00")
 })
 
 test("exported reports match the on-screen rows and totals", async ({
@@ -226,6 +271,9 @@ test("exported reports match the on-screen rows and totals", async ({
     "data-count",
     String(incomeRows.length),
   )
+  expect(
+    incomeRows.every((row) => row[1] === "sale" || row[1] === "refund"),
+  ).toBe(true)
   const incomeNets = await page
     .getByTestId("income-row")
     .evaluateAll((rows) =>
@@ -236,10 +284,10 @@ test("exported reports match the on-screen rows and totals", async ({
     .evaluateAll((rows) =>
       rows.map((row) => Number(row.getAttribute("data-fee")).toFixed(2)).sort(),
     )
-  expect(incomeRows.map((row) => Number(row[4]).toFixed(2)).sort()).toEqual(
+  expect(incomeRows.map((row) => Number(row[5]).toFixed(2)).sort()).toEqual(
     incomeFees,
   )
-  expect(incomeRows.map((row) => Number(row[7]).toFixed(2)).sort()).toEqual(
+  expect(incomeRows.map((row) => Number(row[8]).toFixed(2)).sort()).toEqual(
     incomeNets,
   )
 

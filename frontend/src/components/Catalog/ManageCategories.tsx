@@ -17,9 +17,9 @@ import { Input } from "@/components/ui/input"
 import { LoadingButton } from "@/components/ui/loading-button"
 import useCustomToast from "@/hooks/useCustomToast"
 import { useI18n } from "@/i18n"
+import badgeStyles from "@/styles/badge.module.css"
 import { handleError } from "@/utils"
 import { menuCategoriesQueryOptions } from "./queries"
-import badgeStyles from "@/styles/badge.module.css"
 
 function CategoryRow({
   category,

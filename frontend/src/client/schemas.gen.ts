@@ -1671,6 +1671,9 @@ export const IncomePublicSchema = {
 
 export const IncomeRowSchema = {
     properties: {
+        kind: {
+            '$ref': '#/components/schemas/IncomeRowKind'
+        },
         order_id: {
             type: 'string',
             format: 'uuid',
@@ -1721,8 +1724,14 @@ export const IncomeRowSchema = {
         }
     },
     type: 'object',
-    required: ['order_id', 'number', 'completed_at', 'gross_sales', 'discounts', 'fees', 'refunds', 'tax', 'net_sales', 'payment_status'],
+    required: ['kind', 'order_id', 'number', 'completed_at', 'gross_sales', 'discounts', 'fees', 'refunds', 'tax', 'net_sales', 'payment_status'],
     title: 'IncomeRow'
+} as const;
+
+export const IncomeRowKindSchema = {
+    type: 'string',
+    enum: ['sale', 'refund'],
+    title: 'IncomeRowKind'
 } as const;
 
 export const InventoryCategoriesPublicSchema = {

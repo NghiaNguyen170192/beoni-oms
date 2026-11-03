@@ -126,7 +126,9 @@ test("create a supplier, post a receipt, then reverse it", async ({ page }) => {
     node.scrollTop = node.scrollHeight
   })
   const searchBox = await page.getByLabel(L.searchItems).boundingBox()
-  const popupBox = await page.locator("[data-slot=select-content]").boundingBox()
+  const popupBox = await page
+    .locator("[data-slot=select-content]")
+    .boundingBox()
   const listBox = await itemList.boundingBox()
   if (!searchBox || !popupBox || !listBox) {
     throw new Error("item dropdown search is not visible")

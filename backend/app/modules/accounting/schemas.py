@@ -1,3 +1,4 @@
+from enum import Enum
 import uuid
 from datetime import date, datetime
 from decimal import Decimal
@@ -166,7 +167,13 @@ class FinancialSummaryPublic(SQLModel):
     missing_cost_lines: int
 
 
+class IncomeRowKind(str, Enum):
+    SALE = "sale"
+    REFUND = "refund"
+
+
 class IncomeRow(SQLModel):
+    kind: IncomeRowKind
     order_id: uuid.UUID
     number: str
     completed_at: datetime

@@ -410,7 +410,10 @@ function Expenses() {
                 value={formCategory || undefined}
                 onValueChange={setFormCategory}
               >
-                <SelectTrigger data-testid="expense-category" className="w-full">
+                <SelectTrigger
+                  data-testid="expense-category"
+                  className="w-full"
+                >
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -478,7 +481,10 @@ function Expenses() {
                   value={accountId || undefined}
                   onValueChange={setAccountId}
                 >
-                  <SelectTrigger data-testid="expense-account" className="w-full">
+                  <SelectTrigger
+                    data-testid="expense-account"
+                    className="w-full"
+                  >
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>

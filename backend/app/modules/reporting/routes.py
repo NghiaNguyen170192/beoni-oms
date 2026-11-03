@@ -486,6 +486,7 @@ def export_income(
     rows = income_listing(session, date_from=date_from, date_to=date_to)
     header = [
         "number",
+        "kind",
         "completed_at",
         "gross_sales",
         "discounts",

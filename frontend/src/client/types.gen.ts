@@ -363,6 +363,7 @@ export type IncomePublic = {
 };
 
 export type IncomeRow = {
+    kind: IncomeRowKind;
     order_id: string;
     number: string;
     completed_at: string;
@@ -374,6 +375,8 @@ export type IncomeRow = {
     net_sales: string;
     payment_status: string;
 };
+
+export type IncomeRowKind = 'sale' | 'refund';
 
 export type InventoryCategoriesPublic = {
     data: Array<InventoryCategoryPublic>;

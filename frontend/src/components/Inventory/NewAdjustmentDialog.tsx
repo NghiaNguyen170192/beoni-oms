@@ -25,11 +25,7 @@ import { Label } from "@/components/ui/label"
 import { SearchableSelect } from "@/components/ui/searchable-select"
 import useCustomToast from "@/hooks/useCustomToast"
 import { type MessageKey, useI18n } from "@/i18n"
-import {
-  formatAmountInput,
-  formatNumber,
-  parseAmountInput,
-} from "@/lib/format"
+import { formatAmountInput, formatNumber, parseAmountInput } from "@/lib/format"
 import { useIdempotencyKey } from "@/lib/idempotency"
 import {
   ADJUSTMENT_REASON_LABELS,
