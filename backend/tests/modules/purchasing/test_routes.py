@@ -81,6 +81,32 @@ def test_post_requires_key_and_staff_cannot_reverse(
     )
     assert posted.status_code == 200
     assert posted.json()["payment_status"] == "unpaid"
+    paid_on_post = client.post(
+        f"{API}/receipts",
+        headers=staff,
+        json={
+            "supplier_id": supplier["id"],
+            "receipt_date": "2026-10-15",
+            "lines": [
+                {
+                    "item_id": str(item.id),
+                    "purchase_quantity": "1",
+                    "purchase_unit_cost": "10000",
+                }
+            ],
+        },
+    )
+    assert paid_on_post.status_code == 201
+    denied_payment = client.post(
+        f"{API}/receipts/{paid_on_post.json()['id']}/post",
+        headers={**staff, "Idempotency-Key": uuid.uuid4().hex},
+        json={"payment_amount": "10000", "account_id": str(uuid.uuid4())},
+    )
+    assert denied_payment.status_code == 403
+    still_draft = client.get(
+        f"{API}/receipts/{paid_on_post.json()['id']}", headers=staff
+    )
+    assert still_draft.json()["status"] == "draft"
     reverse = client.post(
         f"{API}/receipts/{receipt_id}/reverse",
         headers={**staff, "Idempotency-Key": uuid.uuid4().hex},

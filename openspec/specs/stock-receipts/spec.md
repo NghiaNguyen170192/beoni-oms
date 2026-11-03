@@ -25,7 +25,7 @@ Line totals SHALL equal purchase quantity times purchase unit cost and the recei
 - **THEN** the stored total equals the computed sum of lines
 
 ### Requirement: Posting a receipt
-Posting SHALL validate the receipt, convert each line to base units using the item's conversion factor, post receipt movements valued at base-unit cost, update weighted-average cost, record a supplier payable equal to the receipt total, record the posting user and time, and set status posted, all atomically.
+Posting SHALL validate the receipt, convert each line to base units using the item's conversion factor, post receipt movements valued at base-unit cost, update weighted-average cost, record a supplier payable equal to the receipt total, record the posting user and time, and set status posted, all atomically. A payment amount on the post SHALL also require supplier-payment permission and SHALL record the supplier payment in the same transaction.
 
 #### Scenario: Post coffee receipt
 - **WHEN** a receipt of 5 kg coffee beans at 400,000 VND/kg is posted for an item with factor 1000
@@ -34,6 +34,10 @@ Posting SHALL validate the receipt, convert each line to base units using the it
 #### Scenario: Inactive item on posting
 - **WHEN** a draft contains an item that was deactivated
 - **THEN** posting is rejected and nothing changes
+
+#### Scenario: Payment without supplier-payment permission
+- **WHEN** an inventory staff member posts a receipt with a payment amount
+- **THEN** the system rejects the request and the receipt stays a draft
 
 ### Requirement: Posting is idempotent and one-time
 Posting SHALL require an idempotency key; a repeated request SHALL NOT post twice, and posting a receipt that is not a draft SHALL be rejected.

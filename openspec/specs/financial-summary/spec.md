@@ -14,11 +14,15 @@ Gross sales, discounts, and taxes SHALL be recognized on the order's completion 
 - **THEN** it does not contribute to sales
 
 ### Requirement: Refunds reduce sales when recorded
-Refunds SHALL reduce net sales in the period in which the refund was recorded.
+Refunds SHALL reduce net sales in the period in which the refund was recorded. The reported refund total is the amount returned to the customer. Because prices are tax-inclusive, the amount subtracted from net sales excludes the tax contained in the refund at that order's tax rate.
 
 #### Scenario: Refund next day
-- **WHEN** an order completed on day 1 is refunded 29000 on day 2
+- **WHEN** an order completed on day 1 at a zero tax rate is refunded 29000 on day 2
 - **THEN** day 1 net sales are unaffected and day 2 net sales are reduced by 29000
+
+#### Scenario: Tax-inclusive refund
+- **WHEN** a 1,000 refund is recorded against an order taxed at 10%
+- **THEN** reported refunds increase by 1,000 and net sales fall by 909
 
 ### Requirement: Profit formulas
 For a period, net sales SHALL equal gross sales minus discounts minus refunds, excluding taxes collected; COGS SHALL equal sale-consumption cost minus sellable-return cost; gross profit SHALL equal net sales minus COGS; operating profit SHALL equal gross profit minus non-reversed expenses dated in the period.
@@ -35,7 +39,7 @@ The summary SHALL report counts of lines with uncertain or missing cost in the p
 - **THEN** the summary indicates one line with uncertain cost
 
 ### Requirement: Income listing
-Users with finance view permission SHALL list completed orders in a period with order reference, completion date, gross sales, discounts, refunds, taxes, net sales, and payment status.
+Users with finance view permission SHALL list completed orders in a period with order reference, completion date, gross sales, discounts, refunds, taxes, net sales, and payment status. Payment status SHALL be paid, partially_refunded, or refunded from the refunds against the order total.
 
 #### Scenario: Income row
 - **WHEN** an accountant views income for today

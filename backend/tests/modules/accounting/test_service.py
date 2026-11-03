@@ -6,8 +6,13 @@ from zoneinfo import ZoneInfo
 import pytest
 from sqlmodel import Session, col, func, select
 
+from app.core.errors import Invalid
 from app.modules.accounting import service as accounting
-from app.modules.accounting.errors import OverAllocation, PaidExpenseNeedsAccount
+from app.modules.accounting.errors import (
+    AllocationMismatch,
+    OverAllocation,
+    PaidExpenseNeedsAccount,
+)
 from app.modules.accounting.ledger import BANK, CASH_DRAWER, account_named
 from app.modules.accounting.models import (
     AccountKind,
@@ -25,7 +30,7 @@ from app.modules.identity.roles import Role
 from app.modules.inventory.models import InventoryMovement, MovementType
 from app.modules.ordering import service as ordering
 from app.modules.ordering.models import Order, OrderLine
-from app.modules.ordering.pricing import DiscountType
+from app.modules.ordering.pricing import DiscountType, included_tax
 from app.modules.ordering.schemas import (
     DiscountUpdate,
     OrderCreate,
@@ -218,6 +223,18 @@ def test_paid_expense_moves_bank_and_retry_is_idempotent(db: Session) -> None:
     accountant = make_user_with_role(db, Role.ACCOUNTANT)
     rent = db.exec(select(ExpenseCategory).where(ExpenseCategory.name == "Rent")).one()
     bank = account_named(db, BANK)
+    with pytest.raises(Invalid):
+        accounting.record_expense(
+            db,
+            category_id=rent.id,
+            amount=D("10000000"),
+            expense_date=date.today(),
+            description="October rent",
+            payment_status=ExpensePaymentStatus.UNPAID,
+            account_id=bank.id,
+            actor=accountant,
+            idempotency_key="rent-unpaid-account",
+        )
     with pytest.raises(PaidExpenseNeedsAccount):
         accounting.record_expense(
             db,
@@ -375,6 +392,30 @@ def test_supplier_payment_allocates_and_blocks_receipt_reversal(db: Session) -> 
             reference=None,
             actor=actor,
             idempotency_key="over",
+        )
+    with pytest.raises(OverAllocation):
+        accounting.record_supplier_payment(
+            db,
+            supplier_id=older.supplier_id,
+            amount=D("1000000"),
+            payment_date=date.today(),
+            account_id=cash.id,
+            allocations=[(uuid.uuid4(), D("1000000"))],
+            reference=None,
+            actor=actor,
+            idempotency_key="missing-payable",
+        )
+    with pytest.raises(AllocationMismatch):
+        accounting.record_supplier_payment(
+            db,
+            supplier_id=older.supplier_id,
+            amount=D("2"),
+            payment_date=date.today(),
+            account_id=cash.id,
+            allocations=[(older.id, D("1")), (older.id, D("1"))],
+            reference=None,
+            actor=actor,
+            idempotency_key="duplicate-payable",
         )
 
 
@@ -637,7 +678,7 @@ def test_fee_revenue_uses_completion_date_and_includes_fee_vat(
     assert summary.fees == D("5000.00")
     assert summary.tax == D("9455.00")
     assert summary.refunds == D("1000.00")
-    assert summary.net_sales == D("93545.00")
+    assert summary.net_sales == D("93636.00")
     assert summary.cogs == D("0.00")
 
     income = accounting.income_listing(db, date_from=day, date_to=day)
@@ -646,7 +687,8 @@ def test_fee_revenue_uses_completion_date_and_includes_fee_vat(
     assert income_row.gross_sales == D("110000.00")
     assert income_row.fees == D("5000.00")
     assert income_row.tax == D("9455.00")
-    assert income_row.net_sales == D("93545.00")
+    assert income_row.net_sales == D("93636.00")
+    assert income_row.payment_status == "partially_refunded"
 
 
 def test_seeded_documents_reconcile_with_summary_and_balances(db: Session) -> None:
@@ -792,11 +834,10 @@ def test_seeded_documents_reconcile_with_summary_and_balances(db: Session) -> No
         )
     ).one()
     period_refunds = db.exec(
-        select(func.coalesce(func.sum(Refund.amount), 0)).where(
-            Refund.recorded_at >= start,
-            Refund.recorded_at < end,
-        )
-    ).one()
+        select(Refund.amount, Order.tax_rate)
+        .join(Order, Order.id == Refund.order_id)
+        .where(Refund.recorded_at >= start, Refund.recorded_at < end)
+    ).all()
     sale_value = db.exec(
         select(func.coalesce(func.sum(InventoryMovement.value), 0)).where(
             InventoryMovement.movement_type == MovementType.SALE_CONSUMPTION,
@@ -855,12 +896,21 @@ def test_seeded_documents_reconcile_with_summary_and_balances(db: Session) -> No
     summary = accounting.financial_summary(db, date_from=today, date_to=today)
     gross = D(sales[0]).quantize(D("0.01"))
     discounts = D(sales[1]).quantize(D("0.01"))
-    refunds_total = D(period_refunds).quantize(D("0.01"))
+    refunds_total = sum((D(amount) for amount, _ in period_refunds), D("0")).quantize(
+        D("0.01")
+    )
+    refunds_net = sum(
+        (
+            (D(amount) - included_tax(D(amount), D(rate))).quantize(D("0.01"))
+            for amount, rate in period_refunds
+        ),
+        D("0"),
+    ).quantize(D("0.01"))
     cogs = (-D(sale_value) - D(return_value)).quantize(D("0.01"))
     expenses = D(expense_total).quantize(D("0.01"))
     fees = D(summary["fees"])
     tax = D(summary["tax"])
-    net = (gross + fees - discounts - refunds_total - tax).quantize(D("0.01"))
+    net = (gross + fees - discounts - refunds_net - tax).quantize(D("0.01"))
     assert summary["gross_sales"] == gross
     assert summary["discounts"] == discounts
     assert summary["refunds"] == refunds_total

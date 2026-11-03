@@ -7,12 +7,13 @@ from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session, col, func, or_, select
 
-from app.core.errors import Invalid, violated_constraint
+from app.core.errors import Forbidden, Invalid, violated_constraint
 from app.core.money import money, quantity, unit_cost
 from app.models import User, get_datetime_utc
 from app.modules.audit import service as audit
 from app.modules.idempotency import service as idempotency
 from app.modules.idempotency.service import StoredResponse
+from app.modules.identity.permissions import Permission, has_permission
 from app.modules.inventory.errors import InventoryItemNotFound, ItemInactive
 from app.modules.inventory.models import InventoryItem, MovementType
 from app.modules.inventory.service import MovementLine, post_movements
@@ -630,6 +631,10 @@ def post_receipt(
     payment_amount: Decimal | None = None,
     account_id: uuid.UUID | None = None,
 ) -> StoredResponse:
+    if payment_amount is not None and not has_permission(
+        actor, Permission.SUPPLIER_PAYMENTS_RECORD
+    ):
+        raise Forbidden()
     payload = {
         "receipt_id": str(receipt_id),
         "payment_amount": str(payment_amount) if payment_amount is not None else None,

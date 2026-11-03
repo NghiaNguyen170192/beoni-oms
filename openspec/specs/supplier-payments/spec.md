@@ -18,10 +18,14 @@ Users with supplier payment permission SHALL record a payment to a supplier with
 - **THEN** both payables reflect their allocations
 
 ### Requirement: No overpayment of payables
-An allocation SHALL NOT exceed the payable's outstanding amount, and allocations SHALL only target the paying supplier's posted payables.
+An allocation SHALL NOT exceed the payable's outstanding amount, and allocations SHALL only target the paying supplier's posted payables. An unknown payable or the same payable twice SHALL be rejected.
 
 #### Scenario: Over-allocation
 - **WHEN** a user allocates 600,000 VND to a payable with 500,000 VND outstanding
+- **THEN** the system rejects the payment
+
+#### Scenario: Unknown or repeated payable
+- **WHEN** a payment names a payable that does not exist, or names one payable twice
 - **THEN** the system rejects the payment
 
 ### Requirement: Default allocation

@@ -1,11 +1,13 @@
 import uuid
 from datetime import date, datetime
 from decimal import Decimal
+from typing import TypeVar
 
 from sqlalchemy import func
+from sqlalchemy.exc import IntegrityError
 from sqlmodel import Session, col, select
 
-from app.core.errors import Invalid
+from app.core.errors import Invalid, violated_constraint
 from app.core.money import money
 from app.models import User, get_datetime_utc
 from app.modules.accounting.errors import (
@@ -39,6 +41,7 @@ from app.modules.idempotency import service as idempotency
 from app.modules.idempotency.service import StoredResponse
 from app.modules.inventory.models import InventoryMovement, MovementType
 from app.modules.ordering.models import Order, OrderLine
+from app.modules.ordering.pricing import included_tax
 from app.modules.ordering.states import OrderStatus
 from app.modules.payments.models import Refund
 from app.modules.production.models import ProductionBatch, ProductionBatchStatus
@@ -55,6 +58,23 @@ SALE_STATUSES = (
     OrderStatus.PARTIALLY_REFUNDED,
     OrderStatus.REFUNDED,
 )
+
+_Row = TypeVar("_Row")
+
+
+def _lock_row(session: Session, model: type[_Row], row_id: uuid.UUID) -> _Row | None:
+    return session.exec(
+        select(model)
+        .where(model.id == row_id)  # type: ignore[attr-defined]
+        .with_for_update()
+        .execution_options(populate_existing=True)
+    ).first()
+
+
+def _refund_net(amount: Decimal, tax_rate: Decimal) -> Decimal:
+    """Tax-exclusive part of a tax-inclusive refund. Net sales already excludes tax."""
+    gross = money(amount)
+    return money(gross - included_tax(gross, tax_rate))
 
 
 def _zone(session: Session) -> str:
@@ -182,7 +202,7 @@ def reverse_adjustment(
     idempotency_key: str,
 ) -> StoredResponse:
     def operation() -> tuple[int, CashAdjustment]:
-        original = session.get(CashAdjustment, adjustment_id)
+        original = _lock_row(session, CashAdjustment, adjustment_id)
         if original is None:
             raise AdjustmentNotFound()
         if (
@@ -199,7 +219,12 @@ def reverse_adjustment(
             recorded_by_id=actor.id,
         )
         session.add(reversal)
-        session.flush()
+        try:
+            session.flush()
+        except IntegrityError as exc:
+            if violated_constraint(exc) == "uq_cash_adjustments_reversal_of_id":
+                raise AdjustmentAlreadyReversed() from exc
+            raise
         record_money_movement(
             session,
             account_id=original.account_id,
@@ -209,6 +234,14 @@ def reverse_adjustment(
             source_id=reversal.id,
             actor_id=actor.id,
             note=reversal.reason,
+        )
+        audit.record(
+            session,
+            actor=actor,
+            entity_type="cash_adjustment",
+            entity_id=original.id,
+            action="reversed",
+            changes={"reason": reversal.reason, "reversal_id": reversal.id},
         )
         return 201, reversal
 
@@ -247,12 +280,22 @@ def create_category(session: Session, *, name: str, actor: User) -> ExpenseCateg
     return category
 
 
-def deactivate_category(session: Session, *, category_id: uuid.UUID) -> ExpenseCategory:
+def deactivate_category(
+    session: Session, *, category_id: uuid.UUID, actor: User
+) -> ExpenseCategory:
     category = session.get(ExpenseCategory, category_id)
     if category is None:
         raise ExpenseCategoryNotFound()
     category.is_active = False
     session.add(category)
+    audit.record(
+        session,
+        actor=actor,
+        entity_type="expense_category",
+        entity_id=category.id,
+        action="deactivated",
+        changes={"name": category.name},
+    )
     session.commit()
     session.refresh(category)
     return category
@@ -282,6 +325,8 @@ def record_expense(
         raise Invalid("Expense amount must be greater than zero")
     if payment_status == ExpensePaymentStatus.PAID and account_id is None:
         raise PaidExpenseNeedsAccount()
+    if payment_status == ExpensePaymentStatus.UNPAID and account_id is not None:
+        raise Invalid("An unpaid expense cannot name a payment account")
 
     def operation() -> tuple[int, Expense]:
         _category(session, category_id)
@@ -349,7 +394,7 @@ def pay_expense(
     idempotency_key: str,
 ) -> StoredResponse:
     def operation() -> tuple[int, Expense]:
-        expense = session.get(Expense, expense_id)
+        expense = _lock_row(session, Expense, expense_id)
         if expense is None:
             raise ExpenseNotFound()
         if expense.status != RecordStatus.RECORDED:
@@ -371,6 +416,14 @@ def pay_expense(
             source_id=expense.id,
             actor_id=actor.id,
             note=expense.description,
+        )
+        audit.record(
+            session,
+            actor=actor,
+            entity_type="expense",
+            entity_id=expense.id,
+            action="paid",
+            changes={"account_id": account_id, "payment_date": payment_date},
         )
         return 200, expense
 
@@ -396,7 +449,7 @@ def reverse_expense(
     idempotency_key: str,
 ) -> StoredResponse:
     def operation() -> tuple[int, Expense]:
-        expense = session.get(Expense, expense_id)
+        expense = _lock_row(session, Expense, expense_id)
         if expense is None:
             raise ExpenseNotFound()
         if expense.status != RecordStatus.RECORDED:
@@ -416,6 +469,14 @@ def reverse_expense(
                 actor_id=actor.id,
                 note=expense.reversal_reason,
             )
+        audit.record(
+            session,
+            actor=actor,
+            entity_type="expense",
+            entity_id=expense.id,
+            action="reversed",
+            changes={"reason": expense.reversal_reason},
+        )
         return 200, expense
 
     return idempotency.execute(
@@ -503,7 +564,9 @@ def apply_supplier_payment(
     if value <= 0:
         raise Invalid("Payment amount must be greater than zero")
     if allocations:
-        payable_ids = sorted({payable_id for payable_id, _ in allocations})
+        if len(allocations) != len({payable_id for payable_id, _ in allocations}):
+            raise AllocationMismatch()
+        payable_ids = sorted(payable_id for payable_id, _ in allocations)
         locked = list(
             session.exec(
                 select(SupplierPayable)
@@ -513,6 +576,8 @@ def apply_supplier_payment(
             ).all()
         )
         by_id = {payable.id: payable for payable in locked}
+        if len(by_id) != len(payable_ids):
+            raise OverAllocation()
         planned = [
             (by_id[payable_id], money(share)) for payable_id, share in allocations
         ]
@@ -570,6 +635,14 @@ def apply_supplier_payment(
         actor_id=actor.id,
         note=reference,
     )
+    audit.record(
+        session,
+        actor=actor,
+        entity_type="supplier_payment",
+        entity_id=payment.id,
+        action="recorded",
+        changes={"amount": payment.amount, "supplier_id": supplier_id},
+    )
     session.flush()
     return payment
 
@@ -596,14 +669,6 @@ def record_supplier_payment(
             allocations=allocations,
             reference=reference,
             actor=actor,
-        )
-        audit.record(
-            session,
-            actor=actor,
-            entity_type="supplier_payment",
-            entity_id=payment.id,
-            action="recorded",
-            changes={"amount": payment.amount, "supplier_id": supplier_id},
         )
         return 201, payment
 
@@ -634,7 +699,7 @@ def reverse_supplier_payment(
     idempotency_key: str,
 ) -> StoredResponse:
     def operation() -> tuple[int, SupplierPayment]:
-        payment = session.get(SupplierPayment, payment_id)
+        payment = _lock_row(session, SupplierPayment, payment_id)
         if payment is None:
             raise SupplierPaymentNotFound()
         if payment.status != RecordStatus.RECORDED:
@@ -674,6 +739,14 @@ def reverse_supplier_payment(
             source_id=payment.id,
             actor_id=actor.id,
             note=payment.reversal_reason,
+        )
+        audit.record(
+            session,
+            actor=actor,
+            entity_type="supplier_payment",
+            entity_id=payment.id,
+            action="reversed",
+            changes={"reason": payment.reversal_reason},
         )
         return 200, payment
 
@@ -762,12 +835,11 @@ def financial_summary(
             Order.completed_at < end,
         )
     ).one()
-    refunds = session.exec(
-        select(func.coalesce(func.sum(Refund.amount), 0)).where(
-            Refund.recorded_at >= start,
-            Refund.recorded_at < end,
-        )
-    ).one()
+    refund_rows = session.exec(
+        select(Refund.amount, Order.tax_rate)
+        .join(Order, Order.id == Refund.order_id)
+        .where(Refund.recorded_at >= start, Refund.recorded_at < end)
+    ).all()
     sale_value = session.exec(
         select(func.coalesce(func.sum(InventoryMovement.value), 0)).where(
             InventoryMovement.movement_type == MovementType.SALE_CONSUMPTION,
@@ -816,10 +888,13 @@ def financial_summary(
     discounts = money(sales[1])
     tax = money(sales[2])
     fees = money(sales[3])
-    refunded = money(refunds)
+    refunded = money(sum((money(amount) for amount, _ in refund_rows), Decimal("0")))
+    refunded_net = money(
+        sum((_refund_net(amount, rate) for amount, rate in refund_rows), Decimal("0"))
+    )
     cogs = money(-Decimal(sale_value) - Decimal(return_value))
     expense_total = money(Decimal(expenses or 0) + production_cost)
-    net = money(gross + fees - discounts - refunded - tax)
+    net = money(gross + fees - discounts - refunded_net - tax)
     gross_profit = money(net - cogs)
     return {
         "gross_sales": gross,
@@ -875,22 +950,38 @@ def income_listing(
     )
     if not orders:
         return []
+    rates = {order.id: order.tax_rate for order in orders}
     refund_rows = session.exec(
-        select(Refund.order_id, func.coalesce(func.sum(Refund.amount), 0))
-        .where(col(Refund.order_id).in_([order.id for order in orders]))
-        .group_by(Refund.order_id)
+        select(Refund.order_id, Refund.amount).where(
+            col(Refund.order_id).in_([order.id for order in orders])
+        )
     ).all()
-    refunded = {order_id: money(total) for order_id, total in refund_rows}
+    gross_refunds: dict[uuid.UUID, Decimal] = {}
+    net_refunds: dict[uuid.UUID, Decimal] = {}
+    for order_id, amount in refund_rows:
+        gross_refunds[order_id] = money(
+            gross_refunds.get(order_id, Decimal("0")) + money(amount)
+        )
+        net_refunds[order_id] = money(
+            net_refunds.get(order_id, Decimal("0"))
+            + _refund_net(amount, rates[order_id])
+        )
     rows: list[dict[str, object]] = []
     for order in orders:
-        refund_amount = refunded.get(order.id, Decimal("0.00"))
+        refund_amount = gross_refunds.get(order.id, Decimal("0.00"))
         net = money(
             order.subtotal
             + order.fee_total
             - order.discount_total
-            - refund_amount
+            - net_refunds.get(order.id, Decimal("0.00"))
             - order.tax_total
         )
+        if refund_amount == 0:
+            payment_status = "paid"
+        elif refund_amount >= order.total:
+            payment_status = "refunded"
+        else:
+            payment_status = "partially_refunded"
         rows.append(
             {
                 "order_id": order.id,
@@ -902,7 +993,7 @@ def income_listing(
                 "refunds": refund_amount,
                 "tax": order.tax_total,
                 "net_sales": net,
-                "payment_status": order.status.value,
+                "payment_status": payment_status,
             }
         )
     return rows

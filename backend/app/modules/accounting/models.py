@@ -79,6 +79,9 @@ class CashMovement(SQLModel, table=True):
 class CashAdjustment(SQLModel, table=True):
     __tablename__ = "cash_adjustments"
     __table_args__ = (
+        UniqueConstraint(
+            "reversal_of_id", name="uq_cash_adjustments_reversal_of_id"
+        ),
         CheckConstraint("amount <> 0", name="ck_cash_adjustments_amount"),
         CheckConstraint(
             f"status IN ({_sql_values(RecordStatus)})",

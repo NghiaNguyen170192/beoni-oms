@@ -25,11 +25,15 @@ Customer payments, voids, refunds, supplier payments and their reversals, paid e
 - **THEN** an opposite movement referencing the void is recorded
 
 ### Requirement: Authorized cash adjustments
-Users with cash adjustment permission SHALL record a cash adjustment on an account with signed amount and required reason; adjustments are idempotent and corrected only by reversal.
+Users with cash adjustment permission SHALL record a cash adjustment on an account with signed amount and required reason; adjustments are idempotent and corrected only by reversal. Each adjustment SHALL be reversible at most once.
 
 #### Scenario: Opening float
 - **WHEN** an owner records +500,000 VND "opening float" on Cash drawer
 - **THEN** the account balance increases by 500,000 VND
+
+#### Scenario: Second reversal
+- **WHEN** two reversals of the same adjustment are requested
+- **THEN** one reversal is recorded and the other is rejected
 
 ### Requirement: Recorded balances are labelled as unreconciled
 Account balances SHALL equal the sum of their movements and SHALL be presented as recorded balances, not bank-reconciled balances.

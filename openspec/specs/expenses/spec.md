@@ -7,7 +7,7 @@ Records the business's operating expenses by category so that operating profit c
 ## Requirements
 
 ### Requirement: Record expenses
-Users with expense permission SHALL record an expense with category, amount greater than zero, expense date, description, payment status (paid or unpaid), payment account when paid, and the responsible user.
+Users with expense permission SHALL record an expense with category, amount greater than zero, expense date, description, payment status (paid or unpaid), a payment account when and only when paid, and the responsible user.
 
 #### Scenario: Pay rent
 - **WHEN** an accountant records rent of 10,000,000 VND paid from Bank
@@ -15,6 +15,10 @@ Users with expense permission SHALL record an expense with category, amount grea
 
 #### Scenario: Missing account for paid expense
 - **WHEN** a paid expense is submitted without a payment account
+- **THEN** the system rejects it
+
+#### Scenario: Account on an unpaid expense
+- **WHEN** an unpaid expense is submitted with a payment account
 - **THEN** the system rejects it
 
 ### Requirement: Expense categories

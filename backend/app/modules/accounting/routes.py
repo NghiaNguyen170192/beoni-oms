@@ -148,9 +148,9 @@ def create_category(
 
 @router.post("/expenses/categories/{category_id}/deactivate", response_model=ExpenseCategoryPublic)
 def deactivate_category(
-    session: SessionDep, _actor: ExpenseManager, category_id: uuid.UUID
+    session: SessionDep, actor: ExpenseManager, category_id: uuid.UUID
 ) -> Any:
-    return service.deactivate_category(session, category_id=category_id)
+    return service.deactivate_category(session, category_id=category_id, actor=actor)
 
 
 @router.get("/expenses", response_model=ExpensesPublic)
