@@ -9,48 +9,39 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as LayoutRouteImport } from './routes/_layout'
-import { Route as LoginRouteImport } from './routes/login'
-import { Route as RecoverPasswordRouteImport } from './routes/recover-password'
-import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as SignupRouteImport } from './routes/signup'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as RecoverPasswordRouteImport } from './routes/recover-password'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as LayoutRouteImport } from './routes/_layout'
 import { Route as LayoutIndexRouteImport } from './routes/_layout/index'
-import { Route as LayoutAdminRouteImport } from './routes/_layout/admin'
-import { Route as LayoutCashRouteImport } from './routes/_layout/cash'
-import { Route as LayoutExpensesRouteImport } from './routes/_layout/expenses'
-import { Route as LayoutInventoryRouteImport } from './routes/_layout/inventory'
-import { Route as LayoutMenuRouteImport } from './routes/_layout/menu'
-import { Route as LayoutNotificationsRouteImport } from './routes/_layout/notifications'
-import { Route as LayoutOrdersRouteImport } from './routes/_layout/orders'
-import { Route as LayoutPaymentsRouteImport } from './routes/_layout/payments'
-import { Route as LayoutPosRouteImport } from './routes/_layout/pos'
-import { Route as LayoutProductionRouteImport } from './routes/_layout/production'
-import { Route as LayoutRecipesRouteImport } from './routes/_layout/recipes'
-import { Route as LayoutSettingsRouteImport } from './routes/_layout/settings'
-import { Route as LayoutStockAdjustmentsRouteImport } from './routes/_layout/stock-adjustments'
-import { Route as LayoutStockReceiptsRouteImport } from './routes/_layout/stock-receipts'
-import { Route as LayoutSuppliersRouteImport } from './routes/_layout/suppliers'
 import { Route as ReceiptOrderIdRouteImport } from './routes/receipt.$orderId'
-import { Route as LayoutAdminAuditLogRouteImport } from './routes/_layout/admin_.audit-log'
-import { Route as LayoutAdminFeesRouteImport } from './routes/_layout/admin_.fees'
-import { Route as LayoutAdminLanguageRouteImport } from './routes/_layout/admin_.language'
-import { Route as LayoutReportsInventoryRouteImport } from './routes/_layout/reports/inventory'
-import { Route as LayoutReportsProductionRouteImport } from './routes/_layout/reports/production'
-import { Route as LayoutReportsProfitRouteImport } from './routes/_layout/reports/profit'
+import { Route as LayoutSuppliersRouteImport } from './routes/_layout/suppliers'
+import { Route as LayoutStockReceiptsRouteImport } from './routes/_layout/stock-receipts'
+import { Route as LayoutStockAdjustmentsRouteImport } from './routes/_layout/stock-adjustments'
+import { Route as LayoutSettingsRouteImport } from './routes/_layout/settings'
+import { Route as LayoutRecipesRouteImport } from './routes/_layout/recipes'
+import { Route as LayoutProductionRouteImport } from './routes/_layout/production'
+import { Route as LayoutPosRouteImport } from './routes/_layout/pos'
+import { Route as LayoutPaymentsRouteImport } from './routes/_layout/payments'
+import { Route as LayoutOrdersRouteImport } from './routes/_layout/orders'
+import { Route as LayoutNotificationsRouteImport } from './routes/_layout/notifications'
+import { Route as LayoutMenuRouteImport } from './routes/_layout/menu'
+import { Route as LayoutInventoryRouteImport } from './routes/_layout/inventory'
+import { Route as LayoutExpensesRouteImport } from './routes/_layout/expenses'
+import { Route as LayoutCashRouteImport } from './routes/_layout/cash'
+import { Route as LayoutAdminRouteImport } from './routes/_layout/admin'
 import { Route as LayoutReportsSalesRouteImport } from './routes/_layout/reports/sales'
+import { Route as LayoutReportsProfitRouteImport } from './routes/_layout/reports/profit'
+import { Route as LayoutReportsProductionRouteImport } from './routes/_layout/reports/production'
+import { Route as LayoutReportsInventoryRouteImport } from './routes/_layout/reports/inventory'
+import { Route as LayoutAdminLanguageRouteImport } from './routes/_layout/admin_.language'
+import { Route as LayoutAdminFeesRouteImport } from './routes/_layout/admin_.fees'
+import { Route as LayoutAdminAuditLogRouteImport } from './routes/_layout/admin_.audit-log'
 
-const LayoutRoute = LayoutRouteImport.update({
-  id: '/_layout',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LoginRoute = LoginRouteImport.update({
-  id: '/login',
-  path: '/login',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const RecoverPasswordRoute = RecoverPasswordRouteImport.update({
-  id: '/recover-password',
-  path: '/recover-password',
+const SignupRoute = SignupRouteImport.update({
+  id: '/signup',
+  path: '/signup',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
@@ -58,9 +49,18 @@ const ResetPasswordRoute = ResetPasswordRouteImport.update({
   path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
-const SignupRoute = SignupRouteImport.update({
-  id: '/signup',
-  path: '/signup',
+const RecoverPasswordRoute = RecoverPasswordRouteImport.update({
+  id: '/recover-password',
+  path: '/recover-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LayoutRoute = LayoutRouteImport.update({
+  id: '/_layout',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LayoutIndexRoute = LayoutIndexRouteImport.update({
@@ -68,69 +68,14 @@ const LayoutIndexRoute = LayoutIndexRouteImport.update({
   path: '/',
   getParentRoute: () => LayoutRoute,
 } as any)
-const LayoutAdminRoute = LayoutAdminRouteImport.update({
-  id: '/admin',
-  path: '/admin',
-  getParentRoute: () => LayoutRoute,
+const ReceiptOrderIdRoute = ReceiptOrderIdRouteImport.update({
+  id: '/receipt/$orderId',
+  path: '/receipt/$orderId',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const LayoutCashRoute = LayoutCashRouteImport.update({
-  id: '/cash',
-  path: '/cash',
-  getParentRoute: () => LayoutRoute,
-} as any)
-const LayoutExpensesRoute = LayoutExpensesRouteImport.update({
-  id: '/expenses',
-  path: '/expenses',
-  getParentRoute: () => LayoutRoute,
-} as any)
-const LayoutInventoryRoute = LayoutInventoryRouteImport.update({
-  id: '/inventory',
-  path: '/inventory',
-  getParentRoute: () => LayoutRoute,
-} as any)
-const LayoutMenuRoute = LayoutMenuRouteImport.update({
-  id: '/menu',
-  path: '/menu',
-  getParentRoute: () => LayoutRoute,
-} as any)
-const LayoutNotificationsRoute = LayoutNotificationsRouteImport.update({
-  id: '/notifications',
-  path: '/notifications',
-  getParentRoute: () => LayoutRoute,
-} as any)
-const LayoutOrdersRoute = LayoutOrdersRouteImport.update({
-  id: '/orders',
-  path: '/orders',
-  getParentRoute: () => LayoutRoute,
-} as any)
-const LayoutPaymentsRoute = LayoutPaymentsRouteImport.update({
-  id: '/payments',
-  path: '/payments',
-  getParentRoute: () => LayoutRoute,
-} as any)
-const LayoutPosRoute = LayoutPosRouteImport.update({
-  id: '/pos',
-  path: '/pos',
-  getParentRoute: () => LayoutRoute,
-} as any)
-const LayoutProductionRoute = LayoutProductionRouteImport.update({
-  id: '/production',
-  path: '/production',
-  getParentRoute: () => LayoutRoute,
-} as any)
-const LayoutRecipesRoute = LayoutRecipesRouteImport.update({
-  id: '/recipes',
-  path: '/recipes',
-  getParentRoute: () => LayoutRoute,
-} as any)
-const LayoutSettingsRoute = LayoutSettingsRouteImport.update({
-  id: '/settings',
-  path: '/settings',
-  getParentRoute: () => LayoutRoute,
-} as any)
-const LayoutStockAdjustmentsRoute = LayoutStockAdjustmentsRouteImport.update({
-  id: '/stock-adjustments',
-  path: '/stock-adjustments',
+const LayoutSuppliersRoute = LayoutSuppliersRouteImport.update({
+  id: '/suppliers',
+  path: '/suppliers',
   getParentRoute: () => LayoutRoute,
 } as any)
 const LayoutStockReceiptsRoute = LayoutStockReceiptsRouteImport.update({
@@ -138,39 +83,74 @@ const LayoutStockReceiptsRoute = LayoutStockReceiptsRouteImport.update({
   path: '/stock-receipts',
   getParentRoute: () => LayoutRoute,
 } as any)
-const LayoutSuppliersRoute = LayoutSuppliersRouteImport.update({
-  id: '/suppliers',
-  path: '/suppliers',
+const LayoutStockAdjustmentsRoute = LayoutStockAdjustmentsRouteImport.update({
+  id: '/stock-adjustments',
+  path: '/stock-adjustments',
   getParentRoute: () => LayoutRoute,
 } as any)
-const ReceiptOrderIdRoute = ReceiptOrderIdRouteImport.update({
-  id: '/receipt/$orderId',
-  path: '/receipt/$orderId',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LayoutAdminAuditLogRoute = LayoutAdminAuditLogRouteImport.update({
-  id: '/admin_/audit-log',
-  path: '/admin/audit-log',
+const LayoutSettingsRoute = LayoutSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
   getParentRoute: () => LayoutRoute,
 } as any)
-const LayoutAdminFeesRoute = LayoutAdminFeesRouteImport.update({
-  id: '/admin_/fees',
-  path: '/admin/fees',
+const LayoutRecipesRoute = LayoutRecipesRouteImport.update({
+  id: '/recipes',
+  path: '/recipes',
   getParentRoute: () => LayoutRoute,
 } as any)
-const LayoutAdminLanguageRoute = LayoutAdminLanguageRouteImport.update({
-  id: '/admin_/language',
-  path: '/admin/language',
+const LayoutProductionRoute = LayoutProductionRouteImport.update({
+  id: '/production',
+  path: '/production',
   getParentRoute: () => LayoutRoute,
 } as any)
-const LayoutReportsInventoryRoute = LayoutReportsInventoryRouteImport.update({
-  id: '/reports/inventory',
-  path: '/reports/inventory',
+const LayoutPosRoute = LayoutPosRouteImport.update({
+  id: '/pos',
+  path: '/pos',
   getParentRoute: () => LayoutRoute,
 } as any)
-const LayoutReportsProductionRoute = LayoutReportsProductionRouteImport.update({
-  id: '/reports/production',
-  path: '/reports/production',
+const LayoutPaymentsRoute = LayoutPaymentsRouteImport.update({
+  id: '/payments',
+  path: '/payments',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const LayoutOrdersRoute = LayoutOrdersRouteImport.update({
+  id: '/orders',
+  path: '/orders',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const LayoutNotificationsRoute = LayoutNotificationsRouteImport.update({
+  id: '/notifications',
+  path: '/notifications',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const LayoutMenuRoute = LayoutMenuRouteImport.update({
+  id: '/menu',
+  path: '/menu',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const LayoutInventoryRoute = LayoutInventoryRouteImport.update({
+  id: '/inventory',
+  path: '/inventory',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const LayoutExpensesRoute = LayoutExpensesRouteImport.update({
+  id: '/expenses',
+  path: '/expenses',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const LayoutCashRoute = LayoutCashRouteImport.update({
+  id: '/cash',
+  path: '/cash',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const LayoutAdminRoute = LayoutAdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const LayoutReportsSalesRoute = LayoutReportsSalesRouteImport.update({
+  id: '/reports/sales',
+  path: '/reports/sales',
   getParentRoute: () => LayoutRoute,
 } as any)
 const LayoutReportsProfitRoute = LayoutReportsProfitRouteImport.update({
@@ -178,9 +158,29 @@ const LayoutReportsProfitRoute = LayoutReportsProfitRouteImport.update({
   path: '/reports/profit',
   getParentRoute: () => LayoutRoute,
 } as any)
-const LayoutReportsSalesRoute = LayoutReportsSalesRouteImport.update({
-  id: '/reports/sales',
-  path: '/reports/sales',
+const LayoutReportsProductionRoute = LayoutReportsProductionRouteImport.update({
+  id: '/reports/production',
+  path: '/reports/production',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const LayoutReportsInventoryRoute = LayoutReportsInventoryRouteImport.update({
+  id: '/reports/inventory',
+  path: '/reports/inventory',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const LayoutAdminLanguageRoute = LayoutAdminLanguageRouteImport.update({
+  id: '/admin_/language',
+  path: '/admin/language',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const LayoutAdminFeesRoute = LayoutAdminFeesRouteImport.update({
+  id: '/admin_/fees',
+  path: '/admin/fees',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const LayoutAdminAuditLogRoute = LayoutAdminAuditLogRouteImport.update({
+  id: '/admin_/audit-log',
+  path: '/admin/audit-log',
   getParentRoute: () => LayoutRoute,
 } as any)
 
@@ -381,25 +381,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/_layout': {
-      id: '/_layout'
-      path: ''
-      fullPath: '/'
-      preLoaderRoute: typeof LayoutRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/login': {
-      id: '/login'
-      path: '/login'
-      fullPath: '/login'
-      preLoaderRoute: typeof LoginRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/recover-password': {
-      id: '/recover-password'
-      path: '/recover-password'
-      fullPath: '/recover-password'
-      preLoaderRoute: typeof RecoverPasswordRouteImport
+    '/signup': {
+      id: '/signup'
+      path: '/signup'
+      fullPath: '/signup'
+      preLoaderRoute: typeof SignupRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/reset-password': {
@@ -409,11 +395,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/signup': {
-      id: '/signup'
-      path: '/signup'
-      fullPath: '/signup'
-      preLoaderRoute: typeof SignupRouteImport
+    '/recover-password': {
+      id: '/recover-password'
+      path: '/recover-password'
+      fullPath: '/recover-password'
+      preLoaderRoute: typeof RecoverPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_layout': {
+      id: '/_layout'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof LayoutRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_layout/': {
@@ -423,95 +423,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutIndexRouteImport
       parentRoute: typeof LayoutRoute
     }
-    '/_layout/admin': {
-      id: '/_layout/admin'
-      path: '/admin'
-      fullPath: '/admin'
-      preLoaderRoute: typeof LayoutAdminRouteImport
-      parentRoute: typeof LayoutRoute
+    '/receipt/$orderId': {
+      id: '/receipt/$orderId'
+      path: '/receipt/$orderId'
+      fullPath: '/receipt/$orderId'
+      preLoaderRoute: typeof ReceiptOrderIdRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/_layout/cash': {
-      id: '/_layout/cash'
-      path: '/cash'
-      fullPath: '/cash'
-      preLoaderRoute: typeof LayoutCashRouteImport
-      parentRoute: typeof LayoutRoute
-    }
-    '/_layout/expenses': {
-      id: '/_layout/expenses'
-      path: '/expenses'
-      fullPath: '/expenses'
-      preLoaderRoute: typeof LayoutExpensesRouteImport
-      parentRoute: typeof LayoutRoute
-    }
-    '/_layout/inventory': {
-      id: '/_layout/inventory'
-      path: '/inventory'
-      fullPath: '/inventory'
-      preLoaderRoute: typeof LayoutInventoryRouteImport
-      parentRoute: typeof LayoutRoute
-    }
-    '/_layout/menu': {
-      id: '/_layout/menu'
-      path: '/menu'
-      fullPath: '/menu'
-      preLoaderRoute: typeof LayoutMenuRouteImport
-      parentRoute: typeof LayoutRoute
-    }
-    '/_layout/notifications': {
-      id: '/_layout/notifications'
-      path: '/notifications'
-      fullPath: '/notifications'
-      preLoaderRoute: typeof LayoutNotificationsRouteImport
-      parentRoute: typeof LayoutRoute
-    }
-    '/_layout/orders': {
-      id: '/_layout/orders'
-      path: '/orders'
-      fullPath: '/orders'
-      preLoaderRoute: typeof LayoutOrdersRouteImport
-      parentRoute: typeof LayoutRoute
-    }
-    '/_layout/payments': {
-      id: '/_layout/payments'
-      path: '/payments'
-      fullPath: '/payments'
-      preLoaderRoute: typeof LayoutPaymentsRouteImport
-      parentRoute: typeof LayoutRoute
-    }
-    '/_layout/pos': {
-      id: '/_layout/pos'
-      path: '/pos'
-      fullPath: '/pos'
-      preLoaderRoute: typeof LayoutPosRouteImport
-      parentRoute: typeof LayoutRoute
-    }
-    '/_layout/production': {
-      id: '/_layout/production'
-      path: '/production'
-      fullPath: '/production'
-      preLoaderRoute: typeof LayoutProductionRouteImport
-      parentRoute: typeof LayoutRoute
-    }
-    '/_layout/recipes': {
-      id: '/_layout/recipes'
-      path: '/recipes'
-      fullPath: '/recipes'
-      preLoaderRoute: typeof LayoutRecipesRouteImport
-      parentRoute: typeof LayoutRoute
-    }
-    '/_layout/settings': {
-      id: '/_layout/settings'
-      path: '/settings'
-      fullPath: '/settings'
-      preLoaderRoute: typeof LayoutSettingsRouteImport
-      parentRoute: typeof LayoutRoute
-    }
-    '/_layout/stock-adjustments': {
-      id: '/_layout/stock-adjustments'
-      path: '/stock-adjustments'
-      fullPath: '/stock-adjustments'
-      preLoaderRoute: typeof LayoutStockAdjustmentsRouteImport
+    '/_layout/suppliers': {
+      id: '/_layout/suppliers'
+      path: '/suppliers'
+      fullPath: '/suppliers'
+      preLoaderRoute: typeof LayoutSuppliersRouteImport
       parentRoute: typeof LayoutRoute
     }
     '/_layout/stock-receipts': {
@@ -521,53 +444,102 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutStockReceiptsRouteImport
       parentRoute: typeof LayoutRoute
     }
-    '/_layout/suppliers': {
-      id: '/_layout/suppliers'
-      path: '/suppliers'
-      fullPath: '/suppliers'
-      preLoaderRoute: typeof LayoutSuppliersRouteImport
+    '/_layout/stock-adjustments': {
+      id: '/_layout/stock-adjustments'
+      path: '/stock-adjustments'
+      fullPath: '/stock-adjustments'
+      preLoaderRoute: typeof LayoutStockAdjustmentsRouteImport
       parentRoute: typeof LayoutRoute
     }
-    '/receipt/$orderId': {
-      id: '/receipt/$orderId'
-      path: '/receipt/$orderId'
-      fullPath: '/receipt/$orderId'
-      preLoaderRoute: typeof ReceiptOrderIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_layout/admin_/audit-log': {
-      id: '/_layout/admin_/audit-log'
-      path: '/admin/audit-log'
-      fullPath: '/admin/audit-log'
-      preLoaderRoute: typeof LayoutAdminAuditLogRouteImport
+    '/_layout/settings': {
+      id: '/_layout/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof LayoutSettingsRouteImport
       parentRoute: typeof LayoutRoute
     }
-    '/_layout/admin_/fees': {
-      id: '/_layout/admin_/fees'
-      path: '/admin/fees'
-      fullPath: '/admin/fees'
-      preLoaderRoute: typeof LayoutAdminFeesRouteImport
+    '/_layout/recipes': {
+      id: '/_layout/recipes'
+      path: '/recipes'
+      fullPath: '/recipes'
+      preLoaderRoute: typeof LayoutRecipesRouteImport
       parentRoute: typeof LayoutRoute
     }
-    '/_layout/admin_/language': {
-      id: '/_layout/admin_/language'
-      path: '/admin/language'
-      fullPath: '/admin/language'
-      preLoaderRoute: typeof LayoutAdminLanguageRouteImport
+    '/_layout/production': {
+      id: '/_layout/production'
+      path: '/production'
+      fullPath: '/production'
+      preLoaderRoute: typeof LayoutProductionRouteImport
       parentRoute: typeof LayoutRoute
     }
-    '/_layout/reports/inventory': {
-      id: '/_layout/reports/inventory'
-      path: '/reports/inventory'
-      fullPath: '/reports/inventory'
-      preLoaderRoute: typeof LayoutReportsInventoryRouteImport
+    '/_layout/pos': {
+      id: '/_layout/pos'
+      path: '/pos'
+      fullPath: '/pos'
+      preLoaderRoute: typeof LayoutPosRouteImport
       parentRoute: typeof LayoutRoute
     }
-    '/_layout/reports/production': {
-      id: '/_layout/reports/production'
-      path: '/reports/production'
-      fullPath: '/reports/production'
-      preLoaderRoute: typeof LayoutReportsProductionRouteImport
+    '/_layout/payments': {
+      id: '/_layout/payments'
+      path: '/payments'
+      fullPath: '/payments'
+      preLoaderRoute: typeof LayoutPaymentsRouteImport
+      parentRoute: typeof LayoutRoute
+    }
+    '/_layout/orders': {
+      id: '/_layout/orders'
+      path: '/orders'
+      fullPath: '/orders'
+      preLoaderRoute: typeof LayoutOrdersRouteImport
+      parentRoute: typeof LayoutRoute
+    }
+    '/_layout/notifications': {
+      id: '/_layout/notifications'
+      path: '/notifications'
+      fullPath: '/notifications'
+      preLoaderRoute: typeof LayoutNotificationsRouteImport
+      parentRoute: typeof LayoutRoute
+    }
+    '/_layout/menu': {
+      id: '/_layout/menu'
+      path: '/menu'
+      fullPath: '/menu'
+      preLoaderRoute: typeof LayoutMenuRouteImport
+      parentRoute: typeof LayoutRoute
+    }
+    '/_layout/inventory': {
+      id: '/_layout/inventory'
+      path: '/inventory'
+      fullPath: '/inventory'
+      preLoaderRoute: typeof LayoutInventoryRouteImport
+      parentRoute: typeof LayoutRoute
+    }
+    '/_layout/expenses': {
+      id: '/_layout/expenses'
+      path: '/expenses'
+      fullPath: '/expenses'
+      preLoaderRoute: typeof LayoutExpensesRouteImport
+      parentRoute: typeof LayoutRoute
+    }
+    '/_layout/cash': {
+      id: '/_layout/cash'
+      path: '/cash'
+      fullPath: '/cash'
+      preLoaderRoute: typeof LayoutCashRouteImport
+      parentRoute: typeof LayoutRoute
+    }
+    '/_layout/admin': {
+      id: '/_layout/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof LayoutAdminRouteImport
+      parentRoute: typeof LayoutRoute
+    }
+    '/_layout/reports/sales': {
+      id: '/_layout/reports/sales'
+      path: '/reports/sales'
+      fullPath: '/reports/sales'
+      preLoaderRoute: typeof LayoutReportsSalesRouteImport
       parentRoute: typeof LayoutRoute
     }
     '/_layout/reports/profit': {
@@ -577,11 +549,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutReportsProfitRouteImport
       parentRoute: typeof LayoutRoute
     }
-    '/_layout/reports/sales': {
-      id: '/_layout/reports/sales'
-      path: '/reports/sales'
-      fullPath: '/reports/sales'
-      preLoaderRoute: typeof LayoutReportsSalesRouteImport
+    '/_layout/reports/production': {
+      id: '/_layout/reports/production'
+      path: '/reports/production'
+      fullPath: '/reports/production'
+      preLoaderRoute: typeof LayoutReportsProductionRouteImport
+      parentRoute: typeof LayoutRoute
+    }
+    '/_layout/reports/inventory': {
+      id: '/_layout/reports/inventory'
+      path: '/reports/inventory'
+      fullPath: '/reports/inventory'
+      preLoaderRoute: typeof LayoutReportsInventoryRouteImport
+      parentRoute: typeof LayoutRoute
+    }
+    '/_layout/admin_/language': {
+      id: '/_layout/admin_/language'
+      path: '/admin/language'
+      fullPath: '/admin/language'
+      preLoaderRoute: typeof LayoutAdminLanguageRouteImport
+      parentRoute: typeof LayoutRoute
+    }
+    '/_layout/admin_/fees': {
+      id: '/_layout/admin_/fees'
+      path: '/admin/fees'
+      fullPath: '/admin/fees'
+      preLoaderRoute: typeof LayoutAdminFeesRouteImport
+      parentRoute: typeof LayoutRoute
+    }
+    '/_layout/admin_/audit-log': {
+      id: '/_layout/admin_/audit-log'
+      path: '/admin/audit-log'
+      fullPath: '/admin/audit-log'
+      preLoaderRoute: typeof LayoutAdminAuditLogRouteImport
       parentRoute: typeof LayoutRoute
     }
   }
